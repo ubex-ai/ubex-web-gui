@@ -1,0 +1,72 @@
+/*-----------------------------------------------------------
+    UI Lockscreen
+----------------------------------------------------------*/
+
+.lockscreen_icon i {
+	color: $primary-color;
+	font-size: 140px;
+	text-align: center;
+	margin: 90px auto 0 0;
+	display: block;
+}
+.lockscreen_info img {
+	-webkit-border-radius: 50%;
+	-moz-border-radius: 50%;
+	border-radius: 50%;
+	width: 32px;
+	height: 32px;
+	margin-right: 10px;
+}
+.lockscreen_info {
+	text-align: center;
+	display: block;
+	width: 100%;
+	font-size: 21px;
+	line-height: 32px;
+	color: #999999;
+	font-weight: 400;
+	margin: 15px 0;
+	margin-top: 45px;
+}
+.lockscreen_search {
+	margin: 15px 0;
+}
+.lockscreen_search input[type='password'] {
+	margin: 0 auto;
+	padding: 15px 15px;
+	font-size: 17px;
+	height: 45px !important;
+	background-color: #f8f8f8;
+}
+.lockscreen_search input[type='submit'] {
+	visibility: hidden;
+	width: 0px;
+	height: 0px;
+	overflow: hidden;
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	padding: 0px;
+	margin: 0px;
+}
+.lockscreen_search .input-group.transparent .input-group-addon {
+	background-color: #f8f8f8;
+	padding: 10px 12px 6px 20px;
+	height: 45px;
+}
+.lockscreen_btn {
+	margin: 30px 0 0 0;
+}
+.lockscreen_search i {
+	font-size: 21px;
+}
+.lockscreen_tagline {
+	text-align: center;
+	display: block;
+	width: 100%;
+	font-size: 18px;
+	line-height: 32px;
+	color: #aaaaaa;
+	font-weight: 400;
+	margin: 15px 0;
+}

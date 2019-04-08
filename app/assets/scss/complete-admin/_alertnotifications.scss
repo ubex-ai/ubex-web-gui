@@ -1,0 +1,87 @@
+/*---------------------------------------------
+    Alert Notifications
+----------------------------------------------*/
+
+.alert {
+	border-radius: 0px;
+	-o-border-radius: 0px;
+	-ms-border-radius: 0px;
+	-moz-border-radius: 0px;
+	-webkit-border-radius: 0px;
+	text-shadow: none;
+	background: $light-gray;
+}
+.alert-warning {
+	border: 1px solid $warning-color;
+	background: $warning-color;
+	color: $white-color;
+}
+.alert-success {
+	border: 1px solid $success-color;
+	background: $success-color;
+	color: $white-color;;
+}
+.alert-info {
+	border: 1px solid $info-color;
+	background: $info-color;
+	color: $white-color;
+}
+.alert-danger,
+.alert-error {
+	border: 1px solid $danger-color;
+	background: $danger-color;
+	color: $white-color;
+}
+.alert button.close span {
+	color: #ffffff;
+}
+.alert button.close {
+	opacity: 0.6;
+}
+.alert {
+	padding: 15px 35px 15px 15px;
+	text-shadow: none;
+	-webkit-box-shadow: none;
+	-moz-box-shadow: none;
+	box-shadow: none;
+	border: none;
+}
+.alert.alert-light span {
+	color: $default-color;
+}
+.alert a {
+	font-weight: bold;
+	color: $white-color;
+}
+.alert button.close span {
+	color: $white-color;
+	opacity: 1;
+	font-size: 33px;
+	font-weight: 300;
+	line-height: 25px;
+	top: 16%;
+}
+.alert-default *,
+.alert-default a,
+.alert-default {
+	color: $default-color;
+}
+.alert.alert-default button.close span {
+	color: $default-color;
+}
+.alert-primary {
+	background: $primary-color;
+	color: $white-color;
+}
+.notification_btns .btn {
+	margin-bottom: 15px;
+	margin-right: 15px;
+}
+.alert-primary .alert-link,
+.alert-success .alert-link,
+.alert-info .alert-link,
+.alert-warning .alert-link,
+.alert-dark .alert-link,
+.alert-danger .alert-link {
+	color: $white-color;
+}

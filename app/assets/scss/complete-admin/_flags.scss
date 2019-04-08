@@ -1,0 +1,8 @@
+.userdd {
+	.dropdown-toggle {
+		&:after {
+			position: relative;
+			top: 2px;
+		}
+	}
+}

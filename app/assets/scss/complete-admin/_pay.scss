@@ -1,0 +1,37 @@
+.image_payment {
+	display: flex;
+	justify-content: center;
+}
+.image_payment img {
+	width: 200px;
+	height: 100%;
+	margin: 0 auto;
+	display: block;
+}
+
+.pay_annotation {
+	padding: 20px !important;
+	ul {
+		list-style-type: decimal;
+	}
+}
+
+.card-body .annotation {
+	text-align: center;
+	font-size: 18px;
+}
+
+.card-pay {
+	.col-md-3 {
+		padding-left: 10px;
+		padding-right: 5px;
+	}
+	.col-9 {
+		padding-left: 5px;
+		padding-right: 10px
+	}
+	.col-12 {
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+}

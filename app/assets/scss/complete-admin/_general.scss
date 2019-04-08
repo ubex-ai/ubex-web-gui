@@ -1,0 +1,360 @@
+/*----------------------------------------
+  General Layout Style
+------------------------------------------*/
+
+html {
+	font-size: 100%;
+	height: 100%;
+	background-color: #eeeeee;
+}
+
+html.boxed {
+	background: #e0e0e0;
+}
+
+body {
+	background-color: #eaecef;
+	color: rgba(118, 118, 118, 1);
+	font-family: $fontFamily;
+	font-size: 16px;
+	padding: 0px !important;
+	margin: 0px !important;
+	line-height: 23px;
+	font-style: normal;
+	font-weight: normal;
+	min-height: 100%;
+	float: left;
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+body.boxed {
+	margin: 0 5% !important;
+	max-width: 90%;
+	width: 90%;
+	min-height: 100%;
+	box-shadow: 0px 0px 5px rgba(86, 96, 117, 0.15);
+	-o-box-shadow: 0px 0px 5px rgba(86, 96, 117, 0.15);
+	-ms-box-shadow: 0px 0px 5px rgba(86, 96, 117, 0.15);
+	-moz-box-shadow: 0px 0px 5px rgba(86, 96, 117, 0.15);
+	-webkit-box-shadow: 0px 0px 5px rgba(86, 96, 117, 0.15);
+}
+body.boxed .page-topbar {
+	max-width: 90%;
+	width: 90%;
+	margin-left: 5% !important;
+}
+/*body *{  vertical-align: top; }*/
+
+.paddingLeft0 {
+	padding-left: 0px;
+}
+.paddingRight0 {
+	padding-right: 0px;
+}
+.bottom5 {
+	margin-bottom: 5px;
+}
+.bottom10 {
+	margin-bottom: 10px;
+}
+.bottom15 {
+	margin-bottom: 15px;
+}
+.bottom30 {
+	margin-bottom: 30px;
+}
+.bottom45 {
+	margin-bottom: 45px;
+}
+.top15 {
+	margin-top: 15px;
+}
+.right15 {
+	margin-right: 15px;
+}
+.left15 {
+	margin-left: 15px;
+}
+.top10 {
+	margin-top: 10px;
+}
+.top20 {
+	margin-top: 20px;
+}
+
+.top40 {
+	margin-top: 40px;
+}
+
+.padding-0 {
+	padding: 0;
+}
+
+.padding-15 {
+	padding: 15px;
+}
+
+.padding-30 {
+	padding: 30px;
+}
+
+.margin-0 {
+	margin: 0px;
+}
+.form-control.border-5 {
+	border-radius: 5px;
+}
+.margin-minus-42 {
+	margin-right: 0px;
+	@media (max-width: 1024px) {
+		margin-right: auto;
+		margin-left: auto;
+	}
+}
+.margin-auto {
+	margin: auto;
+}
+.content-center {
+	display: flex;
+	justify-content: center;
+}
+.spacer {
+	width: 100%;
+	height: 15px;
+	display: block;
+	clear: both;
+}
+.marginBottom30 {
+	margin-bottom: 30px;
+}
+section.box.marginBottom0,
+.marginBottom0 {
+	margin-bottom: 0px;
+}
+
+.page-container.container-fluid {
+	padding: 0px;
+}
+
+.spacer20 {
+	height: 20px;
+	width: 100%;
+	display: block;
+	clear: both;
+}
+.spacer10 {
+	height: 10px;
+	width: 100%;
+	display: block;
+	clear: both;
+}
+
+/*----------------------------------------
+    Page Title and Breadcrumb
+------------------------------------------*/
+
+.page-title h1 {
+	font-size: 28px;
+	font-weight: 400;
+	padding: 0;
+	text-transform: unset;
+	font-family: $fontFamily;
+	color: rgba(118, 118, 118, 1);
+	margin-bottom: 15px;
+}
+.page-title .breadcrumb {
+	padding: 0px;
+	margin: 15px 0;
+}
+.page-title {
+	display: inline-block;
+	width: 100%;
+	margin-top: 0;
+}
+
+/*----------------------------------------
+    Font-Size
+------------------------------------------*/
+
+.rem-4 {
+	font-size: 4rem;
+}
+
+.icon-337ab7 {
+	background-color: $primary-color !important;
+}
+
+.icon-f0ad4e {
+	background-color: $warning-color !important;
+}
+
+.center-flex {
+	display: flex !important;
+	align-content: center;
+	justify-content: center;
+	flex-wrap: wrap;
+}
+
+.button-center {
+	display: block;
+	margin: 0 auto;
+}
+
+button,
+select,
+input, .btn {
+	border-radius: 5px;
+}
+
+
+.pagination.react-bootstrap-table-page-btns-ul {
+	float: right;
+}
+
+.db_box h4 {
+	font-size: 1.3rem;
+}
+
+select,
+.DateInput_input {
+	text-align-last: center;
+}
+
+.dropdown-item {
+	cursor: pointer;
+}
+
+
+
+.checkbox-inline {
+	cursor: pointer;
+}
+
+.space-between {
+	margin-right: 0px;
+	margin-left: 0px;
+	justify-content: space-between;
+}
+
+.cookieConsent {
+	z-index: 9999 !important;
+	height: 70px !important;
+	@media (max-width: 768px) {
+		height: 90px !important;
+		flex-wrap: nowrap !important;
+	}
+	div {
+		margin: 25px !important;
+		@media (max-width: 768px) {
+			display: inline-block;
+			max-width: 65%;
+			margin: 15px !important;
+		}
+	}
+	a {
+		color: #767676;
+		text-decoration: underline;
+		&:hover {
+			color: #fff;
+		}
+	}
+	.button__cookie {
+		margin-right: 30px !important;
+		border-radius: 5px !important;
+		background-color: #e91e63 !important;
+		color: #fff !important;
+		cursor: pointer !important;
+		transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out,
+			box-shadow 0.15s ease-in-out;
+		@media (max-width: 768px) {
+			display: inline-block;
+		}
+		&:hover {
+			background-color: #9e9e9e !important;
+			transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out,
+				box-shadow 0.15s ease-in-out;
+		}
+	}
+}
+
+.btn.m-btn--hover-accent, .btn.m-btn--hover-warning {
+	&:not(.btn-secondary):not(.btn-outline-light) {
+		background: none;
+		color: #575962;
+	}
+}
+
+.m-btn--icon.m-btn--icon-only {
+	display: inline-block;
+	position: relative;
+	padding: 0 !important;
+	width: 33px;
+	height: 33px;
+}
+.btn.m-btn--pill {
+	border-radius: 60px;
+}
+.btn.m-btn--hover-danger {
+	background-color: transparent;
+}
+
+.m-btn--icon.m-btn--icon-only > i {
+	line-height: 0;
+	display: inline-block;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	-webkit-transform: translate(-50%, -50%);
+	transform: translate(-50%, -50%);
+	font-size: 13px;
+}
+.btn.m-btn--hover-accent:hover,
+.btn.m-btn--hover-accent.active,
+.btn.m-btn--hover-accent:active,
+.btn.m-btn--hover-accent:focus,
+.show > .btn.m-btn--hover-accent.dropdown-toggle {
+	border-color: #00c5dc !important;
+	color: #fff !important;
+	background-color: #00c5dc !important;
+}
+.btn.m-btn--hover-danger:hover,
+.btn.m-btn--hover-danger.active,
+.btn.m-btn--hover-danger:active,
+.btn.m-btn--hover-danger:focus,
+.show > .btn.m-btn--hover-danger.dropdown-toggle {
+	border-color: #f4516c !important;
+	color: #fff !important;
+	background-color: #f4516c !important;
+}
+
+.btn.m-btn--hover-warning:hover,
+.btn.m-btn--hover-warning.active,
+.btn.m-btn--hover-warning:active,
+.btn.m-btn--hover-warning:focus,
+.show > .btn.m-btn--hover-warning.dropdown-toggle {
+	border-color: #ffb822 !important;
+	color: #fff !important;
+	background-color: #ffb822 !important;
+}
+
+.btn.m-btn--hover-info:hover,
+.btn.m-btn--hover-info.active,
+.btn.m-btn--hover-info:active,
+.btn.m-btn--hover-info:focus,
+.show > .btn.m-btn--hover-info.dropdown-toggle {
+	border-color: #03a9f4 !important;
+	color: #fff !important;
+	background-color: #03a9f4 !important;
+}
+
+.disable {
+	display: none;
+}
+
+.desktop_none {
+	@media(min-width: 768px) {
+		display: none;
+	}
+}

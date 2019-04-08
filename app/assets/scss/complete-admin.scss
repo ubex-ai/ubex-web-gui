@@ -1,0 +1,91 @@
+/*!
+
+ =========================================================
+ * Complete Admin React - v1.0.0
+ =========================================================
+
+ * Product Page: https://wrapbootstrap.com/user/themebuilder
+ * Copyright 2018 themebuilder
+
+ =========================================================
+
+
+ */
+
+@import '~bootstrap/scss/bootstrap';
+
+
+@import 'complete-admin/_fonts';
+@import 'complete-admin/variables';
+@import 'complete-admin/mixins';
+
+// Plugins CSS
+@import 'complete-admin/plugins/plugin-animate-bootstrap-notify';
+@import 'complete-admin/plugins/plugin-perfect-scrollbar';
+
+// Core CSS
+@import 'complete-admin/misc';
+
+// components
+@import 'complete-admin/navbar';
+@import 'complete-admin/dropdown';
+
+@import 'complete-admin/images';
+
+@import 'complete-admin/sidebar-and-main-panel';
+@import 'complete-admin/footers';
+@import 'complete-admin/pagesections';
+
+@import 'complete-admin/responsive';
+
+// complete admin
+@import 'complete-admin/_general';
+@import 'complete-admin/_typography';
+@import 'complete-admin/_sidebar';
+@import 'complete-admin/_progress';
+@import 'complete-admin/_tooltips';
+@import 'complete-admin/_popovers';
+@import 'complete-admin/_calendar';
+@import 'complete-admin/_timeline';
+@import 'complete-admin/_pricingtables';
+@import 'complete-admin/_vectormap';
+@import 'complete-admin/_dropzone';
+@import 'complete-admin/_icons';
+@import 'complete-admin/_members';
+@import 'complete-admin/_code';
+@import 'complete-admin/_breadcrumbs';
+@import 'complete-admin/_pagination';
+@import 'complete-admin/_badges';
+@import 'complete-admin/_uigrid';
+@import 'complete-admin/_cards';
+@import 'complete-admin/_sections';
+@import 'complete-admin/_buttons';
+@import 'complete-admin/_modals';
+@import 'complete-admin/_listgroup';
+@import 'complete-admin/_alertnotifications';
+@import 'complete-admin/_login';
+@import 'complete-admin/_tabs';
+@import 'complete-admin/_formelements';
+@import 'complete-admin/_formcomponents';
+@import 'complete-admin/_formeditors';
+@import 'complete-admin/_mailbox';
+@import 'complete-admin/_widgets';
+@import 'complete-admin/_autosuggest';
+@import 'complete-admin/_blogs';
+@import 'complete-admin/_gallery';
+@import 'complete-admin/_invoice';
+@import 'complete-admin/_errorpages';
+@import 'complete-admin/_lockscreen';
+@import 'complete-admin/_carousel';
+@import 'complete-admin/_dashboard';
+@import 'complete-admin/_notification-widget';
+@import 'complete-admin/_navigationbar';
+@import 'complete-admin/_searchpage';
+@import 'complete-admin/_profilepage';
+@import 'complete-admin/_welcome';
+@import 'complete-admin/_tables';
+@import 'complete-admin/_pay';
+@import 'complete-admin/_loader';
+@import 'complete-admin/_flags';
+@import 'complete-admin/AppAlertError';
+@import 'complete-admin/multiselect';

@@ -1,0 +1,57 @@
+/*------------------------------------------
+  Error pages 404, 505
+-------------------------------------------*/
+
+.page_error_code {
+	text-align: center;
+	display: block;
+	width: 100%;
+	font-size: 200px;
+	line-height: 250px;
+	font-weight: 400;
+	margin: 50px 0 0 0;
+}
+.page_error_info {
+	text-align: center;
+	display: block;
+	width: 100%;
+	font-size: 40px;
+	line-height: 40px;
+	color: #aaaaaa;
+	font-weight: 400;
+	margin: 15px 0;
+}
+.page_error_search {
+	margin: 45px 0;
+}
+.page_error_search input[type='text'] {
+	margin: 0 auto;
+	padding: 15px 15px;
+	font-size: 19px;
+	height: 45px !important;
+	background-color: #f8f8f8;
+}
+.page_error_search input[type='submit'] {
+	visibility: hidden;
+	width: 0px;
+	height: 0px;
+	overflow: hidden;
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	padding: 0px;
+	margin: 0px;
+}
+.page_error_search .input-group.transparent .input-group-addon {
+	background-color: #f8f8f8;
+	padding: 10px 12px 6px 20px;
+}
+.page_error_search .input-group.transparent {
+	height: 47px;
+}
+.page_error_search .input-group.transparent span {
+	height: 45px;
+}
+.page_error_btn {
+	margin: 30px 0 0 0;
+}

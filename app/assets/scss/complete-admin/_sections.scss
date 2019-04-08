@@ -1,0 +1,232 @@
+
+/*---------------------------------
+  Section or Content Box
+----------------------------------*/
+
+.AppCard.box {
+    background-color: #ffffff;
+    margin: 15px 0;
+    box-shadow: 0 1px 3px rgba(33,33,33,.2);
+    -webkit-box-shadow: 0 1px 3px rgba(33,33,33,.2);
+    -moz-box-shadow: 0 1px 3px rgba(33,33,33,.2);
+    -o-box-shadow: 0 1px 3px rgba(33,33,33,.2);
+    -ms-box-shadow: 0 1px 3px rgba(33,33,33,.2);
+	border-radius: 5px;
+
+}
+/* TODO: section header - это дичь какая то. Переделать на БЭМ AppCard__header */
+
+.AppCard .AppCard__header {
+	padding: 0 40px 0 35px;
+	border-radius: 5px;
+	width: 100%;
+	display: inline-block;
+	background-color: #ffffff;
+	border: 0px solid rgba(0,0,0,0.09);
+	border-bottom: 0px solid transparent;
+	vertical-align: top;
+	position: relative;
+	min-height: 75px;
+}
+
+.cardPopover__header {
+	padding: 0 10px 0 5px;
+	border-radius: 5px;
+    width: 100%;
+    display: inline-block;
+    background-color: #ffffff;
+    border: 0px solid rgba(0,0,0,0.09);
+    border-bottom: 0px solid transparent;
+    vertical-align: top;
+    position: relative;
+	min-height: 60px;
+}
+.AppCard .AppCard__header .title, .cardPopover__header-title {
+    margin-top: 10px;
+    font-family: $fontFamily;
+    padding-top: 5px;
+    line-height: 30px;
+    color: #575962;
+    text-transform: none;
+    display: inline-block;
+	@include media-breakpoint-down(xl) {
+		font-size: 1.6rem;
+	}
+	@include media-breakpoint-down(lg) {
+		font-size: 1rem;
+	}
+}
+.AppCard .content-body {
+    padding: 30px 30px 30px 30px;
+    background-color: #ffffff;
+    border: 0px solid #e8e8e8;
+    border-top: 0px;
+    -webkit-transition: 800ms;
+    -moz-transition: 800ms;
+    -o-transition: 800ms;
+    transition: 800ms;
+	border-radius: 5px;
+}
+.AppCard.box.nobox {
+    background-color: transparent;
+    box-shadow: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    -o-box-shadow: none;
+    -ms-box-shadow: none;
+}
+.AppCard.nobox .AppCard__header {
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-bottom: 0px solid transparent;
+}
+.AppCard.nobox .AppCard__header .title {
+    padding-left: 0px;
+}
+.AppCard.nobox .content-body {
+    background-color: transparent;
+    border: 0px solid transparent;
+    padding: 0 0px 0px 0px;
+}
+.AppCard.box .actions {
+    line-height: 50px;
+    &.digits {
+        margin-top:16px;
+		font-size: 1.2em;
+		font-weight: 600;
+        span {
+            font-size: 14px;
+        }
+        .green {
+            color: $success-color;
+        }
+        .red {
+            color: $accent-color;
+        }
+    }
+}
+.AppCard.box ul .actions{
+    margin-left: 0px;
+}
+.AppCard.box .actions a {
+    color: #bcbcbc;
+    font-size: 12px;
+    margin-left: 0px;
+    padding: 5px;
+    cursor: hand;
+    cursor: pointer;
+    text-decoration: none;
+}
+.AppCard.box .actions a:hover {
+    color: #999999;
+    text-decoration: none;
+}
+.AppCard .content-body.collapsed {
+    /*display: none;*/
+    /*  height: 0px !important;
+  overflow: hidden;
+  max-height: 0px !important;
+  padding: 0px 30px !important;*/
+}
+
+.db_box {
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(33,33,33,.2);
+    -webkit-box-shadow: 0 1px 3px rgba(33,33,33,.2);
+    -moz-box-shadow: 0 1px 3px rgba(33,33,33,.2);
+    -o-box-shadow: 0 1px 3px rgba(33,33,33,.2);
+    -ms-box-shadow: 0 1px 3px rgba(33,33,33,.2);
+
+}
+
+
+/*--------ui panels section for different colors--------*/
+/*transparent*/
+
+.AppCard.box.transparent {
+    background-color: transparent;
+}
+.AppCard.transparent .AppCard__header {
+    background-color: transparent;
+    border: 1px solid #e8e8e8;
+    border-bottom: 2px solid $primary-color;
+}
+.AppCard.transparent .content-body {
+    background-color: transparent;
+    border: 1px solid #e1e1e1;
+    border-top: 0px;
+}
+/*inverted*/
+
+.AppCard.box.inverted {
+    background-color: #777777;
+    color: #dddddd;
+}
+.AppCard.inverted .AppCard__header {
+    background-color: rgba(50, 50, 58, 0.8);
+    border: 1px solid #333333;
+    border-bottom: 2px solid $primary-color;
+    color: #cccccc;
+}
+.AppCard.inverted .AppCard__header .title {
+    color: #dddddd;
+}
+.AppCard.inverted .content-body {
+    background-color: rgba(50, 50, 58, 0.4);
+    border: 1px solid #333333;
+    color: #dddddd;
+    border-top: 0px;
+}
+/*----all colors----*/
+
+.AppCard.primary .AppCard__header {
+    background-color: $primary-color;
+    border: 1px solid $primary-color;
+    border-bottom: 2px solid $primary-color;
+    color: #f5f5f5;
+}
+.AppCard.purple .AppCard__header {
+    background-color: $purple-color;
+    border: 1px solid $purple-color;
+    border-bottom: 2px solid $purple-color;
+    color: #f5f5f5;
+}
+.AppCard.accent .AppCard__header {
+    background-color: $accent-color;
+    border: 1px solid $accent-color;
+    border-bottom: 2px solid $accent-color;
+    color: #f5f5f5;
+}
+.AppCard.success .AppCard__header {
+    background-color: $success-color;
+    border: 1px solid $success-color;
+    border-bottom: 2px solid $success-color;
+    color: #f5f5f5;
+}
+.AppCard.warning .AppCard__header {
+    background-color: $warning-color;
+    border: 1px solid $warning-color;
+    border-bottom: 2px solid $warning-color;
+    color: #f5f5f5;
+}
+.AppCard.danger .AppCard__header {
+    background-color: $danger-color;
+    border: 1px solid $danger-color;
+    border-bottom: 2px solid $danger-color;
+    color: #f5f5f5;
+}
+.AppCard.info .AppCard__header {
+    background-color: $info-color;
+    border: 1px solid $info-color;
+    border-bottom: 2px solid $info-color;
+    color: #f5f5f5;
+}
+.AppCard.primary .AppCard__header .title, .AppCard.purple .AppCard__header .title, .AppCard.accent .AppCard__header .title, .AppCard.success .AppCard__header .title, .AppCard.warning .AppCard__header .title, .AppCard.danger .AppCard__header .title, .AppCard.info .AppCard__header .title {
+    color: #f5f5f5;
+}
+.AppCard.box.primary .actions i, .AppCard.box.purple .actions i, .AppCard.box.accent .actions i, .AppCard.box.success .actions i, .AppCard.box.warning .actions i, .AppCard.box.info .actions i, .AppCard.box.danger .actions i {
+    color: #e1e1e1;
+}
+.AppCard.box.primary .actions i:hover, .AppCard.box.purple .actions i:hover, .AppCard.box.accent .actions i:hover, .AppCard.box.success .actions i:hover, .AppCard.box.warning .actions i:hover, .AppCard.box.info .actions i:hover, .AppCard.box.danger .actions i:hover {
+    color: #f5f5f5;
+}

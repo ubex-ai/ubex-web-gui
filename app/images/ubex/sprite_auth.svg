@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1500" height="1500" viewBox="0 0 1500 1500"><defs>
+	<style>
+	 .cls-1 {
+        fill: #fff;
+        fill-rule: evenodd;
+        opacity: 0.3;
+      }	
+		 .cls-2 {
+        fill: #8d9eb7;
+        fill-rule: evenodd;
+      }
+		 .cls-3 {
+        fill: #38081f;
+        fill-rule: evenodd;
+      }
+		 .cls-4 {
+        fill: #949798;
+        fill-rule: evenodd;
+      }
+		.cls-5 {
+        fill: #5557cd;
+
+      }
+		.cls-6 {
+        fill: #fff;
+		fill-rule:nonzero;
+      }
+		.cls-7 {
+        fill: #565bca;
+        fill-rule: evenodd;
+      }
+		 .cls-8 {
+        fill: #b8b8bc;
+        fill-rule: evenodd;
+      }
+		 .cls-9 {
+        fill: #eb307d;
+        fill-rule: evenodd;
+      }
+		 .cls-10 {
+        fill: #5a5fcb;
+        fill-rule: nonzero;
+      }
+	</style>
+	</defs>
+<polyline points="0,0.5 9.5,10.5 0,20.5 "  fill="none" stroke="#38081f" stroke-width="1.5" transform="translate(15 4) scale(0.5) rotate(90 0 0)" />
+<polyline points="0,0.5 6.5,15 0,30 100,30 100,0 0,0"  fill="#565bca"  transform="translate(55 4) " />
+	
+	<path id="Shape_1_copy_3" class="cls-3" d="M1032.65,980.353l0.7-.706,8,8-0.7.707Zm16.7,0-0.7-.706-8,8,0.7,0.707Z" transform="translate(-582.66 -979.656)"/>
+	
+
+
+	
+
+	
+	
+	
+</svg>

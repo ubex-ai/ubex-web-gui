@@ -1,0 +1,37 @@
+<RestClientRequest>
+  <option name="biscuits">
+    <list>
+      <Biscuit>
+        <option name="date" value="1582998918609" />
+        <option name="domain" value="mining.ubex.com" />
+        <option name="name" value="sessionid" />
+        <option name="path" value="/" />
+        <option name="value" value="mhk7z11ke4ld0hznef1xxjn34b7bcjp2" />
+      </Biscuit>
+    </list>
+  </option>
+  <option name="httpMethod" value="GET" />
+  <option name="urlBase" value="http://mining.ubex.com" />
+  <option name="urlPath" value="/stats/bydate" />
+  <option name="headers">
+    <list>
+      <KeyValuePair>
+        <option name="key" value="Accept" />
+        <option name="value" value="*/*" />
+      </KeyValuePair>
+      <KeyValuePair>
+        <option name="key" value="Cache-Control" />
+        <option name="value" value="no-cache" />
+      </KeyValuePair>
+    </list>
+  </option>
+  <option name="parameters">
+    <list />
+  </option>
+  <option name="parametersEnabled" value="true" />
+  <option name="haveTextToSend" value="false" />
+  <option name="haveFileToSend" value="false" />
+  <option name="isFileUpload" value="false" />
+  <option name="textToSend" value="" />
+  <option name="filesToSend" value="" />
+</RestClientRequest>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="305" height="105" viewBox="0 0 305 105">
+<defs>
+    <style>
+      .cls-1 {
+        fill: #d80360;
+        fill-rule: evenodd;
+      }
+	   .cls-2 {
+        fill: #630930;
+      }
+    </style>
+  </defs>
+  <rect  class="cls-2" width="5" height="5"/>
+   <rect  class="cls-2" width="5" height="5" transform="translate(100 100)"/>
+  <path  class="cls-1" d="M1250,425h50l55,55v50Z" transform="translate(-1250 -425)"/>
+
+ <rect  class="cls-2" width="5" height="5" transform="translate(180 0)"/>
+   <rect  class="cls-2" width="5" height="5" transform="translate(110 70)"/>
+<path class="cls-1" d="M305,310v40l-35,35H230Z" transform="translate(-120 -310)"/>  
+</svg>

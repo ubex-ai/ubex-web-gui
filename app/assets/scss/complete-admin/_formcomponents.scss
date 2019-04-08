@@ -1,0 +1,338 @@
+.react-autosuggest__container input,
+.react-time-picker,
+.react-datetime-picker,
+.react-datepicker__input-container input[type='text'],
+.react-datepicker-wrapper input[type='text'] {
+	display: block;
+	width: 100%;
+	height: calc(2.25rem + 2px);
+	padding: 0.375rem 0.75rem;
+	font-size: 1rem;
+	line-height: 1.5;
+	color: #495057;
+	background-color: #fff;
+	background-clip: padding-box;
+	border: 1px solid #ced4da;
+	border-radius: 0.25rem;
+	-webkit-transition: border-color 0.15s ease-in-out, -webkit-box-shadow 0.15s ease-in-out;
+	transition: border-color 0.15s ease-in-out, -webkit-box-shadow 0.15s ease-in-out;
+	-o-transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+	transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+	transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, -webkit-box-shadow 0.15s ease-in-out;
+	border-radius: 0px;
+}
+
+.react-datepicker-wrapper,
+.react-datepicker__input-container {
+	width: 100%;
+}
+
+body {
+	/* Datepicker */
+	.react-datepicker__header {
+		text-align: center;
+		background-color: #fff;
+		border-bottom: 1px solid #eeeeee;
+	}
+	.react-datepicker__day--selected,
+	.react-datepicker__day--in-selecting-range,
+	.react-datepicker__day--in-range {
+		border-radius: 0;
+		background-color: $primary-color;
+		color: #fff;
+	}
+	.react-datepicker__day--selected:hover,
+	.react-datepicker__day--in-selecting-range:hover,
+	.react-datepicker__day--in-range:hover {
+		border-radius: 0;
+		background-color: $primary-color;
+	}
+
+	.react-datepicker__day {
+		padding: 4px;
+	}
+	.react-datepicker__day-name,
+	.react-datepicker__day,
+	.react-datepicker__time-name {
+		width: 2rem;
+	}
+
+	.react-datepicker {
+		border-radius: 0px;
+		-o-border-radius: 0px;
+		-ms-border-radius: 0px;
+		-moz-border-radius: 0px;
+		-webkit-border-radius: 0px;
+		-webkit-box-shadow: 0 3px 8px rgba(0, 0, 0, 0.125);
+		-moz-box-shadow: 0 3px 8px rgba(0, 0, 0, 0.125);
+		box-shadow: 0 3px 8px rgba(0, 0, 0, 0.125);
+		border: 1px solid #dddddd;
+	}
+	.react-datepicker-popper[data-placement^='bottom'] .react-datepicker__triangle {
+		border-bottom-color: #fff;
+	}
+	.react-datepicker__time-container
+		.react-datepicker__time
+		.react-datepicker__time-box
+		ul.react-datepicker__time-list {
+		padding: 0px;
+	}
+	.react-datepicker__time-container .react-datepicker__time .react-datepicker__time-box,
+	.react-datepicker__time-container {
+		width: 95px;
+	}
+	.react-datepicker__navigation--next--with-time:not(.react-datepicker__navigation--next--with-today-button) {
+		right: 95px;
+	}
+	.react-datepicker__time-container
+		.react-datepicker__time
+		.react-datepicker__time-box
+		ul.react-datepicker__time-list
+		li.react-datepicker__time-list-item--selected,
+	.react-datepicker__time-container
+		.react-datepicker__time
+		.react-datepicker__time-box
+		ul.react-datepicker__time-list
+		li.react-datepicker__time-list-item--selected:hover {
+		background-color: $primary-color;
+	}
+
+	/*timepicker*/
+	.react-time-picker__button {
+		border: none;
+	}
+	.react-time-picker__button__input__divider {
+		padding: 1px 8px;
+	}
+	.react-time-picker__button__input input {
+		border: none;
+	}
+	.react-time-picker__button button {
+		opacity: 0.6;
+	}
+
+	/*datetime picker*/
+	.react-datetime-picker__button {
+		border: none;
+	}
+	.react-datetime-picker__button__input input {
+		border: none;
+	}
+	.react-datetime-picker__button__input__divider {
+		padding: 1px 5px;
+	}
+
+	.react-datetime-picker__button button {
+		opacity: 0.6;
+	}
+
+	/*DateRange Picker*/
+	.DateRangePicker__CalendarSelection {
+		background-color: $primary-color;
+		border: 1px solid $primary-color;
+	}
+	.DateRangePicker__CalendarHighlight--single {
+		background-color: #fff;
+		border: 1px solid $primary-color;
+	}
+
+	/*tags input*/
+	.react-tagsinput {
+		padding: 4px 0px 0px 4px;
+		background-color: #fff;
+		border: 1px solid #ced4da;
+	}
+	.react-tagsinput input {
+		border: 0px;
+	}
+	.react-tagsinput-tag {
+		background-color: #eee;
+		border-radius: 2px;
+		border: 1px solid #ccc;
+		color: #555555;
+		display: inline-block;
+		font-family: $fontFamily;
+		font-size: 13px;
+		font-weight: 400;
+		margin-bottom: 5px;
+		margin-right: 5px;
+		padding: 3px;
+	}
+}
+.rc-slider-track {
+	background-color: #3f51b5 !important;
+}
+.rc-slider-handle,
+.rc-slider-dot-active {
+	border-color: #3f51b5 !important;
+}
+.rc-slider-tooltip-inner {
+	z-index: 9999;
+	position: absolute;
+	bottom: 5px;
+}
+
+.banner__wizard {
+	.loader__spinner {
+		margin: auto;
+		padding-bottom: 50px !important;
+		div {
+			height: 200px !important;
+			width: 200px !important;
+		}
+	}
+	ul {
+		list-style-type: decimal;
+		li {
+			margin-bottom: 5px;
+			&:last-child {
+				margin-bottom: 0;
+			}
+		}
+	}
+	.slider-99 {
+		width: 99%;
+		margin: auto;
+	}
+	.main-label-checkbox {
+		margin-bottom: 5px;
+	}
+	.form-group:last-child {
+		margin-bottom: 30px;
+	}
+	.custom-control-inline {
+		margin-left: 25px;
+	}
+	.stepper__content {
+		margin-top: 20px;
+		background-color: #fff;
+		padding: 20px 30px 20px 30px;
+	}
+	.btn-toolbar {
+		padding-bottom: 20px;
+		.btn-group {
+			button {
+				margin-right: 5px;
+				&:last-child {
+					margin-right: 0;
+				}
+			}
+		}
+	}
+	.advertisers_table__drag_zone {
+		position: relative;
+		overflow: hidden;
+	}
+	.block_overflow {
+		width: 100%;
+		overflow-x: auto;
+		margin-bottom: -32px;
+		padding-bottom: 58px;
+	}
+	.block_overflow_content {
+		width: auto;
+		display: inline-block;
+		vertical-align: top;
+		.step__dress_list {
+			white-space: normal;
+			margin: -17px 0 0 -13px;
+			.step__dress_item {
+				text-align: center;
+				white-space: normal;
+				position: relative;
+				width: 197px;
+				display: inline-block;
+				vertical-align: top;
+				height: 250px;
+				margin: 17px 0 0 13px;
+				padding: 0;
+				input {
+					opacity: 0;
+					&:checked + label {
+						border-color: #5557cd;
+					}
+				}
+				label {
+					cursor: pointer;
+					position: absolute;
+					left: 0;
+					top: 0;
+					width: 100%;
+					height: 100%;
+					border: 1px solid #e5e9eb;
+					.step__dress_figure {
+						height: 186px;
+						position: relative;
+						&:before {
+							content: "";
+							position: absolute;
+							left: 50%;
+							top: 50%;
+							-webkit-transform: translate(-50%,-50%);
+							-ms-transform: translate(-50%,-50%);
+							-o-transform: translate(-50%,-50%);
+							transform: translate(-50%,-50%);
+							background: #f5f4f4;
+							border: 1px solid #dddddd;
+						}
+					}
+					p.step__dress_descruption {
+						margin: -12px 0 0 0;
+						font-size: 12px;
+						padding: 0;
+					}
+					p.step__dress_name {
+						margin: 8px 0 0 0;
+						padding: 0;
+						font-weight: 500;
+					}
+					/*horizontal*/
+					.step__dress_figure6:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_1100_100.gif) center center / contain no-repeat; border-width:0; width:160px; height:15px;}
+					.step__dress_figure7:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_728_90.gif) center center / contain no-repeat;border-width:0;width:117px;height: 62px;}
+					.step__dress_figure8:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_320_100.gif) center center / contain no-repeat; border-width:0; width:50px; height:16px;}
+					.step__dress_figure9:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_980_120.gif) center center / contain no-repeat; border-width:0; width:157px; height:20px;}
+					.step__dress_figure10:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_970_250.gif) center center / contain no-repeat; border-width:0; width:154px; height:41px;}
+					.step__dress_figure11:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_970_90.gif) center center / contain no-repeat; border-width:0; width:155px; height:14px;}
+					.step__dress_figure12:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_930_180.gif) center center / contain no-repeat; border-width:0; width:149px; height:30px;}
+					.step__dress_figure13:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_468_60.gif) center center / contain no-repeat; border-width:0; width:75px; height:11px;}
+					.step__dress_figure14:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_320_50.gif) center center / contain no-repeat; border-width:0; width:51px; height:8px;}
+					.step__dress_figure15:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_234_60.gif) center center / contain no-repeat; border-width:0; width:38px; height:11px;}
+					/*vertical*/
+					.step__dress_figure16:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_300_600.gif) center center / contain no-repeat; border-width:0; width: 48px; height: 96px;}
+					.step__dress_figure17:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_300_1050.gif) center center / contain no-repeat; border-width:0; width:48px; height:160px;}
+					.step__dress_figure18:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_240_400.gif) center center / contain no-repeat; border-width:0; width:38px; height:64px;}
+					.step__dress_figure19:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_160_600.gif) center center / contain no-repeat; border-width:0; width:26px; height:96px;}
+					.step__dress_figure20:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_120_600.gif) center center / contain no-repeat; border-width:0; width:20px; height:96px;}
+					.step__dress_figure21:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_120_240.gif) center center / contain no-repeat; border-width:0; width:20px; height:38px;}
+					/*rectangular*/
+					.step__dress_figure22:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_336_280.gif) center center / contain no-repeat; border-width:0; width:54px; height:45px;}
+					.step__dress_figure23:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_300_250.gif) center center / contain no-repeat; border-width:0; width:48px; height:41px;}
+					.step__dress_figure24:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_580_400.gif) center center / contain no-repeat; border-width:0; width:93px; height:64px;}
+					.step__dress_figure25:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_250_360.gif) center center / contain no-repeat; border-width:0; width:40px; height:58px;}
+					.step__dress_figure26:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_250_250.gif) center center / contain no-repeat; border-width:0; width:40px; height:41px;}
+					.step__dress_figure27:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_200_200.gif) center center / contain no-repeat; border-width:0; width:32px; height:32px;}
+					/*adaptive*/
+					.step__dress_figure28:before {background:url(https://app.ubex.com/images/figure1.svg) center center no-repeat #f5f4f4;  width:160px; height: 160px;}
+					.step__dress_figure29:before {background:url(https://app.ubex.com/images/figure2.png) center center no-repeat #f5f4f4; width:160px; height:80px;}
+					/*with links*/
+					.step__dress_figure30:before {width:117px; height:5px;}
+					.step__dress_figure31:before {width:75px; height:5px;}
+					.step__dress_figure32:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_200_90.gif) center center / contain no-repeat; border-width:0; width:32px; height:15px;}
+					.step__dress_figure33:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_180_90.gif) center center / contain no-repeat; border-width:0; width:30px; height:15px;}
+					.step__dress_figure34:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_160_90.gif) center center / contain no-repeat; border-width:0; width:26px; height:15px;}
+					.step__dress_figure35:before {background:url(https://app.ubex.com/images/adwords-cocacola/Ubex3_120_90.gif) center center / contain no-repeat; border-width:0; width:20px; height:15px;}
+				}
+			}
+		}
+		.list-unstyled {
+			padding-left: 0;
+			list-style: none;
+		}
+
+	}
+
+}
+
+
+
+

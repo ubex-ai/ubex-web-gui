@@ -1,0 +1,131 @@
+/*---------------------------------------------
+    Team Members
+----------------------------------------------*/
+
+.team-member .social-icons a {
+	display: inline-block;
+	margin-bottom: 5px;
+}
+.team-member .social-icons i {
+	font-size: 14px;
+	width: 30px;
+	height: 30px;
+	padding: 7px !important;
+	text-align: center;
+}
+
+.team-member {
+	display: inline-block;
+	padding: 0px;
+	border: 0px solid #eaeaea;
+	margin: 0 0 30px 0;
+	background-color: transparent;
+}
+
+.team-info h4 a {
+	color: #212121;
+}
+
+.team-info {
+	margin: 10px 0;
+	display: block;
+	position: relative;
+	padding: 0;
+}
+
+.team-info span {
+	color: #aaaaaa;
+}
+
+.team-info p,
+.team-info span {
+	margin-top: px !important;
+	font-size: 13px;
+}
+
+.team-member-edit {
+	position: absolute;
+	right: 0px;
+	top: 0px;
+}
+
+.team-member.col .team-member-edit {
+	top: 0px;
+}
+
+.team-member.col .team-info {
+	padding-left: 15px;
+	margin-top: 0px;
+}
+
+.team-member.col .team-info h4 {
+	margin: 0px 0 5px 0 !important;
+}
+
+.team-img {
+	padding: 0px;
+}
+
+.team-member h4,
+.tab-pane .team-info h4 {
+	font-size: 16px;
+	line-height: 26px;
+	text-decoration: none;
+	margin-bottom: 0px;
+}
+
+.ecommerce_product .thumb,
+.music_genre .thumb {
+	position: relative;
+}
+
+.ecommerce_product .thumb img,
+.music_genre .thumb img {
+	position: relative;
+	z-index: 1;
+}
+.ecommerce_product img,
+.music_genre img {
+	width: 100%;
+	height: auto;
+	margin: 0;
+}
+
+.ecommerce_product .thumb .overlay,
+.music_genre .thumb .overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 2;
+	width: 100%;
+	height: 100%;
+	color: #fff;
+	background-color: rgba(33, 33, 33, 0.5);
+	opacity: 0;
+	-webkit-transition: 0.5s;
+	-moz-transition: 0.5s;
+	transition: 0.5s;
+	-webkit-transition-timing-function: cubic-bezier(0.4, 0, 0.5, 1);
+	-moz-transition-timing-function: cubic-bezier(0.4, 0, 0.5, 1);
+	transition-timing-function: cubic-bezier(0.4, 0, 0.5, 1);
+}
+
+.ecommerce_product .thumb .overlay a i,
+.music_genre .thumb .overlay a i {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	font-size: 40px;
+	color: #53bec3;
+	opacity: 1;
+	-webkit-transform: translate(-50%, -50%);
+	-moz-transform: translate(-50%, -50%);
+	-ms-transform: translate(-50%, -50%);
+	-o-transform: translate(-50%, -50%);
+	transform: translate(-50%, -50%);
+}
+
+.ecommerce_product .thumb:hover .overlay,
+.music_genre .thumb:hover .overlay {
+	opacity: 1;
+}

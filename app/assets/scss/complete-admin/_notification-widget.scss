@@ -1,0 +1,102 @@
+/*-----------------------------------------------------------
+    Notification Widget (Dashboard)
+----------------------------------------------------------*/
+
+.notification-widget {
+	display: inline-block;
+	width: 100%;
+	overflow: hidden;
+	position: relative;
+	height: 315px;
+}
+.notification-widget li {
+	padding: 15px;
+	overflow: hidden;
+	height: auto;
+	display: block;
+	background: #f5f5f5;
+	margin: 15px 0 0 0;
+}
+.notification-widget li a {
+	text-decoration: none;
+	color: #717171;
+}
+.notification-widget li .name,
+.notification-widget li .desc {
+	display: block;
+	position: relative;
+}
+.notification-widget li .user-img img {
+	width: 25px;
+	height: 25px;
+	float: left;
+	margin: 5px 15px 0 0;
+	opacity: 0.8;
+}
+.notification-widget li .profile-status {
+	height: 6px;
+	width: 6px;
+	border-radius: 50%;
+	-o-border-radius: 50%;
+	-ms-border-radius: 50%;
+	-moz-border-radius: 50%;
+	-webkit-border-radius: 50%;
+	display: inline-block;
+	position: absolute;
+	bottom: 0px;
+	right: 0px;
+}
+.notification-widget li .name {
+	color: #aaaaaa;
+}
+.notification-widget li .name .time {
+	color: #cccccc;
+}
+.notification-widget li .desc {
+	color: #999999;
+}
+.notification-widget li.unread .user-img img {
+	opacity: 1;
+}
+.notification-widget li.unread .name {
+	color: #717171;
+}
+.notification-widget li.unread .name .time {
+	color: #aaaaaa;
+}
+.notification-widget li.unread .desc {
+	color: #777777;
+}
+.notification-widget li.external a:hover,
+.notification-widget li.external {
+	height: auto;
+	background: #eeeeee;
+}
+.notification-widget li.external a {
+	display: block;
+	padding: 15px 30px;
+	color: #999999;
+	font-size: 13px;
+}
+.wid-notification {
+	padding: 15px;
+	background: #ffffff;
+	margin-bottom: 0px;
+	min-height: 400px;
+}
+
+.notification-widget li.status-available {
+	background-color: rgba(102, 189, 120, 0.1);
+}
+.notification-widget li.status-away {
+	background-color: rgba(255, 193, 7, 0.1);
+}
+.notification-widget li.status-busy {
+	background-color: rgba(240, 80, 80, 0.1);
+}
+.notification-widget li.status-idle {
+	background-color: rgba(250, 133, 100, 0.1);
+}
+.notification-widget li.status-offline {
+	background-color: rgba(169, 169, 169, 0.1);
+}

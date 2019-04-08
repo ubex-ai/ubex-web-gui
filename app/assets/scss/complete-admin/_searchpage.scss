@@ -1,0 +1,39 @@
+/*-----------------------------------------------------------
+    Search page
+----------------------------------------------------------*/
+
+.search_result {
+	margin: 0 0px 30px 0;
+	display: inline-block;
+	width: 100%;
+}
+.search_result.row {
+	margin-left: 0px;
+	margin-right: 0px;
+}
+.search_result img {
+	width: 100%;
+	height: auto;
+	margin: 10px 0 0 0;
+}
+.search_data .nav-tabs > li > a {
+	background-color: #eeeeee;
+}
+.search_data .nav > li > a:hover,
+.search_data .nav > li > a:focus {
+	background-color: #fafafa;
+}
+.search_data .tab-content {
+	padding: 30px 15px 30px 15px;
+}
+.search_data .tab-pane {
+	height: 600px;
+	overflow: hidden;
+	position: relative;
+}
+
+.music_genre_search .tab-pane {
+	height: 1200px;
+	overflow: hidden;
+	position: relative;
+}
