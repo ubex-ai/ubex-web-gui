@@ -23,8 +23,8 @@ export class Publisher extends React.Component {
 		return (
 			<Dashboard
 				location={this.props.location}
-				title="Ubex Publisher"
-				description="Ubex Publisher"
+				title="Ubex Ad Network"
+				description="Ubex Ad Network"
 				routes={PublisherRoutes}
 				homePage={PublisherHomePage}
 				{...this.props}

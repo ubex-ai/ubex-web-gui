@@ -8,8 +8,8 @@ import Devices from 'containers/DataMiner/components/Reports/Devices';
 import Regions from 'containers/DataMiner/components/Reports/Regions';
 import ProfitabilityWorkers from 'containers/DataMiner/components/Reports/ProfitabilityWorkers';
 import Channel from 'containers/DataMiner/components/Reports/Channel';
-import Pay from 'containers/DataMiner/components/Payments/Pay';
-import History from 'containers/DataMiner/components/Payments/History';
+import Pay from 'components/Payments/Pay';
+import History from 'components/Payments/History';
 
 const dashRoutes = [
 	{ path: '#', name: 'Main', type: 'navgroup' },

@@ -38,12 +38,16 @@ const selectUserData = () =>
 			//	debugger;
 			substate.get('data').toJS(),
 	);
-const selectUserEmail = () =>
+export const selectUserEmail = () =>
 	createSelector(
 		selectUserPageDomain,
 		substate => substate.get('data').get('email'),
 	);
-
+export const selectUserGUID = () =>
+	createSelector(
+		selectUserPageDomain,
+		substate => substate.get('data').get('guid'),
+	);
 export default makeSelectUserPage;
 export { makeSelectUserPage, selectUserPageDomain, selectUserData };
 

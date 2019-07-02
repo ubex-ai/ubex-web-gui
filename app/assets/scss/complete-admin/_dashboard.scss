@@ -2,6 +2,7 @@
     Dashboard
 ------------------------------------------*/
 .db_box {
+	position: relative;
 	border-radius: 5px;
 	.stats {
 		padding-left: 10px;
@@ -21,6 +22,45 @@
 				background-color: #19806b;
 			}
 		}
+	}
+
+	&:hover {
+		.appcard-arrow {
+			color: #28aaf9;
+		}
+	}
+
+	.appcard-arrow {
+		position: absolute;
+		z-index: 99;
+		font-size: .95rem;
+		display: flex;
+		justify-content: center;
+		line-height: 1.95rem;
+		vertical-align: middle;
+		color: rgba(0,0,0,.3);
+		left: -1rem;
+		width: 1.95rem;
+		height: 1.95rem;
+		transition-duration: 0.4s;
+		transition-property: transform;
+		transform-origin: center;
+		@include media-breakpoint-down(sm){
+			left: 0;
+		}
+		&.active {
+			transform: rotate(90deg);
+		}
+	}
+	&.pointer {
+		@include media-breakpoint-down(sm){
+			h2 {
+				margin-left: 20px;
+			}
+		}
+	}
+	& > .pointer {
+		position: relative;
 	}
 }
 
@@ -250,10 +290,11 @@
 	-moz-box-shadow: 0 1px 3px rgba(33, 33, 33, 0.2);
 	-o-box-shadow: 0 1px 3px rgba(33, 33, 33, 0.2);
 	-ms-box-shadow: 0 1px 3px rgba(33, 33, 33, 0.2);
+	padding-bottom: 20px;
 	.invetory-title {
-		margin-top: 0px;
+		margin-top: 0;
 		@include media-breakpoint-down(sm) {
-			font-size: 18px;
+			font-size: 26px;
 		}
 		.fa, .fas, .fab {
 			font-size: 24px;
@@ -262,6 +303,17 @@
 	}
 	.control-buttons {
 		margin-top: 0px;
+		button {
+			width: 30px;
+			height: 30px;
+			padding: 5px;
+
+			i {
+				font-size: 12px;
+				position: relative;
+				top: -2px;
+			}
+		}
 	}
 }
 
@@ -285,45 +337,55 @@
 }
 .r4_counter {
 	font-family: $fontFamily;
-}
-.r4_counter .stats {
-	font-family: $fontFamily;
-	padding-left: 0;
-	padding-bottom: 0;
-	strong {
-		span {
-			font-size: 18px;
-			@include media-breakpoint-up(lg) {
-				font-size: 0.9em;
+	.float-left.fa {
+		display: inline-block;
+	}
+	.float-left.fab {
+		display: inline-block;
+	}
+	.stats {
+		display: inline-flex;
+		margin-left: 10px;
+		font-family: $fontFamily;
+		padding-left: 0;
+		padding-bottom: 0;
+		&__card {
+			@include media-breakpoint-down(sm) {
+				display: flex;
+				align-items: center;
+				flex-direction: column;
 			}
+		}
+		strong {
 			span {
 				font-size: 18px;
 				@include media-breakpoint-up(lg) {
-					font-size: 1em;
+					font-size: 0.9em;
+				}
+				span {
+					font-size: 18px;
+					@include media-breakpoint-up(lg) {
+						font-size: 1em;
+					}
+				}
+			}
+		}
+		.col_center {
+			a {
+				@include media-breakpoint-down(sm) {
+					margin: 0 auto;
+				}
+			}
+			div {
+				@include media-breakpoint-down(sm) {
+					margin: 0 auto;
 				}
 			}
 		}
 	}
-	.mobile_center {
-		@include media-breakpoint-down(sm) {
-			text-align: center;
-		}
-	}
-	.col_center {
-		a {
-			@include media-breakpoint-down(sm) {
-				margin: 0 auto;
-			}
-		}
-		div {
-			@include media-breakpoint-down(sm) {
-				margin: 0 auto;
-			}
-		}
-	}
 }
-.r4_counter .fa,
-.r4_counter.db_box .fas.icon-rounded {
+.r4_counter > .fa,
+.r4_counter.db_box .fas.icon-rounded, .r4_counter.db_box .fab.icon-rounded {
 	margin-right: 0px;
 	width: 66px;
 	height: 66px;
@@ -490,129 +552,88 @@ col-md-12,
 	}
 }
 .title_with_select {
+	.form-inline {
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-end;
+		@include media-breakpoint-down(sm) {
+			justify-content: space-between;
+		}
+		.form-group {
+			width: 36%;
+			&:not(:first-child){
+				width: 12%;
+				@include media-breakpoint-down(md) {
+					min-width: 135px;
+				}
+				@include media-breakpoint-down(sm) {
+					min-width: 150px;
+				}
+				@include media-breakpoint-down(xs) {
+					min-width: 90px;
+				}
+				@media (max-width: 320.98px) {
+					min-width: 70px;
+				}
+			}
+			@include media-breakpoint-down(sm) {
+				flex: none;
+				width: 100%;
+			}
+		}
+		.form-group > div {
+			width: 100%;
+		}
+		select {
+			height: 38px;
+			border: 1px solid #ced4da;
+			width: 100%;
+		}
+		.form-group:not(:last-child) {
+			margin-right: 10px;
+		}
+	}
+	.or-text {
+		position: relative;
+		top: -4px;
+		margin-right: 10px;
+	}
+	.arrow {
+		position: relative;
+		top: -3px;
+		margin-right: 10px;
+	}
+	.react-datepicker-popper {
+		z-index: 999;
+	}
 	select {
 		font-family: $fontFamily;
+		font-size: 0.9rem;
 		@include media-breakpoint-between(md, lg) {
 			font-size: 12px;
 			height: 40px;
 		}
 	}
+	.react-datepicker__input-container input[type='text'], .react-datepicker-wrapper input[type='text'] {
+		border: 1px solid #e1e1e1;
+		cursor: pointer;
+		padding: 2px 8px;
+		text-align: center;
+		&:hover {
+			border-color: hsl(0,0%,70%);
+		}
+		&:focus {
+			background: #f8f8f8;
+			border-color: #22b9ff;
+		}
+	}
+	.react-datepicker__day--selected {
+		background-color: rgba( 0,123,255,1 );
+	}
 	input {
 		font-family: $fontFamily;
+		border: 1px solid #e1e1e1;
 	}
-	.DateRangePicker_picker {
-		z-index: 999;
-		left: -30px !important;
-		@include media-breakpoint-between(md, lg) {
-			left: -105px;
-		}
-		@include media-breakpoint-down(sm) {
-			width: 100%;
-			position: absolute;
-			right: 0 !important;
-			left: 0 !important;
-		}
-	}
-	.DayPicker_weekHeader,
-	.DayPicker_weekHeaders {
-		display: block;
-	}
-
-	.DateRangePickerInput {
-		margin-left: 0px;
-		margin-right: 15px;
-		background: transparent;
-		border: none;
-	}
-
-	.DateInput_input {
-		color: #000;
-		height: 40px;
-	}
-	.DateInput input {
-		font: 100 16px 'Proxima Nova Rg';
-		color: #495057 !important;
-		@include media-breakpoint-between(md, lg) {
-			font-size: 12px;
-		}
-	}
-	.DateRangePickerInput {
-		@include media-breakpoint-down(xs) {
-			margin-right: 0;
-		}
-	}
-	.DateInput {
-		@include media-breakpoint-down(md) {
-			max-width: 160px !important;
-			width: 45% !important;
-			min-width: 80px !important;
-		}
-	}
-
-	.DateRangePicker {
-		font-family: $fontFamily;
-		width: 100%;
-		& + div {
-			width: 100%;
-		}
-		.DateRangePickerInput {
-			width: 100%;
-			display: flex;
-			justify-content: space-between;
-		}
-	}
-
-	.range_date {
-		@include media-breakpoint-down(xs) {
-			align-items: center;
-		}
-	}
-
-	.DDateRangePickerInput_arrow {
-		@include media-breakpoint-down(xs) {
-			transform: rotate(90deg);
-		}
-	}
-	.float-right {
-		@include media-breakpoint-between(xs, md) {
-			float: none;
-			width: 100%;
-		}
-		@include media-breakpoint-down(sm) {
-			.col-12.col-md-4 {
-				padding: 0;
-			}
-			.col-12.col-md-7 {
-				padding: 0;
-			}
-		}
-	}
-	.DateInput {
-		border-radius: 5px !important;
-	}
-
-	.DateRangePickerInput_arrow {
-		transform: scale(0.6);
-		position: relative;
-		top: 5px;
-	}
-
-	.CalendarDay__selected {
-		background: #0a66b7 !important;
-	}
-
-	.CalendarDay__selected_span {
-		background: #add8e6 !important;
-	}
-
-	.DayPickerKeyboardShortcuts_show__topRight::before {
-		border-right: 33px solid #0a66b7 !important;
-	}
-
-	.DayPickerKeyboardShortcuts_show__bottomRight:hover::before {
-		border-right: 33px solid #5bc0de !important;
-	}
-
 }
 
 .howmuch {
@@ -717,7 +738,6 @@ th {
 }
 
 .title_with_select {
-	margin-top: 10px;
 	padding-left: 15px;
 	padding-right: 15px;
 	@include media-breakpoint-down(sm) {
@@ -726,6 +746,45 @@ th {
 }
 .title-with-select__other {
 	margin-top: 0;
+	.button {
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-end;
+		@include media-breakpoint-down(sm){
+			justify-content: flex-start;
+		}
+		button {
+			height: 35px;
+			line-height: 11px;
+			@include media-breakpoint-down(sm){
+				&:first-child {
+					margin-left: 0;
+
+				}
+			}
+			&:first-child {
+				margin-right: 5px;
+
+			}
+			font-size: 0.9rem;
+		}
+	}
+	.select {
+		@include media-breakpoint-up(sm){
+			padding: 0;
+		}
+		@include media-breakpoint-down(sm){
+			margin-bottom: 10px;
+		}
+		select {
+			font-size: 0.9rem;
+		}
+	}
+	.input {
+		input {
+			font-size: 0.9rem;
+		}
+	}
 }
 
 .card-pay {
@@ -757,3 +816,322 @@ th {
 	z-index: 1040;
 }
 
+.buttons__creative {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+}
+
+.buttons__campaign {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	@include media-breakpoint-down(xs){
+		justify-content: center;
+		margin-top: 20px;
+	}
+	.nav-pay {
+		list-style-type: none;
+		margin-right: 0;
+		.nav-link {
+			border: 1px solid #ebedf2;
+			border-radius: 5px;
+			padding-top: 0px;
+			height: 30px;
+			font-size: 20px;
+			color: #808080;
+			span {
+				position: relative;
+				top: 3px;
+			}
+			&:hover {
+				background-color: #f4f5f8;
+			}
+		}
+	}
+}
+
+
+.group-title {
+	margin: 0;
+	@include media-breakpoint-down(sm) {
+		font-size: 1.3rem;
+		margin-left: 15px;
+		&+span {
+			margin-left: 15px;
+		}
+	}
+}
+
+.min-width-200 {
+	min-width: 200px !important;
+}
+
+.search {
+	position: relative;
+	&__input {
+		display: inline-block;
+	}
+	&__button {
+		position: absolute;
+		top: 5px;
+		right: 0px;
+		.fa, .far {
+			color: #767676;
+		}
+		&:focus {
+			box-shadow: none;
+		}
+		&:active {
+			background-color: transparent !important;
+			box-shadow: none !important;
+		}
+	}
+}
+
+
+.accordion-toggle {
+	.input-group {
+		flex-wrap: nowrap;
+	}
+	.DateRangePickerInput {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+	}
+	.DateInput {
+		&_input {
+			&__small {
+				font-size: 0.9em;
+			}
+		}
+	}
+}
+.text-nowrap {
+	.input-group {
+		flex-wrap: nowrap;
+	}
+}
+.form-control-sm {
+	font-size: .85rem;
+}
+.form-control-xs {
+	font-size: .85rem;
+}
+
+.report {
+	&__filter-checkbox {
+		overflow-y: auto;
+		padding-left: 5px;
+		.custom-control-input:checked ~ .custom-control-label::before {
+			background-color: #767676;
+			border-color: #767676;
+		}
+		.custom-control-input:focus:not(:checked) ~ .custom-control-label::before {
+			border-color: #767676;
+		}
+		.custom-control-input:focus ~ .custom-control-label::before {
+			box-shadow: 0 0 0 0.2rem rgba(118, 118, 118, 0.25);
+		}
+		.custom-control {
+			@include media-breakpoint-down(lg) {
+				display: inline-flex;
+				flex-direction: row;
+				&:not(:last-child) {
+					margin-right: 10px;
+				}
+			}
+		}
+	}
+	&__chart {
+		@include media-breakpoint-down(md) {
+			margin-top: 50px;
+		}
+	}
+	&__export-block {
+		margin-top: 10px;
+		display: inline-flex;
+		height: 30px;
+		justify-content: flex-end;
+		@include media-breakpoint-down(md) {
+			display: block;
+		}
+		div {
+			@include media-breakpoint-down(md) {
+				display: flex;
+				justify-content: center;
+			}
+			margin-bottom: 5px;
+		}
+	}
+	&__settings {
+		margin-bottom: 10px;
+		.btn.btn-secondary {
+			background-color: transparent;
+			color: #22b9ff;
+			padding-left: 0;
+			.fa {
+				font-size: 12px;
+			}
+			&:hover {
+				color:  #767676;
+			}
+			&:focus {
+				border-color: transparent;
+				background-color: transparent;
+				box-shadow: none;
+			}
+			&:active {
+				border-color: transparent;
+				background-color: transparent;
+				box-shadow: none;
+			}
+			&:not(:disabled):not(.disabled):active:focus {
+				box-shadow: none;
+			}
+		}
+	}
+	&__blocks {
+		.db_box {
+			min-height: 80px;
+			display: flex;
+			cursor: pointer;
+			color: #fff;
+			padding: 0;
+			@include media-breakpoint-down(sm) {
+				min-height: 20px;
+			}
+			span {
+				display: block;
+				font-size: 20px;
+				@include media-breakpoint-down(sm) {
+					font-size: 11px;
+				}
+			}
+			strong {
+				display: block;
+				font-size: 26px;
+				margin-top: 5px;
+				@include media-breakpoint-down(sm) {
+					font-size: 12px;
+					margin-top: 0;
+				}
+			}
+		}
+	}
+}
+
+.zoom-wrapper > div {
+	height: 428px;
+}
+
+.creative-to-campaign {
+	font-family: $fontFamily;
+}
+.banners-flex {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	&__frame {
+		display: flex;
+		flex-direction: column;
+		margin-top: 20px;
+		&--label {
+			font-size: 14px;
+			color: #5e6a72;
+		}
+		&--iframe {
+			max-width: 100%;
+			background-color: lightgray;
+		}
+	}
+}
+
+.validate-inline-edit-field {
+	background-color: red;
+	color: #fff;
+	padding-left: 5px;
+}
+
+.creative-title {
+	margin: 0;
+	@include media-breakpoint-down(sm) {
+		font-size: 18px;
+		margin-left: 15px;
+		&+span {
+			margin-left: 15px;
+		}
+	}
+	.icon-title.fa, .icon-title.fas, .icon-title.fab {
+		font-size: 24px;
+		color: #28aaf9;
+	}
+}
+
+.group-id {
+	display: inline-block;
+	min-width: 50px;
+	max-width: 120px;
+}
+
+.add-inventory {
+	@include media-breakpoint-down(md) {
+		margin-bottom: 10px;
+	}
+}
+
+.developers-container {
+	span {
+		text-align: center;
+		display: block;
+		margin-top: 50px;
+		font-size: 22px;
+	}
+	&__image {
+		display: block;
+		margin: 0 auto;
+	}
+	&__text {
+		margin-top: 40px;
+		font-size: 18px;
+	}
+}
+
+.text-underline {
+	text-decoration: underline;
+}
+
+.file_upload.form-group {
+	.dropzone .dz-preview .dz-error-message {
+		top: -20px;
+	}
+	.dropzone .dz-preview .dz-error-message:after {
+		bottom: -12px;
+		top: unset;
+		border: 6px solid transparent;	border-top: 6px solid #be2626;
+	}
+	.dropzone .dz-preview.dz-file-preview .dz-image {
+		background: linear-gradient(to right,#34bfa3 0%,#71ad98 100%);
+	}
+	.dropzone .dz-preview .dz-success-mark, .dropzone .dz-preview .dz-error-mark {
+		display: none;
+	}
+	.dropzone__area .dz-preview .dz-details .dz-filename {
+		margin-top: 40px;
+	}
+	.dropzone .dz-preview .dz-details .dz-size {
+		position: relative;
+		top: -10px;
+	}
+	.dropzone .dz-preview .dz-error-message {
+		opacity: 1;
+	}
+	.dropzone__area .filepicker.dropzone {
+		border: 2px dashed #716aca;
+	}
+	.dropzone__area .filepicker.dropzone:hover {
+		border: 2px solid #716aca;
+		background-color: #f5f6f7;
+	}
+}

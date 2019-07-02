@@ -37,7 +37,7 @@ class RemoveModal extends React.Component {
 					<FormattedMessage {...msg} />
 				</ModalBody>
 				<ModalFooter>
-					<Button color="danger" onClick={onSuccess}>
+					<Button color="danger" onClick={() => onSuccess(isOpen)}>
 						<FormattedMessage id="app.common.confirm" />
 					</Button>
 					<Button color="secondary" onClick={onCancel}>

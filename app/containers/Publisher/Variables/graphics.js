@@ -43,7 +43,7 @@ const data7 = canvas => {
 	const ctx = canvas.getContext('2d');
 	const chartColor = '#FFFFFF';
 	const gradientStroke = ctx.createLinearGradient(500, 0, 100, 0);
-	gradientStroke.addColorStop(0, '#3f51b5');
+	gradientStroke.addColorStop(0, 'rgb(52, 81, 181)');
 	gradientStroke.addColorStop(1, chartColor);
 
 	const gradientFill = ctx.createLinearGradient(0, 500, 0, 50);

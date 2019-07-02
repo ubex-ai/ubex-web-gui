@@ -14,7 +14,7 @@ import {
 import { countriesActions, timezonesActions, categoriesActions } from 'containers/Dashboard/constants';
 import {
 	formatCountriesList,
-	formatTimezonesList,
+	formatArrayToMap,
 	formatCategoriesList,
 	formatFaqList,
 } from 'containers/Dashboard/hooks';
@@ -112,7 +112,7 @@ export function* onAppInit() {
 			success: formatCountriesList,
 		}),
 		getListRequestHandler(getTimezones(), timezonesActions, {
-			success: formatTimezonesList,
+			success: formatArrayToMap,
 		}),
 		getListRequestHandler(getCategories(), categoriesActions, {
 			success: formatCategoriesList,

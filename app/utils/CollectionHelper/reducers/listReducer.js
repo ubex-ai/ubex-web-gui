@@ -58,7 +58,6 @@ export const addEntryWithId = collection => (state, { payload: { id, ...payload 
 export const removeEntryById = collection => (state, { payload: { id } }) =>
 	state.update(collection, entries => entries.filter(entry => entry.get('id') !== id));
 
-
 export default (collection, actions) => ({
 	// List behavior
 	[actions.getCollection.request]: onRequestList(collection),

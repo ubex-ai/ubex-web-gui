@@ -2,8 +2,8 @@ import PublisherHomePage from 'containers/Publisher/components/PublisherHomePage
 import InventoriesList from 'containers/Publisher/components/InventoriesList';
 import InventoryForm from 'containers/Publisher/components/InventoryForm';
 import SlotForm from 'containers/Publisher/components/SlotForm';
-import History from 'containers/Publisher/components/Payments/History';
-import Pay from 'containers/Publisher/components/Payments/Pay';
+import History from 'components/Payments/History';
+import Pay from 'components/Payments/Pay';
 import FAQ from 'containers/Publisher/components/FAQ/FAQ';
 import { INVENTORY_TYPES } from 'containers/Publisher/constants';
 
@@ -38,7 +38,7 @@ const routes = [
 				type: 'child',
 			},
 			{
-				path: '/app/inventory/:inventoryId/slot/:slotId',
+				path: '/app/inventory/:type/:inventoryId/slot/:slotId',
 				component: SlotForm,
 				type: 'child',
 			},

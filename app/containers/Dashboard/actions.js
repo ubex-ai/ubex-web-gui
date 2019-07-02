@@ -15,7 +15,9 @@ import {
 	COUNTRY_COLLECTION_NAME,
 	TIMEZONE_COLLECTION_NAME,
 	LANGUAGE_COLLECTION_NAME,
+	SET_UBEX_POPOVER,
 } from './constants';
+import { SET_ADBLOCK } from '../TradingDesk/constants';
 
 export const getCategories = listActionCreator('api/category', CATEGORY_COLLECTION_NAME);
 export const getCountries = listActionCreator('api/country', COUNTRY_COLLECTION_NAME);
@@ -60,6 +62,14 @@ export function setDashboardError(value) {
 	return {
 		type: SET_DASHBOARD_ERROR,
 		payload: value,
+	};
+}
+
+export function setUbexPopover(filter) {
+	console.log(filter)
+	return {
+		type: SET_UBEX_POPOVER,
+		payload: filter,
 	};
 }
 

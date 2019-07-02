@@ -79,8 +79,8 @@
 	.dropdown-item,
 	.bootstrap-select &.inner li a {
 		font-size: $font-size-small;
-		padding-top: 0.6rem;
-		padding-bottom: 0.6rem;
+		padding-top: 0.3rem;
+		padding-bottom: 0.3rem;
 		margin-top: 5px;
 		@include transition($fast-transition-time, $transition-linear);
 
@@ -215,10 +215,25 @@
 	-moz-box-shadow: 0 3px 8px rgba(0, 0, 0, 0.125);
 	box-shadow: 0 3px 8px rgba(0, 0, 0, 0.125);
 	border-color: #f5f5f5;
+	.dropdown-item {
+		a {
+			color: #000;
+			text-decoration: none;
+		}
+	}
 }
 .dropup,
 .dropright,
 .dropdown,
 .dropleft {
 	display: inline-block;
+}
+
+.dropdown {
+	&:not(.show) .dropdown-menu {
+		width: 0px;
+		height: 0px;
+		overflow: hidden;
+		padding: 0;
+	}
 }

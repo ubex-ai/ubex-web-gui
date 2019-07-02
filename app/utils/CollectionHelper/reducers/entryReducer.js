@@ -18,10 +18,12 @@ export const updateEntryById = collection => (state, { payload: { id, ...payload
 		return state;
 	}
 
-	return state.update(collection, entries =>
-		!state.get(collection).find(entry => entry.get('id') === id)
-			? entries.push(fromJS({ id, ...payload }))
-			: entries.map(entry => (entry.get('id') !== id ? entry : entry.merge(payload))),
+	return state.update(
+		collection,
+		entries =>
+			!state.get(collection).find(entry => entry.get('id') === id)
+				? entries.push(fromJS({ id, ...payload }))
+				: entries.map(entry => (entry.get('id') !== id ? entry : entry.merge(payload))),
 	);
 };
 
@@ -30,14 +32,20 @@ export default (collection, actions) => ({
 	[combineActions(
 		actions.getEntry.request,
 		actions.updateEntry.request,
+		actions.patchEntry.request,
 		actions.removeEntry.request,
 	)]: onRequestEntry(collection),
 
 	// Error behavior
-	[combineActions(actions.getEntry.error, actions.updateEntry.error, actions.removeEntry.error)]: onErrorEntry(
-		collection,
-	),
+	[combineActions(
+		actions.getEntry.error,
+		actions.updateEntry.error,
+		actions.patchEntry.error,
+		actions.removeEntry.error,
+	)]: onErrorEntry(collection),
 
 	// Success behavior
-	[combineActions(actions.getEntry.success, actions.updateEntry.success)]: onSuccessEntry(collection),
+	[combineActions(actions.getEntry.success, actions.updateEntry.success, actions.patchEntry.success)]: onSuccessEntry(
+		collection,
+	),
 });

@@ -2,7 +2,7 @@ import React from 'react';
 import { Row, Col } from 'reactstrap';
 import LineChart from 'components/Charts/Line';
 
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import AppTable from 'components/Tables/AppTable';
 import PropTypes from 'prop-types';
 import { createStructuredSelector } from 'reselect';
@@ -18,12 +18,11 @@ import messages from 'containers/DataMiner/messages';
 
 class Visitors extends React.Component {
 	columns = [
-		{ name: 'name', title: 'Counter' },
-		{ name: 'date', title: 'Date' },
-		{ name: 'count', title: 'Today visitors' },
-		{ name: 'paidusers', title: 'Reward visitors' },
-		{ name: 'paidpercent', title: 'Paid %' },
-		{ name: 'txid', title: 'TxID' },
+		{ name: 'name', title: this.props.intl.formatMessage(messages.counter) },
+		{ name: 'date', title: this.props.intl.formatMessage(messages.date) },
+		{ name: 'count', title: this.props.intl.formatMessage(messages.visitorsTable) },
+		{ name: 'paidusers', title: this.props.intl.formatMessage(messages.rewardVisitors) },
+		{ name: 'paidpercent', title: this.props.intl.formatMessage(messages.paidPercent) },
 	];
 
 	render() {
@@ -34,7 +33,7 @@ class Visitors extends React.Component {
 				<Row className="margin-0">
 					<Col md={12} className="title_with_select">
 						<Row>
-							<Col md={6}>
+							<Col md={12} sm={6} xl={5} lg={6}>
 								<div className="page-title">
 									<div className="float-left">
 										<h1 className="title">
@@ -91,6 +90,7 @@ Visitors.propTypes = {
 		endDate: PropTypes.string.isRequired,
 		period: PropTypes.string.isRequired,
 	}),
+	intl: intlShape.isRequired,
 };
 
 const mapStateToProps = createStructuredSelector({
@@ -115,4 +115,4 @@ const withReducer = injectReducer({ key: 'dataMiner', reducer });
 export default compose(
 	withReducer,
 	withConnect,
-)(Visitors);
+)(injectIntl(Visitors));

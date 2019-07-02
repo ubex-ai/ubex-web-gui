@@ -19,6 +19,8 @@ import { Grid, Table, TableHeaderRow, PagingPanel } from '@devexpress/dx-react-g
 import '@devexpress/dx-react-grid-bootstrap4/dist/dx-react-grid-bootstrap4.css';
 import { SLOT_STATUS_PAUSE } from 'containers/Publisher/constants';
 import moment from 'moment';
+import messages from './messages';
+import { injectIntl, intlShape } from 'react-intl';
 
 const DateFormatter = ({ value }) =>
 	moment(value)
@@ -75,7 +77,7 @@ const SettingsFormatter = ({ value, row }, props) => {
 			</Button>
 			<Link
 				key="edit"
-				to={`/app/inventory/${row.inventory}/slot/${value}`}
+				to={`/app/inventory/${props.inventoryType}/${row.inventory}/slot/${value}`}
 				className="m-portlet__nav-link btn m-btn m-btn--hover-accent m-btn--icon m-btn--icon-only m-btn--pill"
 			>
 				<i className="fas fa-edit" />
@@ -99,20 +101,19 @@ const StatusProvider = props => (
 const SettingsProvider = props => (
 	<DataTypeProvider formatterComponent={fCProps => SettingsFormatter(fCProps, props)} {...props} />
 );
-
 class SlotsTable extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
 			rows: null,
 			columns: [
-				{ name: 'name', title: 'Name' },
+				{ name: 'name', title: this.props.intl.formatMessage(messages.name) },
 				{ name: 'ubx', title: 'ID' },
-				{ name: 'status', title: 'Status' },
-				{ name: 'summary', title: 'Size' },
-				{ name: 'floor_price_cpm', title: 'Price (CPM)' },
-				{ name: 'updated', title: 'Date of change' },
-				{ name: 'id', title: 'Settings' },
+				{ name: 'status', title: this.props.intl.formatMessage(messages.status) },
+				{ name: 'summary', title: this.props.intl.formatMessage(messages.size) },
+				{ name: 'floor_price_cpm', title: this.props.intl.formatMessage(messages.priceCPM) },
+				{ name: 'updated', title:  this.props.intl.formatMessage(messages.dateOfChange) },
+				{ name: 'id', title: this.props.intl.formatMessage(messages.settings) },
 			],
 			sorting: [{ columnName: 'created', direction: 'desc' }],
 			currentPage: 0,
@@ -176,6 +177,7 @@ SlotsTable.propTypes = {
 		}),
 	).isRequired,
 	inventoryType: PropTypes.string.isRequired,
+	intl: intlShape.isRequired,
 };
 
-export default SlotsTable;
+export default injectIntl(SlotsTable);

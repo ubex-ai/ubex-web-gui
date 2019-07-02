@@ -35,6 +35,10 @@ export default defineMessages({
 		id: `${languageScope}.zh`,
 		defaultMessage: 'Chinese',
 	},
+	save: {
+		id: `${scope}.save`,
+		defaultMessage: 'Save',
+	},
 	alltime: {
 		id: `${scope}.alltime`,
 		defaultMessage: 'All time',

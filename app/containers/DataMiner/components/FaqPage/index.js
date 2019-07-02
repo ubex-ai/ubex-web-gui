@@ -57,7 +57,7 @@ class FaqPage extends React.Component {
 				<div className="panel-heading">
 					<h4 className="panel-title">
 						<a
-							className={`accordion-toggle${this.state.collapse === index && ' collapsed'}`}
+							className={`accordion-toggle ${this.state.collapse === index && ' collapsed'}`}
 							onClick={e => this.toggle(index)}
 							id={`accordion_${index + 1}`}
 						>

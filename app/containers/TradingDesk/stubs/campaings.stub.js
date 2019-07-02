@@ -1,0 +1,55 @@
+import moment from 'moment';
+export default [
+	{
+		id: 100000,
+		ctr: '1.34',
+		name: 'Campaign 1',
+		details: 'running',
+		start: moment().format('DD-MM-YYYY'),
+		end: moment()
+			.add(7, 'days')
+			.format('DD-MM-YYYY'),
+		groupId: 1,
+		impressions: 10000,
+		clicks: 5000,
+		CTR: '1.34',
+		budget: '1000000',
+		daily_budget: '1000',
+		status: 0,
+		creatives: 4,
+	},
+	{
+		id: 200000,
+		ctr: '1.24',
+		name: 'Campaign 2',
+		details: 'stopped',
+		start: moment().format('DD-MM-YYYY'),
+		end: 'unlimited',
+		impressions: 10000,
+		clicks: 5000,
+		CTR: '1.34',
+		groupId: 2,
+		budget: '1000000',
+		daily_budget: '1000',
+		status: 3,
+		creatives: 4,
+	},
+	{
+		id: 300000,
+		ctr: '2.34',
+		name: 'Campaign 3',
+		details: 'waiting',
+		impressions: 10000,
+		clicks: 5000,
+		CTR: '1.34',
+		start: moment().format('DD-MM-YYYY'),
+		end: moment()
+			.add(7, 'days')
+			.format('DD-MM-YYYY'),
+		groupId: 1,
+		budget: '1000000',
+		daily_budget: '1000',
+		status: 0,
+		creatives: 4,
+	},
+];

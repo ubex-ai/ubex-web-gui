@@ -1,7 +1,7 @@
 import React from 'react';
 import { Row, Col } from 'reactstrap';
 import BarChart from 'components/Charts/Bar';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import AppTable from 'components/Tables/AppTable';
 import messages from 'containers/DataMiner/messages';
 import PropTypes from 'prop-types';
@@ -17,11 +17,11 @@ import { selectChartsDates, selectMetricByName } from 'containers/DataMiner/sele
 
 class Devices extends React.Component {
 	columns = [
-		{ name: 'name', title: 'Devices' },
-		{ name: 'date', title: 'Date' },
-		{ name: 'count', title: 'Visitors' },
-		{ name: 'paidusers', title: 'Reward visitors' },
-		{ name: 'paidpercent', title: 'Paid %' },
+		{ name: 'name', title: this.props.intl.formatMessage(messages.devices) },
+		{ name: 'date', title: this.props.intl.formatMessage(messages.date) },
+		{ name: 'count', title: this.props.intl.formatMessage(messages.visitorsTable) },
+		{ name: 'paidusers', title: this.props.intl.formatMessage(messages.rewardVisitors) },
+		{ name: 'paidpercent', title: this.props.intl.formatMessage(messages.paidPercent) },
 	];
 
 	render() {
@@ -33,7 +33,7 @@ class Devices extends React.Component {
 				<Row className="margin-0">
 					<Col md={12} className="title_with_select">
 						<Row>
-							<Col md={6}>
+							<Col md={12} sm={6} xl={5} lg={6}>
 								<div className="page-title">
 									<div className="float-left">
 										<h1 className="title">
@@ -90,6 +90,7 @@ Devices.propTypes = {
 		endDate: PropTypes.string.isRequired,
 		period: PropTypes.string.isRequired,
 	}),
+	intl: intlShape.isRequired,
 };
 
 const mapStateToProps = createStructuredSelector({
@@ -114,4 +115,4 @@ const withReducer = injectReducer({ key: 'dataMiner', reducer });
 export default compose(
 	withReducer,
 	withConnect,
-)(Devices);
+)(injectIntl(Devices));

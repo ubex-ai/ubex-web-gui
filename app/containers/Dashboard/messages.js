@@ -31,7 +31,7 @@ export default defineMessages({
 	},
 	workersOnline: {
 		id: `${scope}.workersOnline`,
-		defaultMessage: 'AddCounter on-line',
+		defaultMessage: 'CounterForm on-line',
 	},
 	addWorker: {
 		id: `${scope}.addWorker`,

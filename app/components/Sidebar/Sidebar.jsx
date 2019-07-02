@@ -9,7 +9,7 @@ import logoIE from 'assets/img/logoIE.png';
 import Navmenudropdown from 'components/Navmenudropdown/Navmenudropdown';
 import Navmenugroup from 'components/Navmenudropdown/Navmenugroup';
 import { twitter, facebook, instagram, telegram, youtube, linkedin } from 'assets/img/social';
-
+import managers from 'variables/managers';
 // javascript plugin used to create scrollbars on windows
 
 let ps;
@@ -58,7 +58,7 @@ class Sidebar extends React.Component {
 			const links = [];
 			if (child) {
 				for (let i = 0; i < child.length; i++) {
-					if (child[i].sidebar || typeof child[i].sidebar === 'undefined' && child[i].type !== 'child') {
+					if (child[i].sidebar || (typeof child[i].sidebar === 'undefined' && child[i].type !== 'child')) {
 						links.push(
 							<li key={i}>
 								<NavLink to={child[i].path} className="nav-link" activeClassName="active">
@@ -75,7 +75,7 @@ class Sidebar extends React.Component {
 		};
 		const ua = window.navigator.userAgent.toLowerCase();
 		const is_ie = /trident/gi.test(ua) || /msie/gi.test(ua);
-
+		const { currentLocale } = this.props;
 		return (
 			<div className="sidebar menubar" data-color="white">
 				<div className="sidebar-wrapper" ref="sidebar">
@@ -155,14 +155,26 @@ class Sidebar extends React.Component {
 					<div className="sidebar_info">
 						{window.innerWidth > 600 ? (
 							<div className="personal__manager">
-								<h6>Your personal manager:</h6>
+								<h6>
+									<FormattedMessage id={`app.sidebar.personalManager`} />:
+								</h6>
 								<p>
 									<i className="fas fa-user" />
-									Jack Kwon (Kr/En)
+									{Object.keys(managers).includes(currentLocale)
+										? managers[currentLocale].name
+										: managers.en.name}
 								</p>
-								<a href="mailto:support@ubex.com">
+								<a
+									href={`mailto:${
+										Object.keys(managers).includes(currentLocale)
+											? managers[currentLocale].email
+											: managers.en.email
+									}`}
+								>
 									<i className="fas fa-envelope-square" />
-									support@ubex.com
+									{Object.keys(managers).includes(currentLocale)
+										? managers[currentLocale].email
+										: managers.en.email}
 								</a>
 							</div>
 						) : null}

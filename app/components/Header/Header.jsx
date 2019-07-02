@@ -1,22 +1,10 @@
 import React from 'react';
-import {
-	Collapse,
-	Navbar,
-	NavbarBrand,
-	Nav,
-	Dropdown,
-	DropdownToggle,
-	DropdownMenu,
-	DropdownItem,
-	Container,
-	Row,
-	Col,
-} from 'reactstrap';
+import { Navbar, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Popover, PopoverBody } from 'reactstrap';
 import LanguageChanger from 'components/LanguageChanger';
 import { Link } from 'react-router-dom';
 import { FormattedMessage } from 'react-intl';
-import logofull from '../../assets/img/logo-full.png';
-import logomini from '../../assets/img/logo-mini.png';
+import { getUBEXBalance } from 'utils/web3helper';
+import WalletConnector from '../WalletConnector';
 
 class Header extends React.Component {
 	constructor(props) {
@@ -29,6 +17,9 @@ class Header extends React.Component {
 			notificationsddOpen: false,
 			color: 'white',
 			dropdownOpen: false,
+			popoverOpen: false,
+			openWalletConnector: false,
+			ubexBalance: 0,
 		};
 		this.toggle = this.toggle.bind(this);
 		this.userddToggle = this.userddToggle.bind(this);
@@ -36,6 +27,8 @@ class Header extends React.Component {
 		this.notificationsddToggle = this.notificationsddToggle.bind(this);
 		this.searchToggle = this.searchToggle.bind(this);
 		this.toggleDropDown = this.toggleDropDown.bind(this);
+		this.toggle = this.toggle.bind(this);
+		this.togglePopover = this.togglePopover.bind(this);
 	}
 
 	toggleDropDown() {
@@ -56,6 +49,12 @@ class Header extends React.Component {
 		}
 		this.setState({
 			isOpen: !this.state.isOpen,
+		});
+	}
+
+	togglePopover() {
+		this.setState({
+			popoverOpen: !this.state.popoverOpen,
 		});
 	}
 
@@ -113,7 +112,13 @@ class Header extends React.Component {
 	}
 
 	componentDidMount() {
+		this.setState({ popoverOpen: true });
 		window.addEventListener('resize', this.updateColor.bind(this));
+		const { selectUbexHash } = this.props;
+		const { wallet } = selectUbexHash;
+		if (wallet && wallet.hash_code) {
+			this.getBalance(wallet.hash_code);
+		}
 	}
 
 	componentDidUpdate(e) {
@@ -135,7 +140,26 @@ class Header extends React.Component {
 		}
 	}
 
+	async getBalance(hash) {
+		const ua = window.navigator.userAgent.toLowerCase();
+		const is_ie = /trident/gi.test(ua) || /msie/gi.test(ua);
+		if (!is_ie) {
+			const { balance, err } = await getUBEXBalance(hash);
+			if (err) {
+				console.log(err);
+			} else {
+				this.setState({ ubexBalance: balance });
+			}
+		}
+	}
+
 	render() {
+		console.log(this.props)
+		const { display } = this.props.selectUbexPopover;
+		const { amount } = this.props.selectAmount && this.props.selectAmount.length ? this.props.selectAmount[0] : '0';
+		const { selectUbexHash } = this.props;
+		const ua = window.navigator.userAgent.toLowerCase();
+		const is_ie = /trident/gi.test(ua) || /msie/gi.test(ua);
 		return (
 			<Navbar
 				color={this.props.location.pathname.indexOf('full-screen-maps') !== -1 ? 'white' : this.state.color}
@@ -170,13 +194,15 @@ class Header extends React.Component {
 						toggle={this.toggleDropDown}
 						className="for_mobile"
 					>
-						<DropdownToggle className="gray-color" caret>Data Mining</DropdownToggle>
+						<DropdownToggle className="gray-color" caret>
+							Trading Desk
+						</DropdownToggle>
 						<DropdownMenu>
 							<a className="dropdown-item" href="#">
-								Trading Desk
-							</a>
-							<a className="dropdown-item" href="#">
 								Data Platform
+							</a>
+							<a className="dropdown-item" href="https://mining.ubex.com">
+								Data Mining
 							</a>
 							<a className="dropdown-item" href="https://network.ubex.com">
 								Ad Network
@@ -185,7 +211,7 @@ class Header extends React.Component {
 					</Dropdown>
 					<ul className="navbar-nav mr-auto buttons__header">
 						<li className="nav-item">
-							<a href="#" className="adv">
+							<a href="https://desk.ubex.com" className="adv active">
 								<i className="fas fa-bullhorn" />
 								<span>Trading Desk</span>
 							</a>
@@ -203,21 +229,69 @@ class Header extends React.Component {
 							</a>
 						</li>
 						<li className="nav-item">
-							<a href="https://mining.ubex.com" className="mining active">
+							<a href="https://mining.ubex.com" className="mining ">
 								<i className="fas fa-server" />
 								<span>Data Mining</span>
 							</a>
 						</li>
 					</ul>
 					<ul className="navbar-nav users__header float-right">
-						<li className="nav-item nav-pay">
-							<Link className="nav-link" to="/app/payments/pay">
+						{document.location.origin !== MINING_URL && (
+							<li className="nav-item nav-pay">
+								<Link className="nav-link" to="/app/payments/pay">
+									<span className="tab-label">USD</span>
+									<span className="badge badge-success">
+										<span>{amount ? parseInt(amount, 10) : '0'}</span>
+									</span>
+								</Link>
+							</li>
+						)}
+						<li className="nav-item nav-pay" id="pay-popover">
+							<a
+								className="nav-link pointer"
+								onClick={() => this.setState({ openWalletConnector: true })}
+							>
 								<span className="tab-label">UBEX</span>
 								<span className="badge badge-purple">
-									<span>0</span>
+									<span>{this.state.ubexBalance}</span>
 								</span>
-							</Link>
+							</a>
 						</li>
+						{window.innerWidth >= 992 && (
+							<Popover
+								fade
+								placement="bottom"
+								isOpen={
+									!this.state.openWalletConnector &&
+									this.state.popoverOpen &&
+									display &&
+									NODE_ENV === 'production'
+								}
+								className="pay-popover"
+								target="pay-popover"
+								toggle={this.togglePopover}
+							>
+								<PopoverBody className="pay-popover__body">
+									<div className="close-popover">
+										<button
+											type="button"
+											className="close"
+											aria-label="Close"
+											onClick={() => this.props.setUbexPopover({ display: false })}
+										>
+											<span aria-hidden="true">×</span>
+										</button>
+									</div>
+									<h6 className="pay-popover__title">Benefits of paying with UBEX</h6>
+									<ul className="pay-popover__list">
+										<li>Bonus 5% on ad impressions</li>
+										<li>No commission</li>
+										<li>Cross-Border Payments</li>
+										<li>Deferred payment</li>
+									</ul>
+								</PopoverBody>
+							</Popover>
+						)}
 						<div className="nav-item">
 							<Dropdown
 								nav
@@ -236,13 +310,16 @@ class Header extends React.Component {
 									</DropdownItem>
 									<div className="desktop_none">
 										<DropdownItem>
-											<li className="nav-item d-xl-block">
-												<Link className="nav-link" to="/app/payments/accountbalance">
+											<li
+												className="nav-item d-xl-block"
+												onClick={() => this.setState({ openWalletConnector: true })}
+											>
+												<div className="nav-link">
 													<span className="tab-label">UBEX</span>
 													<span className="badge badge-purple">
-														<span>0</span>
+														<span>{this.state.ubexBalance}</span>
 													</span>
-												</Link>
+												</div>
 											</li>
 										</DropdownItem>
 									</div>
@@ -252,12 +329,6 @@ class Header extends React.Component {
 											<FormattedMessage id="app.navbar.profile" />
 										</DropdownItem>
 									</a>
-									<Link to="/app/faq">
-										<DropdownItem>
-											<i className="fas fa-question-circle" />
-											FAQ
-										</DropdownItem>
-									</Link>
 									<a href="/accounts/logout/">
 										<DropdownItem>
 											<i className="fa fa-lock" /> <FormattedMessage id="app.navbar.logout" />
@@ -274,6 +345,14 @@ class Header extends React.Component {
 						</div>
 					</ul>
 				</div>
+				{!is_ie && (
+					<WalletConnector
+						isOpen={this.state.openWalletConnector}
+						data={selectUbexHash}
+						updateUbex={values => this.props.updateUbex(values)}
+						onCancel={() => this.setState({ openWalletConnector: false })}
+					/>
+				)}
 			</Navbar>
 		);
 	}

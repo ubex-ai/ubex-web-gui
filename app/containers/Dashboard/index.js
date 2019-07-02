@@ -11,7 +11,6 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { compose } from 'redux';
-
 import CookieConsent from 'react-cookie-consent';
 import FullScreenLoader from 'components/FullScreenLoader';
 import { changeLocale } from 'containers/LanguageProvider/actions';
@@ -25,13 +24,54 @@ import {
 	selectAppInitLoading,
 	selectDashboardLoading,
 	selectDashboardError,
+	selectUbexPopover,
 } from 'containers/Dashboard/selectors';
+import { selectBalance } from 'containers/TradingDesk/selectors';
 import { Header, Sidebar, ChatSidebar } from '../../components';
-
+import { setUbexPopover } from 'containers/Dashboard/actions';
 import ProgressLoader from '../../components/ProgressLoader';
+import AgreementModal from '../../components/AgreementModal';
+import { ToastContainer } from 'react-toastify';
+import { updateData } from 'containers/UserPage/actions';
+import { Button } from 'reactstrap';
+import PaymentStatus from 'components/PaymentStatus';
 
 /* eslint-disable react/prefer-stateless-function */
 export class Dashboard extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = {
+			paymentSuccessModal: false,
+			amount: '',
+			status: '',
+		};
+	}
+
+	componentDidMount() {
+		const ua = window.navigator.userAgent.toLowerCase();
+		const is_ie = /trident/gi.test(ua) || /msie/gi.test(ua)
+		if(!is_ie) {
+			const searchParams = new URLSearchParams(this.props.location.search);
+			if(searchParams.get('pay_status')){
+				this.props.history.push({
+					pathname: '/',
+					search: '',
+				});
+			}
+			if (searchParams.get('pay_status') === 'error' || searchParams.get('pay_status') === 'success') {
+				this.setState({
+					paymentSuccessModal: true,
+					amount: searchParams.get('amount'),
+					status: searchParams.get('pay_status'),
+				});
+			}
+		}
+	}
+
+	closePaymentModal() {
+		this.setState({ paymentSuccessModal: false, amount: '', status: '' });
+	}
+
 	/* eslint-disable react/no-string-refs */
 	render() {
 		if (this.props.appInitLoading && !this.props.appDidFetch) {
@@ -47,7 +87,6 @@ export class Dashboard extends React.Component {
 			);
 		}
 		const { routes, homePage, title, description } = this.props;
-
 		return (
 			<div className="wrapper">
 				<Helmet>
@@ -82,6 +121,14 @@ export class Dashboard extends React.Component {
 						Learn more
 					</a>
 				</CookieConsent>
+				<AgreementModal />
+				<ToastContainer />
+				<PaymentStatus
+					isOpen={this.state.paymentSuccessModal}
+					amount={this.state.amount}
+					status={this.state.status}
+					onCancel={() => this.closePaymentModal()}
+				/>
 			</div>
 		);
 	}
@@ -111,12 +158,17 @@ const mapStateToProps = createStructuredSelector({
 	appInitMessage: selectAppInitMessage(),
 	appInitPercent: selectAppInitPercent(),
 	appInitError: selectAppInitError(),
+	selectUbexPopover: selectUbexPopover(),
+	selectUbexHash: selectUserData(),
+	selectAmount: selectBalance(),
 });
 
 function mapDispatchToProps(dispatch) {
 	return {
 		dispatch,
 		changeLocale: locale => dispatch(changeLocale(locale)),
+		setUbexPopover: values => dispatch(setUbexPopover(values)),
+		updateUbex: values => dispatch(updateData(values)),
 	};
 }
 

@@ -8,10 +8,21 @@ import {
 	DataTypeProvider,
 	GroupingState,
 	IntegratedGrouping,
+	SearchState,
+	IntegratedFiltering,
 } from '@devexpress/dx-react-grid';
-import { Grid, Table, TableHeaderRow, PagingPanel, TableGroupRow } from '@devexpress/dx-react-grid-bootstrap4';
+import {
+	Grid,
+	Table,
+	TableHeaderRow,
+	PagingPanel,
+	TableGroupRow,
+	SearchPanel,
+	Toolbar,
+} from '@devexpress/dx-react-grid-bootstrap4';
 import '@devexpress/dx-react-grid-bootstrap4/dist/dx-react-grid-bootstrap4.css';
 import moment from 'moment';
+import { Button } from 'reactstrap';
 
 const getRowId = row => row.id;
 
@@ -33,7 +44,22 @@ class AppTable extends React.Component {
 
 	render() {
 		const { sorting, currentPage, pageSize, pageSizes } = this.state;
-		const { data, columns, pagination, grouping } = this.props;
+		const { data, columns, pagination, grouping, search, exportTable } = this.props;
+		const ToolbarRootBase = ({ classes, className, ...restProps }) => (
+			<Toolbar.Root {...restProps}>
+				<div style={{ marginLeft: 'auto' }}>
+					<Button size="sm" color="success">
+						CSV
+					</Button>
+					<Button size="sm" color="success" className="button-margin-left-10">
+						PDF
+					</Button>
+					<Button size="sm" color="success" className="button-margin-left-10">
+						XLS
+					</Button>
+				</div>
+			</Toolbar.Root>
+		);
 		return (
 			<div className="table__card">
 				{data && (
@@ -46,6 +72,8 @@ class AppTable extends React.Component {
 							getRowId={getRowId}
 						/>
 						<SortingState sorting={sorting} onSortingChange={this.changeSorting} />
+						{search && <SearchState />}
+						<IntegratedFiltering />
 						<IntegratedSorting />
 						<IntegratedPaging />
 						{grouping && (
@@ -57,6 +85,8 @@ class AppTable extends React.Component {
 						{grouping && <IntegratedGrouping />}
 						<Table />
 						<TableHeaderRow showSortingControls />
+						<Toolbar {...exportTable && { rootComponent: ToolbarRootBase }} />
+						{search && <SearchPanel />}
 						{grouping && <TableGroupRow />}
 						{pagination && <PagingPanel pageSizes={pageSizes} />}
 					</Grid>
@@ -75,8 +105,10 @@ AppTable.propTypes = {
 	).isRequired,
 	data: PropTypes.array.isRequired,
 	grouping: PropTypes.bool,
+	search: PropTypes.bool,
 	pagination: PropTypes.bool.isRequired,
 	className: PropTypes.string,
+	export: PropTypes.bool,
 };
 
 export default AppTable;

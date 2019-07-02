@@ -7,11 +7,7 @@
 import {
 	DEFAULT_ACTION,
 	FETCH_USER_REQUEST,
-	FETCH_USER_SUCCESS,
-	FETCH_USER_REJECT,
 	UPDATE_USER_REQUEST,
-	UPDATE_USER_SUCCESS,
-	UPDATE_USER_REJECT,
 } from './constants';
 
 export function defaultAction() {
@@ -26,8 +22,9 @@ export function fetchData() {
 	};
 }
 
-export function updateData() {
+export function updateData(data) {
 	return {
 		type: UPDATE_USER_REQUEST,
+		payload: data,
 	};
 }

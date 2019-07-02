@@ -69,6 +69,11 @@ export class HomePage extends React.Component {
 			alpha: 0.7,
 			hue: 'random',
 		}),
+		color: {
+			r: 244,
+			g: 81,
+			b: 108,
+		}
 	};
 
 	render() {
@@ -102,7 +107,7 @@ export class HomePage extends React.Component {
 						<Row>
 							<Col md={12} className="title_with_select">
 								<Row>
-									<Col md={12} sm={6} xl={6} lg={6}>
+									<Col md={12} sm={6} xl={5} lg={6}>
 										<div className="page-title">
 											<div className="float-left">
 												<h1 className="title">
@@ -116,6 +121,7 @@ export class HomePage extends React.Component {
 										startDate={startDate}
 										endDate={endDate}
 										period={period}
+										mining={counters}
 									/>
 								</Row>
 							</Col>
@@ -190,6 +196,7 @@ export class HomePage extends React.Component {
 										<LineChart
 											data={topProfitability}
 											height={window.innerWidth > 600 ? null : 300}
+											color={this.state.color}
 										/>
 									</div>
 								</CardPopover>

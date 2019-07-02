@@ -17,15 +17,19 @@ import TableCounter from 'containers/DataMiner/components/Tables/TableCounter';
 import CountersOnlineDashboardCard from 'containers/DataMiner/components/DashboardCards/CountersOnlineDashboardCard';
 import AverageRevenueDashboardCard from 'containers/DataMiner/components/DashboardCards/AverageRevenueDashboardCard';
 import CodeModal from 'components/CodeModal';
+import RemoveModal from 'components/RemoveModal';
+import createToast from 'utils/toastHelper';
 import { getCounters, setActiveCounter, removeCounter, getCounter } from '../../actions';
 import messages from '../../messages';
 import { countersSelectors, selectAverage, selectOnlineCounters } from '../../selectors';
+import { makePromiseAction } from 'utils/CollectionHelper/actions';
 
 /* eslint-disable react/prefer-stateless-function */
 class CountersList extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
+			removeCounter: null,
 			showCode: null,
 		};
 		this.codeModal = this.codeModal.bind(this);
@@ -55,6 +59,13 @@ class CountersList extends React.Component {
 				onCancel={() => this.setState({ showCode: null })}
 			/>
 		);
+	}
+
+	removeCounter(id) {
+		this.props.removeCounter(id).then(() => {
+			this.setState({ removeCounter: null });
+			createToast('success', 'Counter successfully removed!');
+		});
 	}
 
 	render() {
@@ -90,7 +101,7 @@ class CountersList extends React.Component {
 										this.props.getCounter(id);
 										this.setState({ showCode: id });
 									}}
-									onClickRemoveEntry={id => this.props.removeCounter(id)}
+									onClickRemoveEntry={id => this.setState({ removeCounter: id })}
 								/>
 							) : (
 								<Alert color="primary">
@@ -100,6 +111,13 @@ class CountersList extends React.Component {
 						</div>
 					</AppCard>
 					{this.codeModal(this.state.showCode)}
+					<RemoveModal
+						isOpen={this.state.removeCounter}
+						onSuccess={id => this.removeCounter(id)}
+						onCancel={() => this.setState({ removeCounter: null })}
+						title={messages.remove}
+						msg={messages.remove}
+					/>
 				</Col>
 			</Row>
 		);
@@ -139,7 +157,7 @@ function mapDispatchToProps(dispatch) {
 		dispatch,
 		getCounters: () => dispatch(getCounters()),
 		setActiveCounter: id => dispatch(setActiveCounter(id)),
-		removeCounter: id => dispatch(removeCounter(id)),
+		removeCounter: id => makePromiseAction(dispatch, removeCounter(id)),
 		getCounter: id => dispatch(getCounter(id)),
 	};
 }

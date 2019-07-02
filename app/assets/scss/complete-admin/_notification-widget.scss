@@ -100,3 +100,15 @@
 .notification-widget li.status-offline {
 	background-color: rgba(169, 169, 169, 0.1);
 }
+
+.Toastify {
+	.Toastify__toast-container {
+		width: 400px;
+	}
+	.Toastify__toast--success {
+		background: #34bfa3;
+	}
+}
+.Toastify__toast-body {
+	font-family: "Proxima Nova Rg", Arial, sans-serif;
+}

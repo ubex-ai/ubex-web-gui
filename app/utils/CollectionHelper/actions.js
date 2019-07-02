@@ -42,6 +42,11 @@ export const collectionActionCreator = collection => {
 			payload: { id: parseInt(id, 10), ...values },
 			meta: { url, id: parseInt(id, 10) },
 		}),
+		patchEntry: (url, id, values) => ({
+			type: actions.patchEntry.request,
+			payload: { id: parseInt(id, 10), ...values },
+			meta: { url, id: parseInt(id, 10) },
+		}),
 		removeEntry: (url, id) => ({
 			type: actions.removeEntry.request,
 			payload: { id: parseInt(id, 10) },
@@ -58,7 +63,20 @@ export const collectionActionCreator = collection => {
 	};
 };
 
-export const makeCRUDOnRoute = (url, collection = url, fullCRUD = true) => {
+export function makePromiseAction(dispatch, action) {
+	return new Promise((resolve, reject) => {
+		dispatch({
+			...action,
+			meta: {
+				...action.meta,
+				resolve,
+				reject,
+			},
+		});
+	});
+}
+
+export const makeCRUDOnRoute = (url, collection = url, readOnly = true) => {
 	const actions = collectionActionCreator(collection);
 	const readOnlyActions = {
 		getCollection: () => actions.getCollection(url),
@@ -66,13 +84,14 @@ export const makeCRUDOnRoute = (url, collection = url, fullCRUD = true) => {
 		setActiveEntry: id => actions.setActiveEntry(id),
 		unsetActiveEntry: () => actions.unsetActiveEntry(),
 	};
-	if (!fullCRUD) {
+	if (!readOnly) {
 		return readOnlyActions;
 	}
 	return {
 		...readOnlyActions,
 		addEntry: values => actions.addEntry(url, values),
 		updateEntry: (id, values) => actions.updateEntry(url, id, values),
+		patchEntry: (id, values) => actions.patchEntry(url, id, values),
 		removeEntry: id => actions.removeEntry(url, id),
 	};
 };

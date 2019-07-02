@@ -15,7 +15,15 @@
 		list-style-type: decimal;
 	}
 }
+.card-body {
+	.nav-pills {
+		.nav-item {
+			.disabled {
 
+			}
+		}
+	}
+}
 .card-body .annotation {
 	text-align: center;
 	font-size: 18px;
@@ -33,5 +41,21 @@
 	.col-12 {
 		padding-left: 10px;
 		padding-right: 10px;
+	}
+}
+
+.pay-benefits {
+	.number {
+		display: block;
+		margin: 0 auto;
+		text-align: center;
+		font-size: 90px;
+		color: #716aca;
+	}
+	span {
+		text-align: center;
+		display: block;
+		margin-top: 50px;
+		font-size: 22px;
 	}
 }

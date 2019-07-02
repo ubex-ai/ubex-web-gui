@@ -10,6 +10,8 @@ import {
 import { Grid, Table, TableHeaderRow, PagingPanel, TableColumnResizing } from '@devexpress/dx-react-grid-bootstrap4';
 import '@devexpress/dx-react-grid-bootstrap4/dist/dx-react-grid-bootstrap4.css';
 import moment from 'moment';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import messages from 'containers/DataMiner/messages';
 
 const DateFormatter = ({ value }) =>
 	moment(value)
@@ -45,10 +47,10 @@ class TablePaymentHistory extends React.Component {
 		this.state = {
 			rows: null,
 			columns: [
-				{ name: 'status', title: 'Status' },
-				{ name: 'time', title: 'Time' },
-				{ name: 'method', title: 'Method' },
-				{ name: 'amount', title: 'Amount' },
+				{ name: 'status', title: this.props.intl.formatMessage(messages.status) },
+				{ name: 'time', title: this.props.intl.formatMessage(messages.time) },
+				{ name: 'method', title: this.props.intl.formatMessage(messages.method) },
+				{ name: 'amount', title: this.props.intl.formatMessage(messages.amountTablePayment) },
 				{ name: 'txid', title: 'TxID' },
 			],
 			sorting: [{ columnName: 'created', direction: 'desc' }],
@@ -103,4 +105,4 @@ class TablePaymentHistory extends React.Component {
 	}
 }
 
-export default TablePaymentHistory;
+export default injectIntl(TablePaymentHistory);

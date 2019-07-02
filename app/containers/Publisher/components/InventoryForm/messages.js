@@ -75,7 +75,7 @@ export default defineMessages({
 	},
 	blockedCategories: {
 		id: `${scope}.inventoryForm.blockedCategories`,
-		defaultMessage: 'Blocked categories',
+		defaultMessage: 'Blocked advertising categories',
 	},
 	blockedDSP: {
 		id: `${scope}.inventoryForm.blockedDSP`,
@@ -125,5 +125,17 @@ export default defineMessages({
 	addBundleHeader: {
 		id: `${scope}.addBundleHeader`,
 		defaultMessage: 'Add bundle',
+	},
+	attention: {
+		id: `${scope}.attention`,
+		defaultMessage:
+			'<strong>ATTENTION!</strong>' +
+			' <span>Please do not add sites created not for people. We will remove a bad site and block an account.</span>',
+	},
+	attentionBundle: {
+		id: `${scope}.attentionBundle`,
+		defaultMessage:
+			'<strong>ATTENTION!</strong>' +
+			' <span>Please do not add app created not for people. We will remove a bad app and block an account.</span>',
 	},
 });

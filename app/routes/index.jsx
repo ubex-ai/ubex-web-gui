@@ -1,5 +1,6 @@
 import DataMinerDashboard from 'containers/DataMiner';
 import PublisherDashboard from 'containers/Publisher';
+import TradingDeskDashboard from 'containers/TradingDesk';
 import BlankPage from 'containers/NotFoundPage/Loadable';
 
 const getDashboardForDomain = () => {
@@ -14,8 +15,10 @@ const getDashboardForDomain = () => {
 			// eslint-disable-next-line no-undef
 			case MINING_URL:
 				return DataMinerDashboard;
+			case TRADING_DESK_URL:
+				return TradingDeskDashboard;
 			default:
-				return DataMinerDashboard;
+				return TradingDeskDashboard;
 		}
 	} catch (e) {
 		// eslint-disable-next-line no-console

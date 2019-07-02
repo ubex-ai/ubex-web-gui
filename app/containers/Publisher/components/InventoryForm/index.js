@@ -27,6 +27,8 @@ import InventoryShape from 'containers/Publisher/shapes/Inventory';
 import { INVENTORY_TYPES } from 'containers/Publisher/constants';
 import messages, { scope as messageScope } from 'containers/Publisher/components/InventoryForm/messages';
 import DomainDynamicField from 'components/DomainDynamicField';
+import createToast from 'utils/toastHelper';
+import { makePromiseAction } from 'utils/CollectionHelper/actions';
 
 /* eslint-disable react/prefer-stateless-function */
 class InventoryForm extends React.Component {
@@ -39,6 +41,7 @@ class InventoryForm extends React.Component {
 			selectedBlockedCategories: [],
 			selectedBlockedDSP: [],
 			types: [{ id: 1, value: 'ios', label: 'iOS' }, { id: 2, value: 'android', label: 'Android' }],
+			activeInventory: props.activeInventory ? props.activeInventory : {},
 		};
 		this.renderForm = this.renderForm.bind(this);
 		this.formRef = null;
@@ -79,7 +82,7 @@ class InventoryForm extends React.Component {
 			this.props.location.pathname === `/app/inventory/${type}/add`
 		) {
 			// eslint-disable-next-line react/no-did-update-set-state
-			this.props.history.push(`/app/inventory/${type}/edit/${this.props.activeInventory.id}/`);
+			this.props.history.push(`/app/inventory/${type}`);
 		}
 		this.setInitialStateForEdit(prevProps);
 	}
@@ -93,12 +96,12 @@ class InventoryForm extends React.Component {
 
 	setInitialStateForEdit(prevProps = {}) {
 		const { activeInventory, categories, dsp, userCategoriesBlackList } = this.props;
-
 		if (!activeInventory && prevProps.activeInventory) {
 			this.setState({
 				aliases: [],
 				selectedBlockedCategories: [],
 				selectedBlockedDSP: [],
+				activeInventory: null,
 			});
 		}
 
@@ -116,6 +119,7 @@ class InventoryForm extends React.Component {
 			selectedBlockedDSP: dsp
 				.map(d => ({ id: d.id, label: d.name, value: d.id }))
 				.filter(d => activeInventory.dsp_blacklist.indexOf(d.id) >= 0),
+			activeInventory,
 		});
 	}
 
@@ -142,7 +146,6 @@ class InventoryForm extends React.Component {
 		if (this.state.aliases && this.state.aliases.length) {
 			errors.aliases = validateAliases(formValues.aliases);
 		}
-		console.log(errors);
 		return errors;
 	}
 
@@ -157,9 +160,13 @@ class InventoryForm extends React.Component {
 		};
 
 		if (this.props.activeInventory) {
-			this.props.updateInventory(this.props.activeInventory.id, result);
+			this.props.updateInventory(this.props.activeInventory.id, result).then(() => {
+				createToast('success', 'Inventory successfully updated!');
+			});
 		} else {
-			this.props.addInventory(result);
+			this.props.addInventory(result).then(() => {
+				createToast('success', 'Inventory successfully added!');
+			});
 		}
 	}
 
@@ -206,7 +213,14 @@ class InventoryForm extends React.Component {
 				<AppCard>
 					{this.renderError()}
 					{this.renderLoading()}
-					<IntlFieldGroup name="name" label={messages.siteName} />
+					<Alert color="danger">
+						{type === 'web' ? (
+							<FormattedHTMLMessage {...messages.attention} />
+						) : (
+							<FormattedHTMLMessage {...messages.attentionBundle} />
+						)}
+					</Alert>
+					<IntlFieldGroup name="name" label={messages.siteName} required />
 					{type !== 'web' && (
 						<IntlFieldGroup
 							name="type"
@@ -217,7 +231,11 @@ class InventoryForm extends React.Component {
 							label={messages.platforms}
 						/>
 					)}
-					<IntlFieldGroup name="inventory_id" label={type === 'web' ? messages.domain : messages.bundleId} />
+					<IntlFieldGroup
+						name="inventory_id"
+						label={type === 'web' ? messages.domain : messages.bundleId}
+						required={type !== 'web'}
+					/>
 					{type === 'web' && (
 						<div className="form-group">
 							<Button
@@ -263,6 +281,7 @@ class InventoryForm extends React.Component {
 							options: languages.map(l => ({ id: l.id, value: l.id, label: l.name })),
 						}}
 						label={messages.language}
+						required
 					/>
 				</AppCard>
 				<AppCard>
@@ -272,24 +291,25 @@ class InventoryForm extends React.Component {
 							<FormattedMessage {...messages.blockedCategories} />
 						</Label>
 						<MultiSelect
-							showSelectAll={false}
+							showSelectAll
 							items={categories}
 							selectedItems={this.state.selectedBlockedCategories}
 							onChange={selectedBlockedCategories => {
 								this.setState({ selectedBlockedCategories });
 							}}
 						/>
-						{this.blockedCategoryListTouched && errors.blockedCategories && (
-							/* eslint-disable react/jsx-boolean-value */
-							<FormFeedback invalid="true">{errors.blockedCategories}</FormFeedback>
-						)}
+						{this.blockedCategoryListTouched &&
+							errors.blockedCategories && (
+								/* eslint-disable react/jsx-boolean-value */
+								<FormFeedback invalid="true">{errors.blockedCategories}</FormFeedback>
+							)}
 					</FormGroup>
 					<FormGroup>
 						<Label>
 							<FormattedMessage {...messages.blockedDSP} />
 						</Label>
 						<MultiSelect
-							showSelectAll={false}
+							showSelectAll
 							items={dsp.map(d => ({ id: d.id, label: d.name, value: d.id }))}
 							selectedItems={this.state.selectedBlockedDSP}
 							onChange={items => {
@@ -297,9 +317,8 @@ class InventoryForm extends React.Component {
 								this.setState({ selectedBlockedDSP: items });
 							}}
 						/>
-						{this.blockedDSPTouched && errors.blockedDSP && (
-							<FormFeedback invalid="true">{errors.blockedDSP}</FormFeedback>
-						)}
+						{this.blockedDSPTouched &&
+							errors.blockedDSP && <FormFeedback invalid="true">{errors.blockedDSP}</FormFeedback>}
 					</FormGroup>
 					<Button type="submit" color="primary" disabled={activeInventory && activeInventory.loading}>
 						{activeInventory && activeInventory.loading ? (
@@ -315,18 +334,18 @@ class InventoryForm extends React.Component {
 
 	render() {
 		const {
-			activeInventory,
 			match: {
-				params: { type },
+				params: { type, inventoryId },
 			},
 		} = this.props;
+		const { activeInventory } = this.state;
 		return (
 			<Row className="margin-0">
 				<Col md={12}>
 					<header className="page-title">
 						<div className="float-left">
 							<h1 className="title">
-								{activeInventory ? (
+								{activeInventory && inventoryId ? (
 									<FormattedMessage {...messages.editSiteHeader} />
 								) : type === 'web' ? (
 									<FormattedMessage {...messages.addSiteHeader} />
@@ -337,7 +356,7 @@ class InventoryForm extends React.Component {
 						</div>
 					</header>
 					<Row>
-						<Col sm={12} lg={7} md={8} xs={12}>
+						<Col sm={12} lg={8} md={8} xs={12}>
 							<Form
 								validate={formValues => this.validate(formValues)}
 								initialValues={activeInventory}
@@ -348,11 +367,7 @@ class InventoryForm extends React.Component {
 						</Col>
 						<Col md={4}>
 							<AppCard>
-								{type === 'web' ? (
-									<FormattedHTMLMessage {...messages.instructionsText} />
-								) : (
-									<FormattedHTMLMessage {...messages.instructionsTextBundle} />
-								)}
+								<FormattedHTMLMessage {...messages.instructionsText} />
 							</AppCard>
 						</Col>
 					</Row>
@@ -389,8 +404,8 @@ const mapStateToProps = createStructuredSelector({
 
 function mapDispatchToProps(dispatch) {
 	return {
-		addInventory: values => dispatch(inventoryCollectionActions.addEntry(values)),
-		updateInventory: (id, values) => dispatch(inventoryCollectionActions.updateEntry(id, values)),
+		addInventory: values => makePromiseAction(dispatch, inventoryCollectionActions.addEntry(values)),
+		updateInventory: (id, values) => makePromiseAction(dispatch, inventoryCollectionActions.updateEntry(id, values)),
 		setActiveInventory: id => dispatch(inventoryCollectionActions.setActiveEntry(id)),
 		unsetActiveInventory: _ => dispatch(inventoryCollectionActions.unsetActiveEntry()),
 		getInventory: id => dispatch(inventoryCollectionActions.getInventory(id)),

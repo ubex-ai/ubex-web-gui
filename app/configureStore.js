@@ -71,8 +71,8 @@ export default function configureStore(initialState = {}, history) {
 	}
 
 	const persistConfig = {};
-
-	const loadStore = callback => persistStore(store, persistConfig, callback);
+	// TODO: сделать очистку localStorage каждые 5-7 дней
+	const loadStore = callback => persistStore(store, persistConfig, callback).purge();
 
 	return { store, loadStore };
 }

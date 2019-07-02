@@ -18,7 +18,6 @@ class DomainDynamicField extends React.Component {
 
 	render() {
 		const { index, msg, onClickRemove, name } = this.props;
-
 		return (
 			<FieldGroup
 				label={msg}

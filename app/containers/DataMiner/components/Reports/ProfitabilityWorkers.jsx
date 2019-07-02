@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import { compose } from 'redux';
 import { Row, Col } from 'reactstrap';
 import { createStructuredSelector } from 'reselect';
@@ -18,11 +18,11 @@ import DateSelect from 'components/DateSelect';
 
 class ProfitabilityWorkers extends React.Component {
 	columns = [
-		{ name: 'name', title: 'Counter' },
-		{ name: 'date', title: 'Date' },
-		{ name: 'paidusers', title: 'Reward visitors' },
-		{ name: 'paidUBEX', title: 'Paid UBEX' },
-		{ name: 'txid', title: 'TxID' },
+		{ name: 'name', title: this.props.intl.formatMessage(messages.counter) },
+		{ name: 'date', title: this.props.intl.formatMessage(messages.date) },
+		{ name: 'count', title: this.props.intl.formatMessage(messages.visitorsTable) },
+		{ name: 'paidusers', title: this.props.intl.formatMessage(messages.rewardVisitors) },
+		{ name: 'paidpercent', title: this.props.intl.formatMessage(messages.paidPercent) },
 	];
 
 	render() {
@@ -35,7 +35,7 @@ class ProfitabilityWorkers extends React.Component {
 						<Row className="margin-0">
 							<Col md={12} className="title_with_select">
 								<Row>
-									<Col md={6}>
+									<Col md={12} sm={6} xl={5} lg={6}>
 										<div className="page-title">
 											<div className="float-left">
 												<h1 className="title">
@@ -98,6 +98,7 @@ ProfitabilityWorkers.propTypes = {
 		endDate: PropTypes.string.isRequired,
 		period: PropTypes.string.isRequired,
 	}),
+	intl: intlShape.isRequired,
 };
 
 const mapStateToProps = createStructuredSelector({
@@ -119,7 +120,8 @@ const withConnect = connect(
 );
 
 const withReducer = injectReducer({ key: 'dataMiner', reducer });
+
 export default compose(
 	withReducer,
 	withConnect,
-)(ProfitabilityWorkers);
+)(injectIntl(ProfitabilityWorkers));

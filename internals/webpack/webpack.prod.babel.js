@@ -18,7 +18,7 @@ module.exports = require('./webpack.base.babel')({
 	output: {
 		filename: '[name].[chunkhash].js',
 		chunkFilename: '[name].[chunkhash].chunk.js',
-		publicPath: 'https://static.ubex.io/network.app/', // https://static.ubex.io/mining.app/',
+		publicPath: 'https://static.ubex.io/desk.app/', // https://static.ubex.io/mining.app/',
 	},
 
 	optimization: {
@@ -74,10 +74,11 @@ module.exports = require('./webpack.base.babel')({
 		new webpack.ContextReplacementPlugin(/\.\/locale$/, 'empty-module', false, /js$/),
 		new webpack.DefinePlugin({
 			PASSPORT_URL: JSON.stringify('https://passport.ubex.com'),
-			API_URL: JSON.stringify('https://network.ubex.com'),
+			API_URL: JSON.stringify('https://desk.ubex.com'),
 			STATISTIC_URL: JSON.stringify('https://network.ubex.com'),
 			MINING_URL: JSON.stringify('https://mining.ubex.com'),
 			PUBLISHER_URL: JSON.stringify('https://network.ubex.com'),
+			TRADING_DESK_URL: JSON.stringify('https://desk.ubex.com'),
 		}),
 		// Minify and optimize the index.html
 		new HtmlWebpackPlugin({

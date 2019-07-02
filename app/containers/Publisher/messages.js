@@ -28,7 +28,7 @@ export default defineMessages({
 	},
 	PublisherHeader: {
 		id: `${scope}.PublisherHeader`,
-		defaultMessage: 'Ad Network dashboard',
+		defaultMessage: 'Ubex Ad Network',
 	},
 	impressions: {
 		id: `${scope}.impressions`,

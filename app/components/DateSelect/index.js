@@ -6,11 +6,13 @@
 
 import React from 'react';
 import { Col, Row } from 'reactstrap';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import { DateRangePicker } from 'react-dates';
 import PropTypes from 'prop-types';
 import moment from 'moment';
-import messages from '../../containers/Publisher/messages';
+import messages from './messages';
+import DatePicker from 'react-datepicker';
+import Select from 'react-select';
 
 /* eslint-disable react/prefer-stateless-function */
 class DateSelect extends React.Component {
@@ -19,42 +21,59 @@ class DateSelect extends React.Component {
 		this.state = {
 			focusedInput: null,
 			tempPeriod: 'today',
+			startDate: moment(props.startDate),
+			endDate: moment(props.endDate),
+			selectedOptionCampaign: { value: 'all', label: this.props.intl.formatMessage(messages.allGroups) },
+			selectedOptionInventory: { value: 'all', label: this.props.intl.formatMessage(messages.allInventories) },
+			selectedOptionCounter: { value: 'all', label: this.props.intl.formatMessage(messages.allCounters) },
+			options: [
+				{ value: 'week', label: this.props.intl.formatMessage(messages.week) },
+				{ value: 'month', label: this.props.intl.formatMessage(messages.month) },
+				{ value: 'year', label: this.props.intl.formatMessage(messages.year) },
+				{ value: 'all', label: this.props.intl.formatMessage(messages.alltime) },
+			],
+			selectedOption: { value: 'week', label: this.props.intl.formatMessage(messages.week) },
 		};
-		this.startDate = moment(props.startDate, 'YYYY-MM-DD');
-		this.endDate = moment(props.endDate, 'YYYY-MM-DD');
 		this.period = props.period;
-		this.onSelectDate = this.onSelectDate.bind(this);
+		this.startDate = moment(props.startDate);
+		this.endDate = moment(props.endDate);
+		this.startDatepicker = null;
+		this.endDatepicker = null;
+		this.handleChangeStart = this.handleChangeStart.bind(this);
+		this.handleChangeEnd = this.handleChangeEnd.bind(this);
 	}
 
-	onSelectDate(event) {
-		if (event.target.value === 'week') {
+	handleChange = selectedOption => {
+		this.setState({ selectedOption });
+		if (selectedOption.value === 'week') {
 			this.startDate = moment().subtract('6', 'day');
 			this.endDate = moment();
 			this.period = 'week';
 		}
 
-		if (event.target.value === 'month') {
+		if (selectedOption.value === 'month') {
 			this.startDate = moment().subtract('1', 'month');
 			this.endDate = moment();
 			this.period = 'month';
 		}
 
-		if (event.target.value === 'year') {
+		if (selectedOption.value === 'year') {
 			this.startDate = moment().subtract('1', 'year');
 			this.endDate = moment();
 			this.period = 'year';
 		}
 
-		if (event.target.value === 'all') {
+		if (selectedOption.value === 'all') {
 			this.startDate = moment().subtract('2', 'year');
 			this.endDate = moment();
 			this.period = 'all';
 		}
+		this.setState({ startDate: this.startDate, endDate: this.endDate });
 		this.props.onChange(
 			{
 				start_date: this.startDate.format('YYYY-MM-DD'),
 				end_date: this.endDate.format('YYYY-MM-DD'),
-				group: event.target.value === 'all' ? 'year' : event.target.value === 'year' ? 'month' : 'day',
+				group: selectedOption.value === 'all' ? 'year' : selectedOption.value === 'year' ? 'month' : 'day',
 			},
 			{
 				startDate: this.startDate.format('YYYY-MM-DD'),
@@ -62,73 +81,164 @@ class DateSelect extends React.Component {
 				period: this.period,
 			},
 		);
+	};
+
+	handleChangeCampaign = selectedOptionCampaign => {
+		this.setState({ selectedOptionCampaign });
+	};
+
+	handleChangeInventory = selectedOptionInventory => {
+		this.setState({ selectedOptionInventory });
+	};
+
+	handleChangeCounter = selectedOptionCounter => {
+		this.setState({ selectedOptionCounter });
+	};
+
+	handleChangeStart(date) {
+		this.endDatepicker.setOpen(true);
+
+		this.setState({
+			startDate: date,
+		});
 	}
 
-	onSelectDateRange(startDate, endDate) {
-		this.startDate = startDate;
-		this.endDate = endDate;
+	handleChangeEnd(date) {
+		const { startDate, endDate } = this.state;
 		let tempStartDate;
 		let tempEndDate;
+		tempStartDate = startDate.format('YYYY-MM-DD');
+		tempEndDate = date.format('YYYY-MM-DD');
 
-		if (endDate === null) {
+		if (startDate !== null && tempEndDate > tempStartDate) {
 			tempStartDate = startDate.format('YYYY-MM-DD');
-			tempEndDate = startDate.format('YYYY-MM-DD').add(7, 'days');
-		} else if (endDate < startDate) {
-			tempStartDate = startDate.format('YYYY-MM-DD').subtract('7', 'days');
-			tempEndDate = startDate.format('YYYY-MM-DD');
+			tempEndDate = date.format('YYYY-MM-DD');
+			this.setState({
+				endDate: moment(tempEndDate),
+			});
+			this.props.onChange(
+				{
+					start_date: tempStartDate,
+					end_date: tempEndDate,
+				},
+				{ startDate: tempStartDate, endDate: tempEndDate, period: this.period },
+			);
 		} else {
-			tempStartDate = startDate.format('YYYY-MM-DD');
-			tempEndDate = endDate.format('YYYY-MM-DD');
+			this.setState({ startDate: null, endDate: null });
+			this.startDatepicker.setOpen(true);
+			this.startDatepicker.input.focus();
 		}
+	}
 
-		this.props.onChange(
-			{
-				start_date: tempStartDate,
-				end_date: tempEndDate,
-			},
-			{ startDate: tempStartDate, endDate: tempEndDate, period: this.period },
-		);
+	componentDidMount() {
+		if (this.props.publisher) {
+			this.props.publisher.unshift({ code: 'all', name: this.props.intl.formatMessage(messages.allInventories) });
+		}
+		if (this.props.mining) {
+			this.props.mining.unshift({ id: 'all', name: this.props.intl.formatMessage(messages.allCounters) });
+		}
+		if (this.props.tradingDesk) {
+			this.props.tradingDesk.unshift({ id: 'all', name: this.props.intl.formatMessage(messages.allGroups) });
+		}
 	}
 
 	render() {
+		const { startDate, endDate } = this.state;
+		const { tradingDesk, publisher, mining } = this.props;
 		return (
-			<Col md={12} xl={6} lg={6} xs={12}>
-				<Row className="float-right space-between">
-					<Col md={4} xs={12} className="padding-0">
-						<div className="form-group">
-							<select
-								name="select"
-								defaultValue={this.period}
-								onChange={this.onSelectDate}
-								id="exampleSelect"
-								className="form-control"
-							>
-								{['week', 'month', 'year', 'all'].map(period => (
-									<FormattedMessage
-										key={period}
-										id={`app.common.${period === 'all' ? 'alltime' : period}`}
-									>
-										{message => <option value={period}>{message}</option>}
-									</FormattedMessage>
-								))}
-							</select>
-						</div>
-					</Col>
-					<p className="is-inline">or</p>
-					<Col md={7} xs={12} className="padding-0">
-						<DateRangePicker
-							orientation="vertical"
-							startDate={this.startDate} // momentPropTypes.momentObj or null,
-							startDateId="your_unique_start_date_id" // PropTypes.string.isRequired,
-							endDate={this.endDate} // momentPropTypes.momentObj or null,
-							endDateId="your_unique_end_date_id" // PropTypes.string.isRequired,
-							onDatesChange={({ startDate, endDate }) => this.onSelectDateRange(startDate, endDate)} // PropTypes.func.isRequired,
-							focusedInput={this.state.focusedInput} // PropTypes.oneOf([START_DATE, END_DATE]) or null,
-							onFocusChange={focusedInput => this.setState({ focusedInput })} // PropTypes.func.isRequired,
-							isOutsideRange={() => false}
+			<Col xl={7}>
+				<div className={'form-inline'}>
+					<div
+						className="form-group mb-2"
+						style={!tradingDesk && !publisher && !mining ? { position: 'absolute' } : {}}
+					>
+						{mining && (
+							<Select
+								className="campaign-select-container"
+								classNamePrefix="campaign-select"
+								options={mining.map(l => ({
+									value: l.id,
+									label: l.id !== 'all' ? `${l.name} (ID: ${l.id})` : `${l.name}`,
+								}))}
+								onChange={this.handleChangeCounter}
+								value={this.state.selectedOptionCounter}
+								placeholder="Select counter"
+							/>
+						)}
+						{tradingDesk && (
+							<Select
+								className="campaign-select-container"
+								classNamePrefix="campaign-select"
+								options={tradingDesk.filter(filter => filter.status === 'active').map(l => ({
+									value: l.id,
+									label: l.id !== 'all' ? `${l.name} (ID: ${l.id})` : `${l.name}`,
+								}))}
+								onChange={this.handleChangeCampaign}
+								value={this.state.selectedOptionCampaign}
+								placeholder="Select campaign group"
+							/>
+						)}
+						{publisher && (
+							<Select
+								className="campaign-select-container"
+								classNamePrefix="campaign-select"
+								options={publisher.map(l => ({
+									value: l.code,
+									label: l.code !== 'all' ? `${l.name} (${l.code})` : `${l.name}`,
+								}))}
+								onChange={this.handleChangeInventory}
+								value={this.state.selectedOptionInventory}
+								placeholder="Select inventory"
+							/>
+						)}
+					</div>
+					<div className="form-group mb-2" onClick={() => this.startDatepicker.setOpen(false)}>
+						<Select
+							className="campaign-select-container week"
+							classNamePrefix="campaign-select"
+							options={this.state.options}
+							onChange={this.handleChange}
+							value={this.state.selectedOption}
+							isSearchable={false}
 						/>
-					</Col>
-				</Row>
+					</div>
+					<div className="or-text">
+						<FormattedMessage {...messages.or} />
+					</div>
+					<div className="form-group mb-2">
+						<DatePicker
+							selected={startDate}
+							selectsStart
+							startDate={startDate}
+							endDate={endDate}
+							onChange={this.handleChangeStart}
+							className="picker"
+							dateFormat="DD.MM.YYYY"
+							ref={datepicker => {
+								this.startDatepicker = datepicker;
+							}}
+						/>
+					</div>
+					<div className="arrow">
+						<i className="fas fa-angle-right" />
+					</div>
+					<div className="form-group mb-2">
+						<DatePicker
+							popperClassName="endDatePopper"
+							selected={endDate}
+							selectsEnd
+							popperPlacement="top-end"
+							startDate={startDate}
+							endDate={endDate}
+							onChange={this.handleChangeEnd}
+							className="picker"
+							dateFormat="DD.MM.YYYY"
+							ref={datepicker => {
+								this.endDatepicker = datepicker;
+							}}
+						/>
+					</div>
+				</div>
 			</Col>
 		);
 	}
@@ -139,6 +249,10 @@ DateSelect.propTypes = {
 	endDate: PropTypes.string.isRequired,
 	period: PropTypes.string.isRequired,
 	startDate: PropTypes.string.isRequired,
+	intl: intlShape.isRequired,
+	mining: PropTypes.array,
+	publisher: PropTypes.array,
+	tradingDesk: PropTypes.array,
 };
 
-export default DateSelect;
+export default injectIntl(DateSelect);

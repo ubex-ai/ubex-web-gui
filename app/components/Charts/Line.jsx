@@ -16,6 +16,11 @@ class LineChart extends React.Component {
 			tempAverage: null,
 			options: null,
 			dropDownValue: 'By day',
+			color: {
+				r: 244,
+				g: 81,
+				b: 108,
+			},
 		};
 		this.options = null;
 		this.tempCount = 0;
@@ -51,7 +56,10 @@ class LineChart extends React.Component {
 	render() {
 		const { arrayChart, arrayLabels, average } = this.props.data;
 		const { settings, legend } = this.props;
-
+		let color = this.props.color;
+		if (!color) {
+			color = this.state.color;
+		}
 		function indexOfMinMax(arr) {
 			const minIndex = arr.indexOf(Math.min(...arr));
 			const maxIndex = arr.indexOf(Math.max(...arr));
@@ -103,7 +111,7 @@ class LineChart extends React.Component {
 					: arrayChart && arrayChart.length === 1
 						? {
 								datalabels: {
-									color: '#DA4453',
+									color: '#767676',
 									padding: {
 										bottom: 10,
 									},
@@ -165,7 +173,7 @@ class LineChart extends React.Component {
 			const chartColor = '#FFFFFF';
 
 			const gradientFill = ctx.createLinearGradient(0, 500, 0, 50);
-			gradientFill.addColorStop(0, 'rgba(53, 153, 184, 0.5)');
+			gradientFill.addColorStop(0, 'rgba(63, 153, 184, 0.5)');
 			gradientFill.addColorStop(1, 'rgba(53, 153, 184, 0.5)');
 
 			const gradientFill2 = ctx.createLinearGradient(0, 1000, 0, 50);
@@ -218,23 +226,23 @@ class LineChart extends React.Component {
 			gradientStroke.addColorStop(1, '#89216B');
 
 			const gradientFill = ctx.createLinearGradient(0, 500, 0, 50);
-			gradientFill.addColorStop(0, 'rgba(255, 98, 94, 0.5)');
-			gradientFill.addColorStop(1, 'rgba(253, 98, 94, 0.5)');
+			gradientFill.addColorStop(0, `rgba(${color.r}, ${color.r}, ${color.r}, 0.5)`);
+			gradientFill.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, 0.5)`);
 
 			return {
 				labels: arrayLabels,
 				datasets: [
 					{
 						label: 'UBEX',
-						borderColor: '#FD625E',
+						borderColor: `rgba(${color.r}, ${color.g}, ${color.b}, 1)`,
 						pointBorderColor: '#FFF',
-						pointBackgroundColor: '#FD625E',
+						pointBackgroundColor: `rgba(${color.r}, ${color.g}, ${color.b}, 1)`,
 						pointBorderWidth: 2,
 						pointHoverRadius: 4,
 						pointHoverBorderWidth: 1,
 						pointRadius: 4,
 						fill: true,
-						backgroundColor: gradientFill,
+						backgroundColor: `rgba(${color.r}, ${color.g}, ${color.b}, 0.6)`,
 						borderWidth: 2,
 						data: arrayChart[0],
 					},
@@ -242,62 +250,27 @@ class LineChart extends React.Component {
 			};
 		};
 		return (
-			<div className={settings ? 'row margin-0' : 'row'}>
-				<div className={settings ? 'col-12 col-lg-9 col-xl-9' : 'col-12 col-lg-12 col-xl-12'}>
-					<div className="row">
-						<div className="col-12">
-							<div className="chart-container">
-								<div className="chart-area">
-									<Line
-										data={
-											!arrayChart || arrayChart.length === 0 || !Array.isArray(arrayChart)
-												? defdata
-												: arrayChart.length > 1
-													? data1
-													: data2
-										}
-										height={this.props.height}
-										options={options1}
-									/>
-								</div>
+			<Col className="padding-0">
+				<div className="row">
+					<div className="col-12">
+						<div className="chart-container">
+							<div className="chart-area">
+								<Line
+									data={
+										!arrayChart || arrayChart.length === 0 || !Array.isArray(arrayChart)
+											? defdata
+											: arrayChart.length > 1
+												? data1
+												: data2
+									}
+									height={this.props.height}
+									options={options1}
+								/>
 							</div>
 						</div>
 					</div>
 				</div>
-				{this.props.settings ? (
-					<div className="col-12 col-lg-3 col-xl-3 chart-settings">
-						<Row>
-							<Col xs={4} lg={5}>
-								<ButtonDropdown isOpen={this.state.dropdownOpen} toggle={this.toggle}>
-									<DropdownToggle color="primary" caret>
-										{this.state.dropDownValue}
-									</DropdownToggle>
-									<DropdownMenu>
-										<DropdownItem value="By week" onClick={this.changeValue}>
-											By week
-										</DropdownItem>
-										<DropdownItem value="By month" onClick={this.changeValue}>
-											By month
-										</DropdownItem>
-									</DropdownMenu>
-								</ButtonDropdown>
-							</Col>
-							<Col xs={6}>
-								<Button color="primary" onClick={this.toggleAverage} className="button-avg">
-									Show "Average Line"
-								</Button>
-							</Col>
-						</Row>
-						<hr />
-						<Button color="primary" block>
-							Download PDF
-						</Button>
-						<Button color="primary" block>
-							Download CSV
-						</Button>
-					</div>
-				) : null}
-			</div>
+			</Col>
 		);
 	}
 }
@@ -307,6 +280,7 @@ LineChart.propTypes = {
 		arrayChart: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.number.isRequired)),
 		arrayLabels: PropTypes.arrayOf(PropTypes.string.isRequired),
 		average: PropTypes.string,
+		color: PropTypes.string,
 	}),
 	settings: PropTypes.bool,
 	height: PropTypes.number,

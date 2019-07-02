@@ -32,6 +32,8 @@ import {
 } from 'containers/DataMiner/actions';
 import DomainDynamicField from 'components/DomainDynamicField';
 import messages, { scope as messageScope } from 'containers/DataMiner/messages';
+import createToast from 'utils/toastHelper';
+import { makePromiseAction } from 'utils/CollectionHelper/actions';
 
 /* eslint-disable react/prefer-stateless-function */
 class CounterForm extends React.Component {
@@ -58,10 +60,18 @@ class CounterForm extends React.Component {
 			},
 		} = this.props;
 
+		if (!id) {
+			this.formRef.form.reset({});
+			unsetActiveCounter();
+		} else if (!activeCounter || activeCounter.id !== parseInt(id, 10)) {
+			setActiveCounter(id);
+		}
+
 		if (id) {
 			this.props.getCounter(this.props.match.params.id);
-			setActiveCounter(id);
-		} else if (activeCounter) {
+		}
+
+		if (activeCounter) {
 			this.setInitialStateForEdit();
 		}
 	}
@@ -83,9 +93,7 @@ class CounterForm extends React.Component {
 
 	componentWillUnmount() {
 		// сброс значений формы
-		const { unsetActiveCounter } = this.props;
 		if (this.formRef && this.formRef.form) {
-			unsetActiveCounter();
 			this.formRef.form.reset({});
 		}
 	}
@@ -98,7 +106,6 @@ class CounterForm extends React.Component {
 				selectedCategories: [],
 			});
 		}
-
 
 		if (!activeCounter || activeCounter === prevProps.activeCounter) {
 			return;
@@ -141,15 +148,19 @@ class CounterForm extends React.Component {
 			timezone: parseInt(values.timezone, 10),
 			region: parseInt(values.region, 10),
 			categories: this.state.selectedCategories.map(c => c.id),
-			aliases: values.aliases ? values.aliases.filter(a => !!a) : null,
+			aliases: values.aliases ? values.aliases.filter(a => !!a) : [],
 		};
 		['is_agreed_process_data', 'is_allowed_keep_customers_ip', 'is_subdomain_accept'].forEach(k => {
 			result[k] = checkboxForDjango(values[k]);
 		});
-		if (this.edit && this.props.activeCounterId) {
-			this.props.updateCounter(this.props.activeCounterId, result);
+		if (this.props.activeCounterId) {
+			this.props.updateCounter(this.props.activeCounterId, result).then(() => {
+				createToast('success', 'Counter successfully updated!');
+			});
 		} else {
-			this.props.addCounter(result);
+			this.props.addCounter(result).then(() => {
+				createToast('success', 'Counter successfully added!');
+			});
 		}
 	}
 
@@ -184,13 +195,16 @@ class CounterForm extends React.Component {
 			>
 				{this.renderError()}
 				{this.renderLoading()}
+				<Alert color="danger">
+					<FormattedHTMLMessage {...messages.attention} />
+				</Alert>
 				<IntlFieldGroup name="name" label={messages.siteName} />
 				<IntlFieldGroup
 					name="is_subdomain_accept"
 					inputProps={{
 						type: 'checkbox',
 						values: true,
-						[values.is_subdomain_accept ? 'checked' : 'c']: values.is_subdomain_accept,
+						[values.is_subdomain_accept ? 'checked' : false]: values.is_subdomain_accept,
 					}}
 					label={messages.agreement}
 				/>
@@ -238,7 +252,7 @@ class CounterForm extends React.Component {
 									}));
 								}}
 							/>
-						) }
+						)}
 					</FormattedMessage>
 				))}
 
@@ -265,8 +279,9 @@ class CounterForm extends React.Component {
 							this.setState({ selectedCategories });
 						}}
 					/>
-					{this.categoryListTouched && errors.categories && (
-						/* eslint-disable react/jsx-boolean-value */
+					{this.categoryListTouched &&
+						errors.categories && (
+					/* eslint-disable react/jsx-boolean-value */
 						<FormFeedback invalid="true">{errors.categories}</FormFeedback>
 					)}
 				</FormGroup>
@@ -275,7 +290,7 @@ class CounterForm extends React.Component {
 					inputProps={{
 						type: 'checkbox',
 						value: true,
-						[values.is_agreed_process_data ? 'checked' : 'c']: values.is_agreed_process_data,
+						[values.is_agreed_process_data ? 'checked' : false]: values.is_agreed_process_data,
 					}}
 					label={messages.agreement2}
 					html
@@ -319,6 +334,7 @@ class CounterForm extends React.Component {
 								) : (
 									<FormattedMessage {...messages.AddCounterHeader} />
 								)}
+								{activeCounter && <span> {activeCounter.id}</span>}
 							</h1>
 						</div>
 					</header>
@@ -334,18 +350,20 @@ class CounterForm extends React.Component {
 								/>
 							</AppCard>
 						</Col>
-
-							<Col sm={12} lg={6} md={6}>
-								<AppCard>
-									<h3 className="title">
-										<FormattedMessage {...messages.counterCode} />
-									</h3>
-									{activeCounter && activeCounter.embedded_script && (<p>
-										<FormattedHTMLMessage {...messages.counterDescription} />
-									</p>)}
-									<CodeCard messages={messages} embeddedScript={activeCounter ? activeCounter.embedded_script : ''} />
-								</AppCard>
-							</Col>
+						<Col sm={12} lg={6} md={6}>
+							<AppCard>
+								<h3 className="title">
+									<FormattedMessage {...messages.counterCode} />
+								</h3>
+								<p>
+									<FormattedHTMLMessage {...messages.counterDescription} />
+								</p>
+								<CodeCard
+									messages={messages}
+									embeddedScript={activeCounter ? activeCounter.embedded_script : ''}
+								/>
+							</AppCard>
+						</Col>
 					</Row>
 				</Col>
 			</Row>
@@ -379,8 +397,8 @@ const mapStateToProps = createStructuredSelector({
 
 function mapDispatchToProps(dispatch) {
 	return {
-		addCounter: values => dispatch(addCounter(values)),
-		updateCounter: (id, values) => dispatch(updateCounter(id, values)),
+		addCounter: values => makePromiseAction(dispatch, addCounter(values)),
+		updateCounter: (id, values) => makePromiseAction(dispatch, updateCounter(id, values)),
 		setActiveCounter: id => dispatch(setActiveCounter(id)),
 		unsetActiveCounter: _ => dispatch(unsetActiveCounter()),
 		getCounter: id => dispatch(getCounter(id)),

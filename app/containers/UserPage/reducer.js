@@ -5,7 +5,7 @@
  */
 
 import { fromJS } from 'immutable';
-import { DEFAULT_ACTION, FETCH_USER_REQUEST, FETCH_USER_SUCCESS, FETCH_USER_REJECT } from './constants';
+import { DEFAULT_ACTION, FETCH_USER_REQUEST, FETCH_USER_SUCCESS, FETCH_USER_REJECT, UPDATE_USER_REQUEST } from './constants';
 
 export const rehydrateState = {
 	loading: false,
@@ -33,6 +33,8 @@ function userPageReducer(state = initialState, action) {
 				loading: false,
 				error: action.payload,
 			});
+		case UPDATE_USER_REQUEST:
+			return state.set('loading', true);
 		default:
 			return state;
 	}

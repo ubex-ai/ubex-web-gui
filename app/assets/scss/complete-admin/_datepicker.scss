@@ -1,0 +1,22 @@
+
+
+.r4_counter {
+	.react-datepicker {
+		font-family: $fontFamily;
+		width: 320px;
+		&__month {
+			&-container {
+				width: 215px !important;
+			}
+		}
+		&__header {
+
+		}
+		&__day {
+			width: 1.5rem;
+			&-name {
+				width: 1.5rem;
+			}
+		}
+	}
+}

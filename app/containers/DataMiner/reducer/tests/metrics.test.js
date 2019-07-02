@@ -343,7 +343,6 @@ describe('getPaidPercent', () => {
 				visitors.metrics[1][i] !== 0 && visitors.metrics[0][i] !== 0
 					? parseInt((visitors.metrics[1][i] * 100) / visitors.metrics[0][i], 10)
 					: 0;
-			console.log(result);
 			expect(getPaidPercent(i, visitors)).toEqual(result);
 		}
 	});

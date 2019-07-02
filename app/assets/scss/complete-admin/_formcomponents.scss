@@ -333,6 +333,236 @@ body {
 
 }
 
+.campaign-select-container {
+	font-size: 0.9rem;
+	width: 100%;
+	&.week {
+		.campaign-select__single-value {
+			right: 5px;
+			left: auto;
+		}
+	}
+	.campaign-select {
+		&__dropdown-indicator {
+			transition-duration: 0.5s;
+			transition-property: transform;
+			transform: rotate(0deg);
+		}
+		&__control {
+			border-radius: 0;
+			cursor: pointer;
+			box-shadow: none !important;
+			height: 36px !important;
+			border: 1px solid #e1e1e1;
+			&:hover {
+				border: 1px solid #b3b3b3;
+			}
+			&--menu-is-open {
+				background: #f8f8f8;
+				border-color: #22b9ff;
+				&:hover {
+					border: 1px solid #22b9ff;
+				}
+				.campaign-select__single-value {
+					color: #495057;
+					font-family: $fontFamily;
+					display: none;
+				}
+				.campaign-select__placeholder {
+					display: block;
+					color: transparent;
+					&:before {
+						color: hsl(0,0%,50%);
+						position: absolute;
+						content: '...';
+						left: 5px;
+						top: 5px;
+					}
+				}
+				.campaign-select__dropdown-indicator {
+					transform: rotate(180deg);
+				}
+			}
+		}
+		&__placeholder {
+			left: 5px;
+			top: 47%;
+		}
+		&__single-value {
+			left: 5px;
+			color: #495057;
+			font-family: $fontFamily;
+			font-size: 1rem;
+		}
+		&__indicator-separator {
+			display: none;
+		}
+		&__menu {
+			z-index: 9999;
+			box-shadow: 0 1px 3px rgba(33, 33, 33, 0.2);
+			-webkit-box-shadow: 0 1px 3px rgba(33, 33, 33, 0.2);
+			-moz-box-shadow: 0 1px 3px rgba(33, 33, 33, 0.2);
+			-o-box-shadow: 0 1px 3px rgba(33, 33, 33, 0.2);
+			-ms-box-shadow: 0 1px 3px rgba(33, 33, 33, 0.2);
+			border-radius: 0;
+			margin-top: -1px;
+
+			&-list {
+				padding: 0;
+			}
+		}
+		&__option {
+			cursor: pointer;
+			&--is-focused {
+				background-color: rgba(222, 222, 222, 0.3);
+			}
+		}
+	}
+}
+.campaign-select__option--is-selected {
+	background-color: #22b9ff !important;
+}
+.campaign-select__option--is-focused.campaign-select__option--is-selected {
+	background-color: #22b9ff !important;
+}
+.display-inline {
+	display: inline-block;
+}
+.file_upload {
+	cursor: pointer;
+	.file {
+		position: relative;
+		overflow: hidden;
+	}
+	i {
+		margin-right: 5px;
+	}
+	input {
+		cursor: pointer;
+		position: absolute;
+		font-size: 22px;
+		opacity: 0;
+		right: 40px;
+		top: 22px;
+	}
+}
+
+.dropzone__area {
+	margin-bottom: 1.5rem;
+	font-family: $fontFamily;
+	.filepicker.dropzone {
+		&:hover {
+			border: 2px solid #C7C7C7;
+			background-color: #eaecef;
+		}
+	}
+	.filepicker.dropzone {
+		background-color: #fff;
+		&.dz-drag-hover {
+			background-color: #eaecef;
+		}
+	}
+	.filepicker-file-icon::before {
+		border: 2px solid #C7C7C7;
+	}
+	.filepicker-file-icon::after {
+		background-color: #C7C7C7;
+	}
+	.dz-default.dz-message, .dz-remove {
+		font-family: $fontFamily;
+	}
+	.dz-preview .dz-details .dz-filename {
+		font-family: $fontFamily;
+		margin-top: 40px;
+	}
+	.dropzone .dz-preview .dz-details .dz-filename span, .dropzone .dz-preview .dz-details .dz-size span {
+		font-family: $fontFamily;
+	}
+	.dropzone .dz-preview .dz-progress {
+		top: 45%;
+	}
+}
+
+.creative-link {
+	color: #0000FF;
+	font-size: 18px;
+	&:hover {
+		text-decoration: underline;
+	}
+}
+
+.endDate {
+	color: lightgray;
+	&::placeholder {
+		color: lightgray;
+	}
+}
+
+.dots {
+	.fa, .fas {
+		transform: scale(1.3);
+	}
+}
+
+.dots.plus {
+	.fa, .fas {
+		transform: scale(1.5);
+		position: relative;
+		top: -1px;
+	}
+}
 
 
+.buttons__campaign, .buttons__creative, .buttons__inventory {
+	.dropdown.show .dropdown-menu.normal-transform {
+		transform: translate3d(-128px, 1px, 1px) !important;
+		&:before {
+			left: auto;
+			right: 10px;
+		}
+	}
+}
 
+.tab-label {
+	&.green {
+		color: green;
+	}
+	&.red {
+		color: red;
+	}
+}
+
+
+.inline-select-prepend {
+	display: flex;
+	flex-direction: row;
+	.form-group {
+		&:first-child {
+			flex: 0 0 6em;
+			select {
+				background-color: #e9ecef;
+				border: 1px solid #ced4da;
+				option {
+					background-color: #fff;
+				}
+			}
+		}
+		&:not(:first-child){
+			flex: 2;
+			label {
+				visibility: hidden;
+			}
+		}
+	}
+}
+form {
+	label {
+		font-size: 20px;
+	}
+}
+
+.checkbox-wrapper {
+	label {
+		font-size: 16px;
+	}
+}

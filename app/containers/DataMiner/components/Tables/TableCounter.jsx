@@ -13,13 +13,16 @@ import { Grid, Table, TableHeaderRow, PagingPanel, SearchPanel, Toolbar } from '
 import '@devexpress/dx-react-grid-bootstrap4/dist/dx-react-grid-bootstrap4.css';
 import moment from 'moment';
 import { Button } from 'reactstrap';
+import { injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
+import messages from 'containers/DataMiner/messages';
 
 /* eslint-disable prettier/prettier */
 /* eslint-disable react/prop-types */
 const DateFormatter = ({ value }) =>
-	moment(value)
+	value ? moment(value)
 		.local()
-		.format('DD-MM-YYYY hh:mm:ss');
+		.format('DD-MM-YYYY hh:mm:ss') : '';
 
 const StatusFormatter = ({ value }) =>
 	value ? (
@@ -81,13 +84,13 @@ class TableCounter extends React.Component {
 		this.state = {
 			rows: null,
 			columns: [
-				{ name: 'is_online', title: 'Status' },
-				{ name: 'name', title: 'Name' },
-				{ name: 'counter', title: 'Counter ID' },
-				{ name: 'created', title: 'Created at' },
-				{ name: 'visitors', title: 'Visitors' },
-				{ name: 'paid_visitors', title: 'Paid visitors' },
-				{ name: 'paid_percent', title: 'Paid %' },
+				{ name: 'is_online', title: this.props.intl.formatMessage(messages.status) },
+				{ name: 'name', title: this.props.intl.formatMessage(messages.name) },
+				{ name: 'counter', title: this.props.intl.formatMessage(messages.counterId) },
+				{ name: 'created', title: this.props.intl.formatMessage(messages.createdAt) },
+				{ name: 'visitors', title: this.props.intl.formatMessage(messages.visitorsTable)  },
+				{ name: 'paid_visitors', title: this.props.intl.formatMessage(messages.paidVisitors)  },
+				{ name: 'paid_percent', title: this.props.intl.formatMessage(messages.paidPercent) },
 				{ name: 'id', title: 'Settings' },
 			],
 			sorting: [{ columnName: 'is_online', direction: 'desc' }],
@@ -153,4 +156,9 @@ class TableCounter extends React.Component {
 	}
 }
 
-export default TableCounter;
+TableCounter.propTypes = {
+	intl: intlShape.isRequired,
+};
+
+
+export default injectIntl(TableCounter);

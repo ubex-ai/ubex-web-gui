@@ -309,7 +309,7 @@
 .r4_counter h4.panel-title {
 	margin: 0;
 }
-.panel-heading .panel-title a {
+.panel-heading .panel-title .accordion-toggle {
 	padding: 15px 15px;
 	display: block;
 	cursor: pointer;
@@ -392,7 +392,7 @@
 		.card-body {
 			padding: 0;
 		}
-		height: 700px;
+		height: 600px;
 		padding: 0;
 		.card-body {
 			.image_payment {
@@ -433,6 +433,22 @@
 	margin-top: 10px;
 }
 .dashboardCard {
+	&__container {
+		display: flex !important;
+		justify-content: flex-start;
+		@include media-breakpoint-down(xs) {
+			display: block;
+		}
+	}
+	&__icon {
+		display: flex;
+	}
+	&__text {
+		margin-left: 10px;
+		@include media-breakpoint-down(xs) {
+			margin-left: 10px;
+		}
+	}
 	&__icon.fa-users {
 		&:before {
 			margin-left: -4px;
@@ -441,21 +457,27 @@
 	&__title {
 		@include media-breakpoint-down(sm) {
 			display: flex;
-			justify-content: center;
 		}
 	}
 	&__description {
 		@include media-breakpoint-down(sm) {
 			display: flex;
-			justify-content: center;
 		}
 	}
 	&__button {
 		display: flex;
 		align-items: center;
-		justify-content: center;
+		order: 2;
+		margin-left: auto;
 		@include media-breakpoint-down(sm) {
+			justify-content: center;
 			margin-top: 5px;
+			margin-left: 10px;
+			button {
+				display: block;
+				width: 50px;
+				padding-left: 12px;
+			}
 		}
 	}
 }

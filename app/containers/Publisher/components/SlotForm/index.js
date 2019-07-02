@@ -32,6 +32,9 @@ import { selectCategories, selectLanguages } from 'containers/Dashboard/selector
 import messages from 'containers/Publisher/components/SlotForm/messages';
 import InventoryShape from 'containers/Publisher/shapes/Inventory';
 import SlotShape from 'containers/Publisher/shapes/Slot';
+import createToast from 'utils/toastHelper';
+import { makePromiseAction } from 'utils/CollectionHelper/actions';
+
 /* eslint-disable react/prefer-stateless-function */
 class SlotForm extends React.Component {
 	constructor(props) {
@@ -54,6 +57,7 @@ class SlotForm extends React.Component {
 		const {
 			activeSlot,
 			activeInventory,
+			activeInventoryId,
 			setActiveInventory,
 			setActiveSlot,
 			unsetActiveSlot,
@@ -62,7 +66,7 @@ class SlotForm extends React.Component {
 			},
 		} = this.props;
 
-		if (!activeInventory) {
+		if (!activeInventory || activeInventoryId !== inventoryId) {
 			if (inventoryId) {
 				setActiveInventory(inventoryId);
 			} else {
@@ -83,15 +87,16 @@ class SlotForm extends React.Component {
 	}
 
 	componentDidUpdate(prevProps) {
+		const { type } = this.props.match.params;
 		// Если было создание, нужно сделать редирект на редактирование
 		if (
 			!prevProps.activeSlot &&
 			this.props.activeSlot &&
 			this.props.location &&
-			this.props.location.pathname === `/app/inventory/${this.props.activeInventoryId}/slot/add`
+			this.props.location.pathname === `/app/inventory/${type}/${this.props.activeInventoryId}/slot/add`
 		) {
 			// eslint-disable-next-line react/no-did-update-set-state
-			this.props.history.push(`/app/inventory/${this.props.activeInventoryId}/slot/${this.props.activeSlot.id}`);
+			this.props.history.push(`/app/inventory/${type}`);
 		}
 		// Установка значений категорий и алиасов при появлении активного счетчика
 		this.setInitialStateForEdit(prevProps);
@@ -99,7 +104,6 @@ class SlotForm extends React.Component {
 
 	componentWillUnmount() {
 		// сброс значений формы
-		console.warn('componentWillUnmount');
 		if (this.formRef && this.formRef.form) {
 			this.formRef.form.reset({});
 		}
@@ -135,8 +139,8 @@ class SlotForm extends React.Component {
 					value: d.id,
 					id: d.id,
 				})),
-			width: activeSlot.banner.width,
-			height: activeSlot.banner.height,
+			width: activeSlot.banner ? activeSlot.banner.width : 0,
+			height: activeSlot.banner ? activeSlot.banner.height : 0,
 		});
 	}
 
@@ -178,9 +182,13 @@ class SlotForm extends React.Component {
 			};
 		}
 		if (this.props.activeSlot) {
-			this.props.updateSlot(this.props.activeSlot.id, result);
+			this.props.updateSlot(this.props.activeSlot.id, result).then(() => {
+				createToast('success', 'Slot successfully updated!');
+			});
 		} else {
-			this.props.addSlot(result);
+			this.props.addSlot(result).then(() => {
+				createToast('success', 'Slot successfully added!');
+			});
 		}
 	}
 
@@ -257,10 +265,10 @@ class SlotForm extends React.Component {
 				<AppCard>
 					{this.renderError()}
 					{this.renderLoading()}
-					<IntlFieldGroup name="name" label={messages.siteName} />
+					<IntlFieldGroup name="name" label={messages.siteName} required />
 					{type === 'web' && (
 						<label>
-							<FormattedMessage {...messages.devices} />
+							<FormattedMessage {...messages.devices} /> <span style={{ color: '#f00' }}>*</span>
 						</label>
 					)}
 					{type === 'web' && (
@@ -299,10 +307,11 @@ class SlotForm extends React.Component {
 								/>
 							</Col>
 							<Col md={12}>
-								{this.devicesTouched && errors.devices && (
-									/* eslint-disable react/jsx-boolean-value */
-									<FormFeedback invalid="true">{errors.devices}</FormFeedback>
-								)}
+								{this.devicesTouched &&
+									errors.devices && (
+										/* eslint-disable react/jsx-boolean-value */
+										<FormFeedback invalid="true">{errors.devices}</FormFeedback>
+									)}
 							</Col>
 						</Row>
 					)}
@@ -316,6 +325,7 @@ class SlotForm extends React.Component {
 									options: positions.map(({ value, name }) => ({ value, label: name })),
 								}}
 								label={messages.position}
+								required
 							/>
 						</Col>
 						<Col md={6}>
@@ -336,6 +346,7 @@ class SlotForm extends React.Component {
 									options: banners.map(({ id, label }) => ({ value: id, label })),
 								}}
 								label={messages.sizes}
+								required
 							/>
 						</Col>
 					</Row>
@@ -359,6 +370,7 @@ class SlotForm extends React.Component {
 									value: this.state.width,
 									onChange: e => this.setState({ width: parseInt(e.target.value, 10) }),
 									disabled: !values.not_exact_size,
+									maxLength: 4,
 								}}
 							/>
 						</Col>
@@ -370,6 +382,7 @@ class SlotForm extends React.Component {
 									value: this.state.height,
 									onChange: e => this.setState({ height: parseInt(e.target.value, 10) }),
 									disabled: !values.not_exact_size,
+									maxLength: 4,
 								}}
 							/>
 						</Col>
@@ -421,10 +434,11 @@ class SlotForm extends React.Component {
 							selectedItemHeight={30}
 							responsiveHeight={200}
 						/>
-						{this.selectedBlockedCategoriesTouched && errors.blockedCategories && (
-							/* eslint-disable react/jsx-boolean-value */
-							<FormFeedback invalid="true">{errors.blockedCategories}</FormFeedback>
-						)}
+						{this.selectedBlockedCategoriesTouched &&
+							errors.blockedCategories && (
+								/* eslint-disable react/jsx-boolean-value */
+								<FormFeedback invalid="true">{errors.blockedCategories}</FormFeedback>
+							)}
 					</FormGroup>
 					<FormGroup>
 						<Label>
@@ -443,10 +457,11 @@ class SlotForm extends React.Component {
 							selectedItemHeight={30}
 							responsiveHeight={200}
 						/>
-						{this.selectedBlockedPlacementAttributeTouched && errors.blockedPlacementAttribute && (
-							/* eslint-disable react/jsx-boolean-value */
-							<FormFeedback invalid="true">{errors.blockedPlacementAttribute}</FormFeedback>
-						)}
+						{this.selectedBlockedPlacementAttributeTouched &&
+							errors.blockedPlacementAttribute && (
+								/* eslint-disable react/jsx-boolean-value */
+								<FormFeedback invalid="true">{errors.blockedPlacementAttribute}</FormFeedback>
+							)}
 					</FormGroup>
 					<Button
 						type="submit"
@@ -492,12 +507,21 @@ class SlotForm extends React.Component {
 						<Col sm={12} lg={7} md={7}>
 							<Form
 								validate={formValues => this.validate(formValues)}
-								initialValues={slotId ? {
-									...this.props.activeSlot,
-									loading: null,
-									error: null,
-									banner: this.props.activeSlot ? this.props.activeSlot.banner.banner : null,
-								} : {}}
+								initialValues={
+									slotId
+										? {
+												...this.props.activeSlot,
+												loading: null,
+												error: null,
+												banner:
+													this.props.activeSlot &&
+													this.props.activeSlot.banner &&
+													this.props.activeSlot.banner.banner
+														? this.props.activeSlot.banner.banner
+														: null,
+										  }
+										: {}
+								}
 								onSubmit={values => this.onSubmit(values)}
 								ref={c => (this.formRef = c)}
 								render={params => this.renderForm(params)}
@@ -549,8 +573,8 @@ const mapStateToProps = createStructuredSelector({
 
 function mapDispatchToProps(dispatch) {
 	return {
-		addSlot: values => dispatch(slotCollectionActions.addEntry(values)),
-		updateSlot: (id, values) => dispatch(slotCollectionActions.updateEntry(id, values)),
+		addSlot: values => makePromiseAction(dispatch, slotCollectionActions.addEntry(values)),
+		updateSlot: (id, values) => makePromiseAction(dispatch, slotCollectionActions.updateEntry(id, values)),
 		setActiveSlot: id => dispatch(slotCollectionActions.setActiveEntry(id)),
 		unsetActiveSlot: _ => dispatch(slotCollectionActions.unsetActiveEntry()),
 		setActiveInventory: id => dispatch(inventoryCollectionActions.setActiveEntry(id)),

@@ -62,11 +62,6 @@ export function removeCounter(id) {
 }
 
 /**
- * Get data for FAQ
- */
-export const getFaq = listActionCreator('api/faq', FAQ_COLLECTION_NAME);
-
-/**
  * setActiveCounter
  * @param id
  * @return {*}
@@ -82,6 +77,11 @@ export function setActiveCounter(id) {
 export function unsetActiveCounter() {
 	return countersCollectionActions.unsetActiveEntry();
 }
+
+/**
+ * Get data for FAQ
+ */
+export const getFaq = listActionCreator('api/faq', FAQ_COLLECTION_NAME);
 
 /**
  * Update data for chart

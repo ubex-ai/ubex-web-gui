@@ -20,6 +20,7 @@ export const COUNTRY_COLLECTION_NAME = 'countries';
 export const TIMEZONE_COLLECTION_NAME = 'timezones';
 export const CATEGORY_COLLECTION_NAME = 'categories';
 export const LANGUAGE_COLLECTION_NAME = 'languages';
+export const SET_UBEX_POPOVER = 'ubexPopover';
 
 export const countriesActions = makeListActions(COUNTRY_COLLECTION_NAME);
 export const timezonesActions = makeListActions(TIMEZONE_COLLECTION_NAME);

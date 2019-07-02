@@ -13,7 +13,7 @@ import messages from 'containers/DataMiner/messages';
 import DashboardCard from 'components/DashboardCard';
 // import styled from 'styled-components';
 
-function CountersOnlineDashboardCard({ online, all }) {
+function CountersOnlineDashboardCard({ online = 0, all = 0 }) {
 	return (
 		<DashboardCard
 			popoverProps={{

@@ -481,17 +481,24 @@
 			&:last-child {
 				margin-right: 0;
 			}
-			&.active {
-				background-color: transparent;
-				color: #505050;
-				border: 1px solid #e5e9eb;
-			}
 			span {
 				-webkit-transition: all .5s ease;
 				-moz-transition: all .5s ease;
 				transition: all .5s ease;
 				@media(max-width: 1550px) {
 					font-size: 0;
+				}
+			}
+			&.active {
+				background-color: transparent;
+				color: #505050;
+				border: 1px solid #e5e9eb;
+				font-size: 14px;
+				span {
+					font-size: 14px;
+					@media(max-width: 1550px) {
+						font-size: 14px;
+					}
 				}
 			}
 		}
@@ -561,6 +568,14 @@
     }
 }
 
+.userdd.dropdown .dropdown-toggle.nav-link span {
+  max-width: 200px;
+  display: inline-flex;
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
+}
 @include media-breakpoint-down(md){
 	.userdd.dropdown .dropdown-toggle.nav-link span{
         display: none;
@@ -694,7 +709,20 @@
 							font-size: 14px;
 						}
 					}
-					&:hover {
+					&:last-child {
+						margin-right: 0;
+					}
+					&:not(.active) {
+						span {
+							-webkit-transition: all .5s ease;
+							-moz-transition: all .5s ease;
+							transition: all .5s ease;
+							@media(max-width: 1550px) {
+								font-size: 0;
+							}
+						}
+					}
+					&:not(.active):hover {
 						text-decoration: none;
 						background-color: #f4f5f8;
 						border: 1px solid #ebedf2;
@@ -705,21 +733,11 @@
 							}
 						}
 					}
-					&:last-child {
-						margin-right: 0;
-					}
 					&.active {
 						background-color: transparent;
 						color: #505050;
 						border: 1px solid #e5e9eb;
-					}
-					span {
-						-webkit-transition: all .5s ease;
-						-moz-transition: all .5s ease;
-						transition: all .5s ease;
-						@media(max-width: 1550px) {
-							font-size: 0;
-						}
+						cursor: default;
 					}
 				}
 			}
@@ -828,6 +846,38 @@
 		}
 		.flag--zh {
 			background: url(../../assets/img/icons/zh.png);
+			background-size: contain;
+		}
+		.flag--pt {
+			background: url(../../assets/img/icons/pt.png);
+			background-size: contain;
+		}
+		.flag--ja {
+			background: url(../../assets/img/icons/ja.png);
+			background-size: contain;
+		}
+		.flag--de {
+			background: url(../../assets/img/icons/de.png);
+			background-size: contain;
+		}
+		.flag--es {
+			background: url(../../assets/img/icons/es.png);
+			background-size: contain;
+		}
+		.flag--fr {
+			background: url(../../assets/img/icons/fr.png);
+			background-size: contain;
+		}
+		.flag--vi {
+			background: url(../../assets/img/icons/vi.png);
+			background-size: contain;
+		}
+		.flag--hi {
+			background: url(../../assets/img/icons/hi.png);
+			background-size: contain;
+		}
+		.flag--tr {
+			background: url(../../assets/img/icons/tr.png);
 			background-size: contain;
 		}
 		@include media-breakpoint-down(sm) {

@@ -80,7 +80,7 @@ const slotsToTableFormat = slots =>
 		code: 'get code',
 		status: s.status,
 		floor_price_cpm: s.optimal_floor_price ? 'Optimal Price' : s.floor_price_cpm,
-		summary: `${s.banner.width}x${s.banner.height}`,
+		summary: `${s.banner ? s.banner.width : 0}x${s.banner ? s.banner.height : 0}`,
 	}));
 
 export const selectActiveInventorySlots = () =>

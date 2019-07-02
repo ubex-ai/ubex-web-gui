@@ -23,11 +23,12 @@ import LinkButton from 'components/LinkButton';
 import AppCard from 'components/AppCard';
 import CardPopover from 'components/CardPopover';
 import Datamap from 'components/Maps/Datamaps';
-import { selectChartsDates } from 'containers/Publisher/selectors';
+import { inventoriesSelectors, selectChartsDates, selectSlotsTableFormat } from 'containers/Publisher/selectors';
 import messages from 'containers/Publisher/messages';
 import AppTable from 'components/Tables/AppTable';
 import DateSelect from 'components/DateSelect';
 import { updateCharts } from 'containers/Publisher/actions';
+import InventoryShape from '../../shapes/Inventory';
 
 const moment = extendMoment(originalMoment);
 const colors = ['#1f77b4', '#9467bd', '#ff7f0e', '#2ca02c'];
@@ -74,7 +75,7 @@ export class PublisherHomePage extends React.Component {
 	};
 
 	render() {
-		const { dates } = this.props;
+		const { dates, inventories } = this.props;
 		const { startDate, endDate, period } = dates;
 		return (
 			<Row>
@@ -94,7 +95,7 @@ export class PublisherHomePage extends React.Component {
 							<Row>
 								<Col md={12} className="title_with_select">
 									<Row>
-										<Col md={12} sm={6} xl={6} lg={6}>
+										<Col md={12} sm={6} xl={5} lg={6}>
 											<div className="page-title">
 												<div className="float-left">
 													<h1 className="title">
@@ -108,6 +109,7 @@ export class PublisherHomePage extends React.Component {
 											startDate={startDate}
 											endDate={endDate}
 											period={period}
+											publisher={inventories}
 										/>
 									</Row>
 								</Col>
@@ -235,7 +237,7 @@ export class PublisherHomePage extends React.Component {
 										<FormattedMessage {...messages.listInventory} />
 									</h2>
 									<LinkButton
-										to="/app/slots/banner"
+										to="/app/inventory/web"
 										color="success button-margin-left-10 button-margin-top-10"
 									>
 										{window.innerWidth > 1024 ? (
@@ -398,10 +400,12 @@ export class PublisherHomePage extends React.Component {
 
 PublisherHomePage.propTypes = {
 	dispatch: PropTypes.func.isRequired,
+	inventories: PropTypes.arrayOf(PropTypes.shape(InventoryShape)).isRequired,
 };
 
 const mapStateToProps = createStructuredSelector({
 	dates: selectChartsDates(),
+	inventories: inventoriesSelectors.collectionList(),
 });
 
 function mapDispatchToProps(dispatch) {

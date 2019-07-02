@@ -20,6 +20,7 @@ import {
 	TIMEZONE_COLLECTION_NAME,
 	CATEGORY_COLLECTION_NAME,
 	LANGUAGE_COLLECTION_NAME,
+	SET_UBEX_POPOVER,
 } from './constants';
 
 const dashboardRehydrateState = {
@@ -30,6 +31,9 @@ const dashboardRehydrateState = {
 	appInitError: null,
 	dashboardLoading: false,
 	dashboardError: null,
+	ubexPopover: {
+		display: true,
+	},
 };
 export const rehydrateState = {
 	...dashboardRehydrateState,
@@ -37,6 +41,8 @@ export const rehydrateState = {
 	...listRehydrateState(TIMEZONE_COLLECTION_NAME),
 	...listRehydrateState(CATEGORY_COLLECTION_NAME),
 	...listRehydrateState(LANGUAGE_COLLECTION_NAME),
+	...listRehydrateState(COUNTRY_COLLECTION_NAME),
+	...listRehydrateState(SET_UBEX_POPOVER),
 };
 
 export const initialState = fromJS(dashboardRehydrateState)
@@ -57,6 +63,7 @@ const dashboardReducer = {
 
 export default handleActions(
 	{
+		[SET_UBEX_POPOVER]: (state, { payload }) => state.update('ubexPopover', filter => filter.merge(payload)),
 		...dashboardReducer,
 		...listReducer(COUNTRY_COLLECTION_NAME),
 		...listReducer(TIMEZONE_COLLECTION_NAME),

@@ -1,0 +1,64 @@
+.ubx-tablesaw {
+	&__wrapper {
+		display: flex;
+		justify-content: center;
+	}
+	&__navs {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		.btn.btn-secondary {
+			background-color: transparent;
+			color: #adb5bd;
+			.fa {
+				font-size: 12px;
+			}
+			&:hover {
+				color:  #767676;
+			}
+			&:focus {
+				border-color: transparent;
+				background-color: transparent;
+				box-shadow: none;
+			}
+			&:active {
+				border-color: transparent;
+				background-color: transparent;
+				box-shadow: none;
+			}
+			&:not(:disabled):not(.disabled):active:focus {
+				box-shadow: none;
+			}
+		}
+	}
+	&__controls {
+	}
+	&__dots {
+		display: flex;
+	}
+	&__dot {
+		padding: 2px;
+		border-radius: 100px;
+		&:not(:last-child) {
+			margin-right: 1px;
+		}
+		.dot {
+			width: 5px;
+			height: 5px;
+			border-radius: 100px;
+			background-color: lightgray;
+			@include media-breakpoint-down(md) {
+				width: 7px;
+				height: 7px;
+			}
+		}
+		&--active {
+			.dot {
+				background-color: #767676;
+			}
+		}
+		&--prevent {
+			display: none;
+		}
+	}
+}

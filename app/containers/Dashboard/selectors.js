@@ -79,4 +79,10 @@ export const selectAppInitError = () =>
 		substate => substate.get('appInitError'),
 	);
 
+export const selectUbexPopover = () =>
+	createSelector(
+		selectDashboardDomain,
+		state => state.get('ubexPopover').toJS(),
+	);
+
 export default makeSelectDashboard;

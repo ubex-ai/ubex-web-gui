@@ -17,6 +17,10 @@ export const UPDATE_ENTRY_REQUEST = 'app/Dashboard/UPDATE_ENTRY_REQUEST';
 export const UPDATE_ENTRY_ERROR = 'app/Dashboard/UPDATE_ENTRY_ERROR';
 export const UPDATE_ENTRY_SUCCESS = 'app/Dashboard/UPDATE_ENTRY_SUCCESS';
 
+export const PATCH_ENTRY_REQUEST = 'app/Dashboard/PATCH_ENTRY_REQUEST';
+export const PATCH_ENTRY_ERROR = 'app/Dashboard/PATCH_ENTRY_ERROR';
+export const PATCH_ENTRY_SUCCESS = 'app/Dashboard/PATCH_ENTRY_SUCCESS';
+
 export const REMOVE_ENTRY_REQUEST = 'app/Dashboard/REMOVE_ENTRY_REQUEST';
 export const REMOVE_ENTRY_ERROR = 'app/Dashboard/REMOVE_ENTRY_ERROR';
 export const REMOVE_ENTRY_SUCCESS = 'app/Dashboard/REMOVE_ENTRY_SUCCESS';
@@ -43,7 +47,7 @@ export const makeListActions = collection =>
 		collection,
 	);
 
-const makeCollectionActions = collection => ({
+export const makeCollectionActions = collection => ({
 	getCollection: makeAsyncActionsPack(
 		{
 			request: GET_COLLECTION_REQUEST,
@@ -73,6 +77,14 @@ const makeCollectionActions = collection => ({
 			request: UPDATE_ENTRY_REQUEST,
 			error: UPDATE_ENTRY_ERROR,
 			success: UPDATE_ENTRY_SUCCESS,
+		},
+		collection,
+	),
+	patchEntry: makeAsyncActionsPack(
+		{
+			request: PATCH_ENTRY_REQUEST,
+			error: PATCH_ENTRY_ERROR,
+			success: PATCH_ENTRY_SUCCESS,
 		},
 		collection,
 	),

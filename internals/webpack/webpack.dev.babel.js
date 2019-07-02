@@ -35,14 +35,16 @@ module.exports = require('./webpack.base.babel')({
 		new webpack.DefinePlugin({
 			PASSPORT_URL: JSON.stringify('https://passport.ubex.com'),
 			// TODO: remove API_URL
-			API_URL: JSON.stringify('https://stage.ubex.io:8010'),
+			API_URL: JSON.stringify('http://10.100.0.249:8022'),
 			MINING_API_URL: JSON.stringify('https://stage.ubex.io:8010'),
 			PUBLISHER_API_URL: JSON.stringify('https://stage.ubex.io:8011'),
+			TRADING_DESK_API_URL: JSON.stringify('https://stage.ubex.io:8012'),
 			STATISTIC_URL: JSON.stringify('http://stats.ubex.com/v1'),
 			// MINING_URL: JSON.stringify('https://mining.ubex.com'),
 			// PUBLISHER_URL: JSON.stringify('https://publisher.ubex.com'),
-			MINING_URL: JSON.stringify('http://localhost:3000'),
+			MINING_URL: JSON.stringify('http://localhost:3002'),
 			PUBLISHER_URL: JSON.stringify('http://localhost:3001'),
+			TRADING_DESK_URL: JSON.stringify('http://localhost:3000'),
 		}),
 		new webpack.HotModuleReplacementPlugin(), // Tell webpack we want hot reloading
 		new HtmlWebpackPlugin({

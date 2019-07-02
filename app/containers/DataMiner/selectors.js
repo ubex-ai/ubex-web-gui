@@ -6,7 +6,7 @@ import { FAQ_COLLECTION_NAME } from './constants';
 /**
  * Direct selector to the dataMiner state domain
  */
-export const selectDataMinerDomain = state => !state ? {} : state.get('dataMiner', initialState);
+export const selectDataMinerDomain = state => (!state ? {} : state.get('dataMiner', initialState));
 
 /**
  * Other specific selectors
@@ -27,9 +27,6 @@ const makeSelectDataMiner = () =>
  */
 export const countersSelectors = makeCollectionSelectors(selectDataMinerDomain, 'counters');
 
-
-export const faqSelectors = makeListSelectors(selectDataMinerDomain, FAQ_COLLECTION_NAME);
-
 export const selectCountersProp = propName =>
 	createSelector(
 		countersSelectors.collectionList(),
@@ -47,6 +44,11 @@ export const selectOnlineCounters = () =>
 		selectDataMinerDomain,
 		state => state.get('onlineCounters').toJS(),
 	);
+
+/**
+ * Faq
+ */
+export const faqSelectors = makeListSelectors(selectDataMinerDomain, FAQ_COLLECTION_NAME);
 
 /**
  * Metrics
@@ -145,6 +147,5 @@ export const selectChartsDates = () =>
 		selectDataMinerDomain,
 		state => state.get('dates').toJS(),
 	);
-
 
 export default makeSelectDataMiner;

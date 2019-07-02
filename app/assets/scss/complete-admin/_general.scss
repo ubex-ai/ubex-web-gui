@@ -358,3 +358,88 @@ select,
 		display: none;
 	}
 }
+
+.display {
+	display: block;
+}
+
+.display-none {
+	display: none;
+}
+
+.pointer {
+	cursor: pointer;
+}
+
+.form-control.radius-5 {
+	border-radius: 5px;
+}
+
+label {
+	color: #000;
+}
+
+.flex-center {
+	display: flex;
+	align-items: center;
+	@include media-breakpoint-down(sm){
+		justify-content: center;
+	}
+}
+
+.btn.btn-secondary.background-transparent {
+	background-color: transparent;
+	color: $blue;
+	font-size: 18px;
+	min-width: 35px;
+	&.add_button {
+		margin-top: 0;
+	}
+}
+.dots.btn.btn-secondary.background-transparent {
+	color: #767676;
+	border: 1px solid #ebedf2;
+	font-size: 16px;
+	min-width: 35px;
+	&:hover {
+		background-color: #f4f5f8;
+	}
+	&:focus {
+		box-shadow: none;
+	}
+}
+.list.btn.btn-secondary.background-transparent {
+	color: #767676;
+	border: 1px solid #ebedf2;
+	font-size: 16px;
+	min-width: 35px;
+	&:hover {
+		background-color: #f4f5f8
+	}
+	&:focus {
+		box-shadow: none;
+	}
+}
+.button-margin-left-5 {
+	margin-left: 5px;
+}
+
+.size-11 {
+	font-size: 11px;
+}
+
+.invisible {
+	visibility: hidden;
+}
+
+.mt-3-responsive {
+	@include media-breakpoint-down(sm){
+		margin-top: 20px;
+	}
+}
+
+.radio-mb-0 {
+	.form-group {
+		margin-bottom: 0;
+	}
+}

@@ -1049,7 +1049,7 @@
 	width: 220px;
 	justify-content: space-around;
 	@include media-breakpoint-only(xs) {
-		bottom: calc(0vh + 5px);
+		bottom: -15px;
 		left: 15px;
 		position: relative;
 		z-index: 300;

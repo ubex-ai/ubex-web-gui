@@ -262,3 +262,40 @@
 .fontawesome-icon-list .fa {
 	font-size: 28px;
 }
+
+.r4_counter.db_box .fas.icon-status.icon-rounded {
+	width: 25px;
+	height: 25px;
+	margin-left: 5px;
+	font-size: 12px;
+	color: #fff;
+	position: relative;
+	top: -2px;
+	&:before {
+		position: relative;
+		top: -2px;
+	}
+}
+
+.r4_counter.db_box .fas.icon-status__table.icon-rounded {
+	width: 20px;
+	height: 20px;
+	position: relative;
+	top: 3px;
+	margin-right: 5px;
+	font-size: 10px;
+	padding-left: 8px;
+	&:before {
+		position: relative;
+		top: -5px;
+	}
+}
+
+.icon-github {
+	background-color: #000;
+}
+
+.icon-etherscan {
+	background: #19a0ff;
+}
+

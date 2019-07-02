@@ -190,7 +190,7 @@ Set the code as close to the top of the page as possible so that it gets loaded 
 	},
 	payattention: {
 		id: `${scope}.payattention`,
-		defaultMessage: 'Attention! The minimum amount of replenishment is $ 100.',
+		defaultMessage: 'Attention! The minimum amount of replenishment is $ 500.',
 	},
 	payannotation: {
 		id: `${scope}.payannotation`,
@@ -214,7 +214,7 @@ Set the code as close to the top of the page as possible so that it gets loaded 
 	},
 	paymentsHistory: {
 		id: `${scope}.paymentsHistory`,
-		defaultMessage: 'paymentsHistory',
+		defaultMessage: 'Payments history',
 	},
 	week: {
 		id: `${scope}.week`,
@@ -315,5 +315,107 @@ Set the code as close to the top of the page as possible so that it gets loaded 
 	code: {
 		id: `${scope}.code`,
 		defaultMessage: 'Code',
+	},
+	getBenefit: {
+		id: `${scope}.pay.getBenefit`,
+		defaultMessage: 'Get the benefit by paying UBEX',
+	},
+	bonus5: {
+		id: `${scope}.pay.bonus5`,
+		defaultMessage: 'Bonus 5% on ad impressions',
+	},
+	noCommission: {
+		id: `${scope}.pay.noCommission`,
+		defaultMessage: 'No commission',
+	},
+	crossBorderPayments: {
+		id: `${scope}.pay.crossBorderPayments`,
+		defaultMessage: 'Cross-Border Payments',
+	},
+	deferredPayment: {
+		id: `${scope}.pay.deferredPayment`,
+		defaultMessage: 'Deferred payment',
+	},
+	remove: {
+		id: `${scope}.remove`,
+		defaultMessage: 'Remove?',
+	},
+	counterId: {
+		id: `${scope}.Table.counterId`,
+		defaultMessage: 'Counter ID',
+	},
+	createdAt: {
+		id: `${scope}.Table.createdAt`,
+		defaultMessage: 'Created At',
+	},
+	visitorsTable: {
+		id: `${scope}.Table.visitorsTable`,
+		defaultMessage: 'Visitors',
+	},
+	paidPercent: {
+		id: `${scope}.Table.paidPercent`,
+		defaultMessage: 'Paid %',
+	},
+	status: {
+		id: `${scope}.Table.status`,
+		defaultMessage: 'Status',
+	},
+	name: {
+		id: `${scope}.Table.name`,
+		defaultMessage: 'Name',
+	},
+	paidVisitors: {
+		id: `${scope}.Table.paidVisitors`,
+		defaultMessage: 'Paid visitors',
+	},
+	rewardVisitors: {
+		id: `${scope}.Table.rewardVisitors`,
+		defaultMessage: 'Reward visitors',
+	},
+	counter: {
+		id: `${scope}.Table.counter`,
+		defaultMessage: 'Counter',
+	},
+	date: {
+		id: `${scope}.Table.date`,
+		defaultMessage: 'Date',
+	},
+	channels: {
+		id: `${scope}.Table.channels`,
+		defaultMessage: 'Channel',
+	},
+	attentionCounter: {
+		id: `${scope}.attentionCounter`,
+		defaultMessage:
+			'<strong>ATTENTION!</strong>' +
+			" <span>Please add only websites that considered valid according to the Publisher's Agreement. The websites that break accepted policies will not pass moderation and application will be revoked.</span>",
+	},
+	balanceDollar: {
+		id: `${scope}.balanceDollar`,
+		defaultMessage: 'Balance Dollar USA',
+	},
+	availableToken: {
+		id: `${scope}.availableToken`,
+		defaultMessage: 'Available UBEX tokens',
+	},
+	seeContractCode: {
+		id: `${scope}.seeContractCode`,
+		defaultMessage: 'See our contract code',
+	},
+	paymentContract: {
+		id: `${scope}.paymentContract`,
+		defaultMessage: 'Your payments in contract',
+	},
+	time: {
+		id: `${scope}.TablePayment.time`,
+		defaultMessage: 'Time',
+	},
+	method: {
+		id: `${scope}.TablePayment.method`,
+		defaultMessage: 'Method',
+	},
+	amountTablePayment: {
+		id: `${scope}.TablePayment.amountTablePayment`,
+		defaultMessage: 'Amount',
 	},
 });

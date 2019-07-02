@@ -46,4 +46,20 @@ export default defineMessages({
 		id: `${scope}.code`,
 		defaultMessage: 'Code',
 	},
+	createFirstInventory: {
+		id: `${scope}.createFirstInventory`,
+		defaultMessage: 'Create your first ad slot',
+	},
+	addInventory: {
+		id: `${scope}.addInventory`,
+		defaultMessage: 'Add inventory',
+	},
+	editInventory: {
+		id: `${scope}.editInventory`,
+		defaultMessage: 'Edit inventory',
+	},
+	removeInventory: {
+		id: `${scope}.removeInventory`,
+		defaultMessage: 'Remove inventory',
+	},
 });

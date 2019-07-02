@@ -20,7 +20,7 @@ function NextPayoutDashboardCard(popoverHeader, popoverBody) {
 				popoverBody: messages.nextPayoutPopoverText,
 			}}
 			icon={{ code: 'calendar', color: 'icon-success' }}
-			header="Fri, 31 may 2019"
+			header="Sat, 31 aug 2019"
 			description={<FormattedMessage {...messages.nextPayout} />}
 			button={<OrderPaymentForm />}
 		/>
