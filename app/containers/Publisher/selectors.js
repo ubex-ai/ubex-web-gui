@@ -2,6 +2,7 @@ import { createSelector } from 'reselect';
 import makeCollectionSelectors, { makeListSelectors } from 'utils/CollectionHelper/selectors';
 import { initialState } from './reducer';
 import {
+	STORE_NAME,
 	BANNERS_COLLECTION_NAME,
 	INVENTORY_COLLECTION_NAME,
 	SLOTS_COLLECTION_NAME,
@@ -11,11 +12,11 @@ import {
 	DSP_COLLECTION_NAME,
 	FAQ_COLLECTION_NAME,
 } from './constants';
+
 /**
  * Direct selector to the publisher state domain
  */
-
-export const selectPublisherDomain = state => state.get('publisher', initialState);
+export const selectPublisherDomain = state => state.get(STORE_NAME, initialState);
 
 /**
  * Default selector used by Publisher

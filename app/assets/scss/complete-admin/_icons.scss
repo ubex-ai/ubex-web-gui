@@ -299,3 +299,18 @@
 	background: #19a0ff;
 }
 
+
+.creative-icons {
+	&.display {
+		color: #77d284 !important;
+	}
+	&.video {
+		color: #ec6d5a !important
+	}
+	&.native {
+		color: #acf4ee !important
+	}
+	&.other {
+		color: #2ea1e2 !important;
+	}
+}

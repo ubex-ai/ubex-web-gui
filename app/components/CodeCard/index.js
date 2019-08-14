@@ -25,7 +25,7 @@ class CodeCard extends React.Component {
 						</CopyToClipboard>
 					)}
 				</div>
-				<Input type="textarea" name="counterCode" rows={20} id="codeTextarea" disabled value={embeddedScript || ''} />
+				<Input type="textarea" name="counterCode" rows={20} id="codeTextarea" disabled value={embeddedScript || 'The code will appear after submitting the form.'} />
 			</FormGroup>
 		);
 	}

@@ -176,4 +176,8 @@ export default defineMessages({
 		id: `${scope}.cpmType2`,
 		defaultMessage: 'Max',
 	},
+	allow_as_html: {
+		id: `${scope}.allow_as_html`,
+		defaultMessage: 'Allow as HTML5 Banner',
+	}
 });

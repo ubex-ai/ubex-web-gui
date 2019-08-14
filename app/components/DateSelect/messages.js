@@ -41,4 +41,8 @@ export default defineMessages({
 		id: `${scope}.allInventories`,
 		defaultMessage: 'All inventories',
 	},
+	allCampaigns: {
+		id: `${scope}.allCampaigns`,
+		defaultMessage: 'All campaigns',
+	},
 });

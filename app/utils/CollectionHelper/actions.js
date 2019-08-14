@@ -15,6 +15,17 @@ export const listActionCreator = (url, collection) => {
 	});
 };
 
+export const listByDateActionCreator = (url, collection, payload = {}) => {
+	const { request } = makeListActions(collection);
+	return dispatch => {
+		dispatch({
+			type: request,
+			payload,
+			meta: { url },
+		});
+	};
+};
+
 /**
  * Return all actions for working with collection, for independence call
  * @param collection
@@ -64,6 +75,7 @@ export const collectionActionCreator = collection => {
 };
 
 export function makePromiseAction(dispatch, action) {
+	console.log(dispatch, action)
 	return new Promise((resolve, reject) => {
 		dispatch({
 			...action,

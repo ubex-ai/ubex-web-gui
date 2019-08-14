@@ -5,6 +5,9 @@
  */
 import makeCollectionActions, { makeListActions } from 'utils/CollectionHelper/constants';
 export const DEFAULT_ACTION = 'app/Publisher/DEFAULT_ACTION';
+
+export const STORE_NAME = 'Publisher';
+
 export const TOGGLE_SLOT_STATUS = 'app/Publisher/TOGGLE_SLOT_STATUS';
 export const TOGGLE_SLOT_STATUS_ERROR = 'app/Publisher/TOGGLE_SLOT_STATUS_ERROR';
 export const TOGGLE_SLOT_STATUS_SUCCESS = 'app/Publisher/TOGGLE_SLOT_STATUS_SUCCESS';
@@ -20,6 +23,10 @@ export const DSP_COLLECTION_NAME = 'dsp';
 export const FAQ_COLLECTION_NAME = 'faq';
 export const SLOT_STATUS_ACTIVE = 'activate';
 export const SLOT_STATUS_PAUSE = 'pause';
+export const HOMEPAGESTATS_COLLECTION_NAME = 'homepage-stats';
+export const TABLE_HOMEPAGESTATS_COLLECTION_NAME = 'table-homepage-stats';
+export const SET_CHARTS_DATES = 'app/Publisher/SET_CHARTS_DATES';
+export const CONTACT_FORM = 'contact-form';
 
 // Collections
 export const inventoriesActions = makeCollectionActions(INVENTORY_COLLECTION_NAME);

@@ -12,9 +12,9 @@ import PropTypes from 'prop-types';
 function TableProgress(props) {
 	return (
 		<div>
-			<div className="text-center">{props.uploaded} / {props.total}</div>
+			{props.uploaded} / {props.total}
 			<Progress animated value={props.value} className="mb-3">
-				<div className="text-right mr-1">{props.value}%</div>
+				<div className="text-right mr-1">{props.value ? parseFloat(props.value).toFixed(2) : 0}%</div>
 			</Progress>
 		</div>
 	);

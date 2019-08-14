@@ -34,6 +34,7 @@ import {
 	selectStrategy,
 	selectTypeOS,
 	selectBudgetDistribution,
+	selectLanguages,
 } from 'containers/TradingDesk/selectors';
 import validateEmail from 'utils/validateEmail';
 import validateEmails from 'utils/validateEmails';
@@ -43,8 +44,7 @@ import formatDateToUTC from 'utils/formatDateToUTC';
 import { selectCategories, selectCountries, selectTimezones } from '../../../Dashboard/selectors';
 import messages, { scope as messageScope } from './messages';
 import validateEmpty from 'utils/validateEmpty';
-import { getCounters, campaingCollectionActions, creativeCollectionActions } from '../../actions';
-import validateAliases from 'utils/validateAliases';
+import { campaingCollectionActions, creativeCollectionActions } from '../../actions';
 import createToast from 'utils/toastHelper';
 import { makePromiseAction } from 'utils/CollectionHelper/actions';
 import findTimezone from 'utils/findTimezone';
@@ -83,6 +83,7 @@ class CampaignForm extends React.Component {
 		this.osTypeTouched = false;
 		this.browserTypeTouched = false;
 		this.ageGroupTouched = false;
+		this.languageTouched = false;
 		this.SSPTouched = false;
 		this.creativesTouched = false;
 		this.geoTouched = false;
@@ -102,6 +103,7 @@ class CampaignForm extends React.Component {
 			activeCampaign,
 			setActiveCampaign,
 			unsetActiveCampaign,
+			getCampaign,
 			match: {
 				params: { idCampaign },
 			},
@@ -150,10 +152,12 @@ class CampaignForm extends React.Component {
 			ageGroup,
 			SSP,
 			countries,
+			language,
 			match: {
 				params: { idCampaign },
 			},
 		} = this.props;
+
 		if (!activeCampaign && prevProps.activeCampaign) {
 			this.setState({
 				deviceTypeSelected: [],
@@ -217,6 +221,9 @@ class CampaignForm extends React.Component {
 			ageGroupSelected: ageGroup
 				.map((d, i) => ({ id: d.id, label: d.name, value: d.id }))
 				.filter(d => activeCampaign.audience_age_group.indexOf(d.id) >= 0),
+			languageSelected: language
+				.map((d, i) => ({ id: d.id, label: d.name, value: d.id }))
+				.filter(d => activeCampaign.language.indexOf(d.id) >= 0),
 			SSPSelected: SSP.map((d, i) => ({ id: d.id, label: d.name, value: d.id })).filter(
 				d => activeCampaign.ssp_blacklist.indexOf(d.id) >= 0,
 			),
@@ -227,7 +234,7 @@ class CampaignForm extends React.Component {
 					value: d.id,
 					group: d.creative_type,
 				}))
-				.filter(d => activeCampaign.creatives.some(creative => creative === d.id)),
+				.filter(d => activeCampaign.creatives.some(creative => creative.value === d.id)),
 			geoSelected: geo
 				.map((d, i) => ({ id: d.id, label: d.name, value: d.id }))
 				.filter(d => activeCampaign.target_geo.indexOf(d.id) >= 0),
@@ -323,8 +330,9 @@ class CampaignForm extends React.Component {
 			target_geo: this.state.geoSelected.map(c => c.id),
 			target_category: this.state.categoriesSelected.map(c => c.id),
 			audience_age_group: this.state.ageGroupSelected.map(c => c.id),
+			language: this.state.languageSelected.map(c => c.id),
 			ssp_blacklist: this.state.SSPSelected.map(c => c.id),
-			creatives: this.state.creativesSelected.map(c => c.id),
+			creatives: this.state.creativesSelected.map(c => ({ value: c.id, start_date: null, end_date: null })),
 		};
 
 		if (!idCampaign) {
@@ -438,12 +446,22 @@ class CampaignForm extends React.Component {
 		return this.renderMultiselectFieldGroup({
 			msg: messages[field],
 			items: this.props[field]
-				? this.props[field].map((l, i) => ({
-						id: l.id,
-						label: l.data ? l.data.name : 'Unnamed',
-						value: l.id,
-						group: l.creative_type,
-				  }))
+				? this.props[field]
+						.sort((a, b) => {
+							const keyA = a.creative_type;
+
+							const keyB = b.creative_type;
+							if (keyA < keyB) return -1;
+							if (keyA > keyB) return 1;
+							return 0;
+						})
+						.filter(filter => filter.banners.length > 0)
+						.map((l, i) => ({
+							id: l.id,
+							label: l.data ? l.data.name : 'Unnamed',
+							value: l.id,
+							group: l.creative_type.charAt(0).toUpperCase() + l.creative_type.slice(1),
+						}))
 				: [],
 			selectedItems: this.state[`${field}Selected`],
 			withGrouping: true,
@@ -597,9 +615,13 @@ class CampaignForm extends React.Component {
 							dateFormat="DD.MM.YYYY HH:mm"
 							timeCaption="time"
 							minDate={moment()}
-							minTime={this.state.minTime
-								.hours(this.state.minTime.hour())
-								.minutes(this.state.minTime.minutes())}
+							minTime={
+								moment().format('DD-MM-YYYY') === moment(this.state.startDate).format('DD-MM-YYYY')
+									? this.state.minTime
+											.hours(this.state.minTime.hour())
+											.minutes(this.state.minTime.minutes())
+									: this.state.minTime.hours(0).minutes(0)
+							}
 							maxTime={moment()
 								.hours(23)
 								.minutes(45)}
@@ -834,7 +856,7 @@ class CampaignForm extends React.Component {
 						</Col>
 					</Row>
 					<hr />
-					{this.renderMultiselectByName('ageGroup', errors)}
+					{this.renderListOfMultiselects(['language', 'ageGroup'], errors)}
 				</AppCard>
 				<AppCard
 					arrow
@@ -943,7 +965,9 @@ class CampaignForm extends React.Component {
 								initialValues={
 									!idCampaign && !this.formRef
 										? initValues
-										: this.props.activeCampaign && Object.keys(this.props.activeCampaign).length ? activeCampaign : false
+										: this.props.activeCampaign && Object.keys(this.props.activeCampaign).length
+											? activeCampaign
+											: false
 								}
 								onSubmit={values => this.onSubmit(values)}
 								ref={c => (this.formRef = c)}
@@ -980,7 +1004,6 @@ CampaignForm.propTypes = {
 	activeCampaign: PropTypes.object,
 	addCampaignError: PropTypes.string,
 	addCampaignLoading: PropTypes.string,
-	getCounters: PropTypes.func,
 	getCreatives: PropTypes.func,
 	addCampaign: PropTypes.func,
 	patchCampaign: PropTypes.func,
@@ -996,6 +1019,7 @@ const mapStateToProps = createStructuredSelector({
 	deviceType: selectDeviceType(),
 	osType: selectTypeOS(),
 	browserType: selectBrowserType(),
+	language: selectLanguages(),
 	ageGroup: selectAgeGroup(),
 	gender: selectGender(),
 	SSP: selectSSP(),
@@ -1013,7 +1037,6 @@ const mapStateToProps = createStructuredSelector({
 function mapDispatchToProps(dispatch) {
 	return {
 		dispatch,
-		getCounters: () => dispatch(getCounters()),
 		getCreatives: dispatch(creativeCollectionActions.getCollection()),
 		addCampaign: values => makePromiseAction(dispatch, campaingCollectionActions.addEntry(values)),
 		patchCampaign: (id, values) => makePromiseAction(dispatch, campaingCollectionActions.patchEntry(id, values)),

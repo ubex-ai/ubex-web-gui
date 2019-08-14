@@ -16,8 +16,18 @@ import formatDateFromUTC from 'utils/formatDateFromUTC';
 const InlineWrapper = styled.span`
 	cursor: pointer;
 	border: 1px solid transparent;
+	max-width: 450px;
+	display: flex;
+	align-items: center;
+	p {
+		 white-space: nowrap;
+		 text-overflow: ellipsis;
+		 overflow: hidden;
+		 margin-bottom: 0;
+	}
 	& > .fa {
 		opacity: 0.85;
+		margin-left: 5px;
 	}
 	&:hover {
 		& > .fa {
@@ -71,6 +81,22 @@ class InlineEditField extends React.Component {
 			minTime: moment(),
 		};
 		this.onClickSave = this.onClickSave.bind(this);
+		this.handleKeyPress = this.handleKeyPress.bind(this);
+	}
+
+	handleKeyPress(target) {
+		if (target.charCode === 13) {
+			if (
+				typeof this.props.validation === 'function' &&
+				this.props.validation(this.state.value) === undefined &&
+				this.state.value
+			) {
+				this.onClickSave();
+			}
+			if (!this.props.validation && this.state.value) {
+				this.onClickSave();
+			}
+		}
 	}
 
 	onClickSave(e) {
@@ -104,6 +130,7 @@ class InlineEditField extends React.Component {
 				value={this.state.value}
 				size={this.props.size}
 				onChange={e => this.setState({ value: e.target.value })}
+				onKeyPress={this.handleKeyPress}
 			/>,
 		];
 	}
@@ -111,8 +138,15 @@ class InlineEditField extends React.Component {
 	renderDateInput() {
 		return (
 			<DatePicker
-				selected={moment(this.state.value, this.props.format)}
-				onChange={date => this.setState({ startDate: date })}
+				selected={this.state.value !== 'unlimited' ? formatDateFromUTC(this.state.value) : formatDateFromUTC(this.props.startDate ? moment(this.props.startDate).format('MM-DD-YYYY') : moment().format('MM-DD-YYYY'))}
+				onChange={date => this.setState({ value: date })}
+				placeholderText="Select date"
+				dateFormat="DD.MM.YYYY HH:mm"
+				showTimeSelect
+				timeFormat="HH:mm"
+				timeIntervals={15}
+				timeCaption="time"
+				minDate={this.props.startDate ? moment(this.props.startDate) : moment()}
 			/>
 		);
 	}
@@ -145,7 +179,9 @@ class InlineEditField extends React.Component {
 					selectsEnd
 					startDate={formatDateFromUTC(this.state.value.startDate)}
 					endDate={formatDateFromUTC(this.state.value.endDate)}
-					onChange={date => this.setState({ value: { startDate: this.state.value.startDate, endDate: date } })}
+					onChange={date =>
+						this.setState({ value: { startDate: this.state.value.startDate, endDate: date } })
+					}
 					showTimeSelect
 					timeFormat="HH:mm"
 					timeIntervals={15}
@@ -172,12 +208,19 @@ class InlineEditField extends React.Component {
 				size={this.props.size}
 				value={this.state.value}
 				onChange={e => this.setState({ value: e.target.value })}
+				onKeyPress={this.handleKeyPress}
 			/>
 		);
 	}
 
 	renderInheritInput() {
-		return <InheritInput value={this.state.value} onChange={e => this.setState({ value: e.target.value })} />;
+		return (
+			<InheritInput
+				value={this.state.value}
+				onChange={e => this.setState({ value: e.target.value })}
+				onKeyPress={this.handleKeyPress}
+			/>
+		);
 	}
 
 	renderInput() {
@@ -225,10 +268,19 @@ class InlineEditField extends React.Component {
 						<i className="fa fa-edit" />
 					</InlineWrapper>
 				);
+			case 'date':
+				return (
+					<InlineWrapper onClick={e => this.onClickEdit(e)}>
+						{this.props.value !== 'unlimited'
+							? formatDateFromUTC(this.props.value).format('DD-MM-YYYY')
+							: 'unlimited'}
+						<i className="fa fa-edit" />
+					</InlineWrapper>
+				);
 			default:
 				return (
 					<InlineWrapper onClick={e => this.onClickEdit(e)}>
-						{this.props.value} <i className="fa fa-edit" />
+						<p>{this.props.value}</p> <i className="fa fa-edit" />
 					</InlineWrapper>
 				);
 		}

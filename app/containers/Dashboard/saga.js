@@ -2,9 +2,7 @@ import { takeLatest, put, race } from 'redux-saga/effects';
 import { delay } from 'redux-saga';
 import { getListRequestHandler, handleRequestListSaga } from 'utils/CollectionHelper/saga';
 import userPageSaga, { fetchData as fetchUser } from 'containers/UserPage/saga';
-import { onAppInit as PublisherOnInit } from 'containers/Publisher/saga';
-import { onAppInit as DataMinerOnInit } from 'containers/DataMiner/saga';
-import { onAppInit as TradingDeskOnInit } from 'containers/TradingDesk/saga';
+
 import { formatCountriesList, formatArrayToMap, formatCategoriesList } from './hooks';
 import {
 	categoriesActions,
@@ -19,6 +17,7 @@ import {
 	TIMEZONE_COLLECTION_NAME,
 } from './constants';
 import { getCategories } from './actions';
+import activeContainerRig from '../ContainerManager';
 
 function* appInit() {
 	const { timeout } = yield race({
@@ -36,15 +35,7 @@ function* fetchAppInitData() {
 	try {
 		yield getListRequestHandler(getCategories(), categoriesActions);
 		yield fetchUser();
-		if (document.location.origin === MINING_URL && NODE_ENV === 'production') {
-			yield DataMinerOnInit();
-		}
-		if (document.location.origin === PUBLISHER_URL && NODE_ENV === 'production') {
-			yield PublisherOnInit();
-		}
-		if ((document.location.origin === TRADING_DESK_URL && NODE_ENV === 'production') || NODE_ENV !== 'production') {
-			yield TradingDeskOnInit();
-		}
+		yield activeContainerRig.initSaga();
 		yield put({ type: APP_INIT_SUCCESS });
 	} catch (error) {
 		yield put({ type: APP_INIT_REJECT, payload: error });
@@ -57,6 +48,7 @@ function processError({ payload }) {
 		console.error(payload);
 	}
 }
+
 export default function* dashboardSaga() {
 	yield takeLatest(APP_INIT, appInit);
 	yield handleRequestListSaga(CATEGORY_COLLECTION_NAME, {
@@ -70,6 +62,5 @@ export default function* dashboardSaga() {
 	});
 	yield handleRequestListSaga(LANGUAGE_COLLECTION_NAME);
 	yield takeLatest(SET_DASHBOARD_ERROR, processError);
-
 	yield userPageSaga();
 }

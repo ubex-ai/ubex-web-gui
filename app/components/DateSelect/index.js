@@ -10,9 +10,9 @@ import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import { DateRangePicker } from 'react-dates';
 import PropTypes from 'prop-types';
 import moment from 'moment';
-import messages from './messages';
 import DatePicker from 'react-datepicker';
 import Select from 'react-select';
+import messages from './messages';
 
 /* eslint-disable react/prefer-stateless-function */
 class DateSelect extends React.Component {
@@ -23,9 +23,10 @@ class DateSelect extends React.Component {
 			tempPeriod: 'today',
 			startDate: moment(props.startDate),
 			endDate: moment(props.endDate),
-			selectedOptionCampaign: { value: 'all', label: this.props.intl.formatMessage(messages.allGroups) },
+			selectedOptionCampaign: { value: 'all', label: this.props.intl.formatMessage(messages.allCampaigns) },
 			selectedOptionInventory: { value: 'all', label: this.props.intl.formatMessage(messages.allInventories) },
 			selectedOptionCounter: { value: 'all', label: this.props.intl.formatMessage(messages.allCounters) },
+			selectedOptionGroup: { value: 'all', label: this.props.intl.formatMessage(messages.allGroups) },
 			options: [
 				{ value: 'week', label: this.props.intl.formatMessage(messages.week) },
 				{ value: 'month', label: this.props.intl.formatMessage(messages.month) },
@@ -33,6 +34,10 @@ class DateSelect extends React.Component {
 				{ value: 'all', label: this.props.intl.formatMessage(messages.alltime) },
 			],
 			selectedOption: { value: 'week', label: this.props.intl.formatMessage(messages.week) },
+			tradingDeskCampaigns: null,
+			tradingDesk: null,
+			publisher: null,
+			mining: null,
 		};
 		this.period = props.period;
 		this.startDate = moment(props.startDate);
@@ -74,6 +79,10 @@ class DateSelect extends React.Component {
 				start_date: this.startDate.format('YYYY-MM-DD'),
 				end_date: this.endDate.format('YYYY-MM-DD'),
 				group: selectedOption.value === 'all' ? 'year' : selectedOption.value === 'year' ? 'month' : 'day',
+				selectedOption:
+					this.state.selectedOptionCampaign ||
+					this.state.selectedOptionInventory ||
+					this.state.selectedOptionCounter,
 			},
 			{
 				startDate: this.startDate.format('YYYY-MM-DD'),
@@ -83,16 +92,60 @@ class DateSelect extends React.Component {
 		);
 	};
 
+	handleChangeGroup = selectedOptionGroup => {
+		this.setState({ selectedOptionGroup });
+		const tempStartDate = this.state.startDate.format('YYYY-MM-DD');
+		const tempEndDate = this.state.endDate.format('YYYY-MM-DD');
+		this.props.onChange(
+			{
+				start_date: tempStartDate,
+				end_date: tempEndDate,
+				selectedOption: selectedOptionGroup,
+			},
+			{ startDate: tempStartDate, endDate: tempEndDate, period: this.period },
+		);
+	};
+
 	handleChangeCampaign = selectedOptionCampaign => {
 		this.setState({ selectedOptionCampaign });
+		const tempStartDate = this.state.startDate.format('YYYY-MM-DD');
+		const tempEndDate = this.state.endDate.format('YYYY-MM-DD');
+		this.props.onChange(
+			{
+				start_date: tempStartDate,
+				end_date: tempEndDate,
+				selectedOption: selectedOptionCampaign,
+			},
+			{ startDate: tempStartDate, endDate: tempEndDate, period: this.period },
+		);
 	};
 
 	handleChangeInventory = selectedOptionInventory => {
 		this.setState({ selectedOptionInventory });
+		const tempStartDate = this.state.startDate.format('YYYY-MM-DD');
+		const tempEndDate = this.state.endDate.format('YYYY-MM-DD');
+		this.props.onChange(
+			{
+				start_date: tempStartDate,
+				end_date: tempEndDate,
+				selectedOption: selectedOptionInventory,
+			},
+			{ startDate: tempStartDate, endDate: tempEndDate, period: this.period },
+		);
 	};
 
 	handleChangeCounter = selectedOptionCounter => {
 		this.setState({ selectedOptionCounter });
+		const tempStartDate = this.state.startDate.format('YYYY-MM-DD');
+		const tempEndDate = this.state.endDate.format('YYYY-MM-DD');
+		this.props.onChange(
+			{
+				start_date: tempStartDate,
+				end_date: tempEndDate,
+				selectedOption: selectedOptionCounter,
+			},
+			{ startDate: tempStartDate, endDate: tempEndDate, period: this.period },
+		);
 	};
 
 	handleChangeStart(date) {
@@ -120,6 +173,10 @@ class DateSelect extends React.Component {
 				{
 					start_date: tempStartDate,
 					end_date: tempEndDate,
+					selectedOption:
+						this.state.selectedOptionCampaign ||
+						this.state.selectedOptionInventory ||
+						this.state.selectedOptionCounter,
 				},
 				{ startDate: tempStartDate, endDate: tempEndDate, period: this.period },
 			);
@@ -132,25 +189,96 @@ class DateSelect extends React.Component {
 
 	componentDidMount() {
 		if (this.props.publisher) {
-			this.props.publisher.unshift({ code: 'all', name: this.props.intl.formatMessage(messages.allInventories) });
+			const publisher = [
+				{ code: 'all', name: this.props.intl.formatMessage(messages.allInventories) },
+				...this.props.publisher,
+			];
+			this.setState({ publisher });
 		}
 		if (this.props.mining) {
-			this.props.mining.unshift({ id: 'all', name: this.props.intl.formatMessage(messages.allCounters) });
+			const mining = [
+				{ id: 'all', name: this.props.intl.formatMessage(messages.allCounters) },
+				...this.props.mining,
+			];
+			this.setState({ mining });
 		}
 		if (this.props.tradingDesk) {
-			this.props.tradingDesk.unshift({ id: 'all', name: this.props.intl.formatMessage(messages.allGroups) });
+			if (this.props.tradingDeskSelected) {
+				this.setState({
+					selectedOptionGroup: this.props.tradingDesk
+						.filter(f => f.id === parseInt(this.props.tradingDeskSelected, 10))
+						.map(l => ({
+							value: l.id,
+							label: l.id !== 'all' ? `${l.name} (ID: ${l.id})` : `${l.name}`,
+						}))[0],
+				});
+			} else {
+				const tradingDesk = [
+					{ id: 'all', name: this.props.intl.formatMessage(messages.allGroups) },
+					...this.props.tradingDesk,
+				];
+				this.setState({ tradingDesk });
+			}
+		}
+		if (this.props.tradingDeskCampaigns) {
+			if (this.props.tradingDeskCampaignsSelected) {
+				this.setState({
+					selectedOptionGroup: this.props.tradingDeskCampaigns
+						.filter(f => f.id === parseInt(this.props.tradingDeskCampaignsSelected, 10))
+						.map(l => ({
+							value: l.id,
+							label: l.id !== 'all' ? `${l.name} (ID: ${l.id})` : `${l.name}`,
+						}))[0],
+				});
+			} else {
+				const tradingDeskCampaigns = [
+					{ id: 'all', name: this.props.intl.formatMessage(messages.allGroups) },
+					...this.props.tradingDeskCampaigns,
+				];
+				this.setState({ tradingDeskCampaigns });
+			}
+		}
+		this.setState({
+			selectedOption: this.state.options.filter(option => option.value === this.props.period),
+		});
+	}
+
+	componentDidUpdate(prevProps, prevState, snapshot) {
+		if (prevProps.tradingDeskSelected !== this.props.tradingDeskSelected) {
+			this.setState({
+				selectedOptionGroup: this.props.tradingDesk
+					.filter(f => f.id === parseInt(this.props.tradingDeskSelected, 10))
+					.map(l => ({
+						value: l.id,
+						label: l.id !== 'all' ? `${l.name} (ID: ${l.id})` : `${l.name}`,
+					}))[0],
+			});
+		}
+		if (prevProps.tradingDeskCampaignsSelected !== this.props.tradingDeskCampaignsSelected) {
+			this.setState({
+				selectedOptionGroup: this.props.tradingDeskCampaigns
+					.filter(f => f.id === parseInt(this.props.tradingDeskCampaignsSelected, 10))
+					.map(l => ({
+						value: l.id,
+						label: l.id !== 'all' ? `${l.name} (ID: ${l.id})` : `${l.name}`,
+					}))[0],
+			});
 		}
 	}
 
 	render() {
 		const { startDate, endDate } = this.state;
-		const { tradingDesk, publisher, mining } = this.props;
+		const { tradingDesk, publisher, mining, tradingDeskCampaigns } = this.state;
 		return (
 			<Col xl={7}>
-				<div className={'form-inline'}>
+				<div className="form-inline">
 					<div
 						className="form-group mb-2"
-						style={!tradingDesk && !publisher && !mining ? { position: 'absolute' } : {}}
+						style={
+							!tradingDesk && !publisher && !mining && !tradingDeskCampaigns
+								? { position: 'absolute' }
+								: {}
+						}
 					>
 						{mining && (
 							<Select
@@ -159,6 +287,7 @@ class DateSelect extends React.Component {
 								options={mining.map(l => ({
 									value: l.id,
 									label: l.id !== 'all' ? `${l.name} (ID: ${l.id})` : `${l.name}`,
+									counter: l.counter,
 								}))}
 								onChange={this.handleChangeCounter}
 								value={this.state.selectedOptionCounter}
@@ -173,9 +302,22 @@ class DateSelect extends React.Component {
 									value: l.id,
 									label: l.id !== 'all' ? `${l.name} (ID: ${l.id})` : `${l.name}`,
 								}))}
+								onChange={this.handleChangeGroup}
+								value={this.state.selectedOptionGroup}
+								placeholder="Select campaign group"
+							/>
+						)}
+						{tradingDeskCampaigns && (
+							<Select
+								className="campaign-select-container"
+								classNamePrefix="campaign-select"
+								options={tradingDeskCampaigns.filter(filter => filter.status === 'active').map(l => ({
+									value: l.id,
+									label: l.id !== 'all' ? `${l.name} (ID: ${l.id})` : `${l.name}`,
+								}))}
 								onChange={this.handleChangeCampaign}
 								value={this.state.selectedOptionCampaign}
-								placeholder="Select campaign group"
+								placeholder="Select campaign"
 							/>
 						)}
 						{publisher && (
@@ -253,6 +395,9 @@ DateSelect.propTypes = {
 	mining: PropTypes.array,
 	publisher: PropTypes.array,
 	tradingDesk: PropTypes.array,
+	tradingDeskSelected: PropTypes.string,
+	tradingDeskCampaignsSelected: PropTypes.string,
+	tradingDeskCampaigns: PropTypes.array,
 };
 
 export default injectIntl(DateSelect);

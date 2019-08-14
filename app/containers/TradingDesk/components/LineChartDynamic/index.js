@@ -158,133 +158,6 @@ class LineChart extends React.Component {
 				  }
 				: null,
 		};
-		const options2 = {
-			layout: {
-				padding: {
-					left: 0,
-					right: 20,
-					top: 0,
-					bottom: 0,
-				},
-			},
-			legend: {
-				display: !lines,
-				onClick: false,
-			},
-			scales: {
-				yAxes: !lines
-					? [
-							{
-								stacked: true,
-								ticks: {
-									beginAtZero: true,
-								},
-								type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
-								display: true,
-								position: 'left',
-								id: 'y-axis-0',
-							},
-					  ]
-					: [
-							{
-								stacked: false,
-								ticks: {
-									beginAtZero: true,
-								},
-								type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
-								display: true,
-								position: 'left',
-								id: 'y-axis-0',
-							},
-							{
-								stacked: false,
-								ticks: {
-									beginAtZero: true,
-								},
-								type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
-								display: true,
-								position: 'right',
-								id: 'y-axis-1',
-								gridLines: {
-									drawOnChartArea: false, // only want the grid lines for one axis to show up
-								},
-							},
-					  ],
-				xAxes: [
-					{
-						barPercentage: 0.4,
-						ticks: {
-							display: true,
-						},
-					},
-				],
-			},
-			plugins: {
-				filler: {
-					propagate: true,
-				},
-				datalabels: {
-					backgroundColor: `rgba(${colorBar.r}, ${colorBar.g}, ${colorBar.b}`,
-					color: '#fff',
-					padding: {
-						bottom: 1,
-						top: 3,
-						left: 5,
-						right: 5,
-					},
-					borderRadius: 5,
-					anchor: 'center',
-					align: 'top',
-					font: {
-						family: 'Proxima Nova Rg',
-					},
-					formatter(value, context) {
-						const { minIndex, maxIndex } = indexOfMinMax(arrayChart[0]);
-						const d = context.dataset.data.filter(c => typeof c !== 'function');
-
-						if (d.length > 25) {
-							return context.dataIndex === minIndex
-								? d[minIndex]
-								: context.dataIndex === maxIndex
-									? d[maxIndex]
-									: null;
-						}
-						return d[context.dataIndex];
-					},
-				},
-			},
-			annotation: average
-				? {
-						annotations: [
-							{
-								type: 'line',
-								mode: 'horizontal',
-								drawTime: 'afterDraw',
-								scaleID: 'y-axis-0',
-								value: average,
-								borderDash: [2, 2],
-								borderDashOffset: 5,
-								borderColor: '#676767',
-								borderWidth: 0.5,
-								label: {
-									backgroundColor: 'transparent',
-									fontFamily: 'sans-serif',
-									fontSize: 10,
-									fontStyle: 'bold',
-									fontColor: '#676767',
-									xPadding: 2,
-									yPadding: 20,
-									position: 'right',
-									xAdjust: 0,
-									yAdjust: 10,
-									enabled: true,
-									content: `AVG: ${average}`,
-								},
-							},
-						],
-				  }
-				: null,
-		};
 
 		const data1 = canvas => {
 			const ctx = canvas.getContext('2d');
@@ -438,7 +311,6 @@ class LineChart extends React.Component {
 							},
 					  );
 			}
-			console.log(datasets);
 			return {
 				labels: arrayLabels,
 				datasets,
@@ -476,11 +348,11 @@ LineChart.propTypes = {
 	data: PropTypes.shape({
 		arrayChart: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.number.isRequired)),
 		arrayLabels: PropTypes.arrayOf(PropTypes.string.isRequired),
-		average: PropTypes.string,
+		average: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 		color: PropTypes.string,
 	}),
 	settings: PropTypes.bool,
 	height: PropTypes.number,
-	legend: PropTypes.bool,
+	legend: PropTypes.array,
 };
 export default LineChart;

@@ -4,27 +4,17 @@
  *
  */
 
-import {
-	DEFAULT_ACTION,
-	FETCH_USER_REQUEST,
-	UPDATE_USER_REQUEST,
-} from './constants';
-
-export function defaultAction() {
-	return {
-		type: DEFAULT_ACTION,
-	};
-}
-
-export function fetchData() {
-	return {
-		type: FETCH_USER_REQUEST,
-	};
-}
+import { USER_LOGOUT, UPDATE_USER_REQUEST } from './constants';
 
 export function updateData(data) {
 	return {
 		type: UPDATE_USER_REQUEST,
 		payload: data,
+	};
+}
+
+export function logout() {
+	return {
+		type: USER_LOGOUT,
 	};
 }

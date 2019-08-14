@@ -5,9 +5,18 @@ import {
 	handleRequestListSaga,
 	restApiRequestHandler,
 } from 'utils/CollectionHelper/saga';
-import { getLanguages, getCategories } from 'containers/Dashboard/actions';
-import { languagesActions, categoriesActions } from 'containers/Dashboard/constants';
-import { formatCategoriesList, formatFaqList } from 'containers/Dashboard/hooks';
+import { getLanguages, getCategories, getCountries } from 'containers/Dashboard/actions';
+import {
+	languagesActions,
+	categoriesActions,
+	countriesActions,
+} from 'containers/Dashboard/constants';
+import {
+	formatCategoriesList,
+	formatFaqList,
+	formatPublisherHomePageStats,
+	formatTablePublisherHomePageStats,
+} from 'containers/Dashboard/hooks';
 import {
 	getAdAttributes,
 	getBanners,
@@ -36,9 +45,16 @@ import {
 	AD_ATTRIBUTES_COLLECTION_NAME,
 	USER_CATEGORIES_BLACKLIST_COLLECTION_NAME,
 	FAQ_COLLECTION_NAME,
+	CONTACT_FORM,
+	HOMEPAGESTATS_COLLECTION_NAME,
+	TABLE_HOMEPAGESTATS_COLLECTION_NAME,
 } from './constants';
+import { handleRequestListStatsByParamsSaga } from '../../utils/StatsHelper/saga';
 
 export function* onAppInit() {
+	yield getListRequestHandler(getCountries(), countriesActions, {
+		success: formatCategoriesList,
+	}),
 	yield getListRequestHandler(getLanguages(), languagesActions);
 	yield getListRequestHandler(getBanners(), bannersActions);
 	yield getListRequestHandler(getDSP(), dspActions);
@@ -54,12 +70,18 @@ export function* onAppInit() {
 export default function* publisherSaga() {
 	yield handleCollectionSaga(SLOTS_COLLECTION_NAME);
 	yield handleCollectionSaga(INVENTORY_COLLECTION_NAME);
-
+	yield handleCollectionSaga(CONTACT_FORM);
 	yield handleRequestListSaga(BANNERS_COLLECTION_NAME);
 	yield handleRequestListSaga(AD_ATTRIBUTES_COLLECTION_NAME);
 	yield handleRequestListSaga(POSITIONS_COLLECTION_NAME);
 	yield handleRequestListSaga(DSP_COLLECTION_NAME);
 	yield handleRequestListSaga(USER_CATEGORIES_BLACKLIST_COLLECTION_NAME);
+	yield handleRequestListStatsByParamsSaga(HOMEPAGESTATS_COLLECTION_NAME, {
+		success: formatPublisherHomePageStats,
+	});
+	yield handleRequestListStatsByParamsSaga(TABLE_HOMEPAGESTATS_COLLECTION_NAME, {
+		success: formatTablePublisherHomePageStats,
+	});
 
 	yield handleRequestListSaga(FAQ_COLLECTION_NAME, {
 		success: formatFaqList,

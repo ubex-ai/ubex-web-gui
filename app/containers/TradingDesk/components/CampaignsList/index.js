@@ -27,9 +27,14 @@ import formatDateToUTC from 'utils/formatDateToUTC';
 import createToast from 'utils/toastHelper';
 import validateInteger from 'utils/validateInteger';
 import { makePromiseAction } from 'utils/CollectionHelper/actions';
+import CreativeTypeModal from 'containers/TradingDesk/components/CreativeTypeModal';
+import _ from 'lodash';
 import AddCreativeToCampaignModal from '../AddCreativeToCampaignModal';
+import { image, native, other, video } from '../../variables/creative-pics';
+
 const CamppaignWrapper = styled.div`
 	display: flex;
+	margin-top: -1rem !important;
 `;
 let locked = false;
 let lastCall = false;
@@ -59,6 +64,7 @@ class CampaingsList extends React.Component {
 				{ key: 'budget', label: messages.spentBudget },
 				{ key: 'daily_budget', label: messages.spentDailyCap },
 				{ key: 'creatives', label: messages.creatives },
+				{ key: 'date', label: messages.created, preventHidden: false },
 				{ key: 'controls', preventHidden: true },
 			],
 		};
@@ -167,10 +173,6 @@ class CampaingsList extends React.Component {
 	}
 
 	log() {
-		console.log(`
-			firstActiveColumnIndex: ${this.state.firstActiveColumnIndex},
-			activeColumns: ${this.state.activeColumns.map(c => c.key).join(',')}
-		`);
 		this.state.columns.forEach(c => console.log(c.key, this.isColumnVisible(c.key)));
 	}
 
@@ -214,7 +216,6 @@ class CampaingsList extends React.Component {
 	}
 
 	remove(id, type) {
-		console.log(id, type);
 		if (type === 'campaign') {
 			this.props.removeCampaign(id).then(() => {
 				this.setState({ removeCampaign: null });
@@ -248,7 +249,7 @@ class CampaingsList extends React.Component {
 					}}
 				>
 					{campaign.name}
-					<span> #{campaign.id}</span>
+					<span> ID: {campaign.id}</span>
 				</p>
 			</div>
 		);
@@ -264,6 +265,20 @@ class CampaingsList extends React.Component {
 			waiting: campaign.details === 'waiting',
 		});
 		return this.state.columns.filter(c => this.isColumnVisible(c.key)).map(({ key }) => {
+			if (key === 'date') {
+				return (
+					<div
+						key={key}
+						onClick={e => {
+							e.preventDefault();
+							this.toggle(campaign.id);
+						}}
+						className={`campaign-table__cell campaign-table__cell--date campaign-table__cell--${colorClass}`}
+					>
+						{moment(campaign.created).format('DD-MM-YYYY HH:mm')}
+					</div>
+				);
+			}
 			// Name column layout
 			// #e4e407
 			if (key === 'name') {
@@ -437,22 +452,51 @@ class CampaingsList extends React.Component {
 		});
 	}
 
-	removeCreativeFromCampaign(campaignId, id) {
-		const { campaigns, creatives } = this.props;
+	changeCreativeStartDate(campaignId, creativeId, date) {
+		const { campaigns } = this.props;
 		const campaign = campaigns.filter(c => c.id === campaignId);
 		const campaignCreatives = campaign[0].creatives;
-		if(campaignCreatives.includes(id)){
-			const creatives = campaignCreatives.filter(c => c !== id);
-			this.props.patchCampaign(campaignId, { creatives }).then(() => {
-				createToast('success', 'Creative succefully removed from campaign!');
-			})
+		const creatives = campaignCreatives.filter(c => c.value !== creativeId);
+		const selectedCreative = _.find(campaignCreatives, { value: creativeId });
+		creatives.push({
+			value: creativeId,
+			start_date: formatDateToUTC(date).format('YYYY-MM-DDTHH:mm'),
+			end_date: selectedCreative.end_date,
+		});
+		this.props.patchCampaign(campaignId, { creatives }).then(() => {
+			createToast('success', 'Creative Start Date succefully changed!');
+		});
+	}
 
-		}
+	changeCreativeEndDate(campaignId, creativeId, date) {
+		const { campaigns } = this.props;
+		const campaign = campaigns.filter(c => c.id === campaignId);
+		const campaignCreatives = campaign[0].creatives;
+		const creatives = campaignCreatives.filter(c => c.value !== creativeId);
+		const selectedCreative = _.find(campaignCreatives, { value: creativeId });
+		creatives.push({
+			value: creativeId,
+			start_date: selectedCreative.start_date,
+			end_date: formatDateToUTC(date).format('YYYY-MM-DDTHH:mm'),
+		});
+		this.props.patchCampaign(campaignId, { creatives }).then(() => {
+			createToast('success', 'Creative Start Date succefully changed!');
+		});
+	}
+
+	removeCreativeFromCampaign(campaignId, id) {
+		const { campaigns } = this.props;
+		const campaign = campaigns.filter(c => c.id === campaignId);
+		const campaignCreatives = campaign[0].creatives;
+		const creatives = campaignCreatives.filter(c => c.value !== id);
+		this.props.patchCampaign(campaignId, { creatives }).then(() => {
+			createToast('success', 'Creative succefully removed from campaign!');
+		});
 	}
 
 	renderCampaigns(campaign) {
 		const { creatives } = this.props;
-		const creativesArray = creatives.filter(s => campaign.creatives.some(camp => camp === s.id));
+		const creativesArray = creatives.filter(s => campaign.creatives.some(camp => camp.value === s.id));
 		return (
 			<div className="panel panel-default" key={campaign.id}>
 				<div className="panel-heading">
@@ -470,12 +514,29 @@ class CampaingsList extends React.Component {
 						{creativesArray && creativesArray.length ? (
 							<CampaignCreativeTable
 								data={creativesArray}
+								creativesWithDates={campaign.creatives}
 								changeCreativeName={(id, name) => this.changeCreativeName(id, name)}
 								changeCreativeCPM={(id, cpm) => this.changeCreativeCPM(id, cpm)}
 								onClickRemoveEntry={id => this.removeCreativeFromCampaign(campaign.id, id)}
+								changeCreativeStartDate={(id, dates) =>
+									this.changeCreativeStartDate(campaign.id, id, dates)
+								}
+								changeCreativeEndDate={(id, dates) =>
+									this.changeCreativeEndDate(campaign.id, id, dates)
+								}
 							/>
 						) : (
-							<FormattedMessage {...messages.noCreatives} />
+							<div>
+								<FormattedMessage {...messages.noCreatives} />
+								<Button
+									onClick={() => this.setState({ addCreativeToCampaign: campaign.id })}
+									size="xs"
+									color="info"
+									className="ml-2"
+								>
+									Add
+								</Button>
+							</div>
 						)}
 					</div>
 				</Collapse>
@@ -496,7 +557,6 @@ class CampaingsList extends React.Component {
 	}
 
 	attachCreativeToCampaing(idCampaign, creatives) {
-		console.log('attachCreativeToCampaing', creatives);
 		this.props
 			.patchCampaign(idCampaign, {
 				creatives,
@@ -538,7 +598,9 @@ class CampaingsList extends React.Component {
 						onCancel={() => this.setState({ addCreativeToCampaign: null })}
 						title={messages.addCreativeToCampaign}
 						bodyText={messages.selectCreatives}
-						creatives={this.props.creatives}
+						creatives={
+							this.props.creatives ? this.props.creatives.filter(filter => filter.banners.length > 0) : []
+						}
 					/>
 				) : null}
 			</CamppaignWrapper>,

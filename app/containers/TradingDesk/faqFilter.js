@@ -1,4 +1,6 @@
-import _ from 'lodash';
+/**
+ * Faq Filters
+ */
 export const findIn = (field, name) => {
 	const searchQuery = name
 		.toString()

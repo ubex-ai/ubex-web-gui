@@ -91,7 +91,7 @@ export default defineMessages({
 	},
 	back_fill: {
 		id: `${scope}.counterForm.backfill`,
-		defaultMessage: 'Back fill (optional)',
+		defaultMessage: 'Backfill code (optional)',
 	},
 	not_exact_size: {
 		id: `${scope}.counterForm.not_exact_size`,

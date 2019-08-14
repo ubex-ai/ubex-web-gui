@@ -152,6 +152,7 @@ class SlotForm extends React.Component {
 		} = this.props;
 		const result = {
 			...values,
+			back_fill: values.back_fill ? values.back_fill : '',
 			position: parseInt(values.position, 10),
 			inventory: this.props.activeInventoryId,
 			category_blacklist: this.state.selectedBlockedCategories.map(c => c.id),
@@ -411,7 +412,14 @@ class SlotForm extends React.Component {
 						prepend="$"
 					/>
 
-					<IntlFieldGroup name="back_fill" label={messages.back_fill} />
+					<IntlFieldGroup
+						name="back_fill"
+						inputProps={{
+							type: 'textarea',
+							rows: '5',
+						}}
+						label={messages.back_fill}
+					/>
 				</AppCard>
 				<AppCard>
 					<h2>

@@ -21,14 +21,29 @@ import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { compose } from 'redux';
 import InlineEditField from 'components/InlineEditField';
-import CreativeTypeModal from '../CreativeTypeModal';
-import CreativesTable from '../CreativesTable';
-import messages from '../../messages';
-import { creativesSelectors, filteringCreatives, selectCreativeFilters } from '../../selectors';
-import { creativeCollectionActions, setFilterCreatives } from '../../actions';
 import validateStringAndNumber from 'utils/validateStringAndNumber';
 import createToast from 'utils/toastHelper';
 import { makePromiseAction } from 'utils/CollectionHelper/actions';
+import moment from 'moment';
+import getPaginatedItems from 'utils/pagination';
+import Pagination from 'components/Pagination';
+import CreativeTypeModal from '../CreativeTypeModal';
+import CreativesTable from '../CreativesTable';
+import messages from '../../messages';
+import {
+	creativesSelectors,
+	filteringCreatives,
+	selectAdSize,
+	selectCreativeFilters,
+	selectPaginationCounts,
+} from '../../selectors';
+import {
+	bannersCollectionActions,
+	creativeCollectionActions,
+	setFilterCreatives,
+	setPaginationItemsCount,
+} from '../../actions';
+import CreativeFileTable from '../CreativeForm';
 
 /* eslint-disable react/prefer-stateless-function */
 class CreativeList extends React.Component {
@@ -43,9 +58,13 @@ class CreativeList extends React.Component {
 			createCreativeModal: false,
 			removeBanner: null,
 			previewModal: false,
+			previewType: null,
+			previewAdditionalType: null,
 			removeCreativeType: null,
 			typeInventory: 'all',
 			search: '',
+			page: 1,
+			items: props.paginationCounts.creativesCount,
 		};
 		this.editField = null;
 		this.clearSearch = this.clearSearch.bind(this);
@@ -54,12 +73,18 @@ class CreativeList extends React.Component {
 	}
 
 	componentDidMount() {
+		this.props.getCreatives();
 		const { creatives } = this.props;
 		this.setState({ openCard: Math.max(...creatives.filter(c => c.data).map(creative => creative.id)) });
 	}
 
 	componentDidUpdate(prevProps, prevState, snapshot) {
 		const { creatives } = this.props;
+
+		if (prevProps.paginationCounts.creativesCount !== this.props.paginationCounts.creativesCount) {
+			this.setState({ items: this.props.paginationCounts.creativesCount });
+		}
+
 		if (!this.state.openCard && creatives) {
 			this.setState({ openCard: Math.max(...creatives.filter(c => c.data).map(creative => creative.id)) });
 		}
@@ -117,7 +142,7 @@ class CreativeList extends React.Component {
 	}
 
 	render() {
-		const { creatives } = this.props;
+		const { creatives, setPaginationItemsCount } = this.props;
 		return (
 			<div>
 				{this.renderHeader()}
@@ -130,7 +155,18 @@ class CreativeList extends React.Component {
 						</Col>
 					</Row>
 				) : (
-					creatives.map(creative => this.renderCreative(creative))
+					<div>
+						{getPaginatedItems(creatives, this.state.page, this.state.items).data.map(creative =>
+							this.renderCreative(creative),
+						)}
+						{
+							<Pagination
+								data={getPaginatedItems(creatives, this.state.page, this.state.items)}
+								changePage={page => this.setState({ page })}
+								changeItemsCount={items => setPaginationItemsCount({ creativesCount: items })}
+							/>
+						}
+					</div>
 				)}
 				<CreativeTypeModal
 					isOpen={this.state.openCreativeModal}
@@ -168,10 +204,13 @@ class CreativeList extends React.Component {
 					msg={messages.remove}
 				/>
 				<PreviewModal
+					adSize={this.props.adSize}
+					type={this.state.previewType}
+					additionalType={this.state.previewAdditionalType}
 					title={messages.preview}
 					msg={this.state.previewModal}
 					isOpen={this.state.previewModal}
-					onCancel={() => this.setState({ previewModal: '' })}
+					onCancel={() => this.setState({ previewModal: '', previewType: null, previewAdditionalType: null })}
 				/>
 			</div>
 		);
@@ -183,11 +222,15 @@ class CreativeList extends React.Component {
 			return null;
 		}
 		const iconClass = classNames({
-			'icon-title fas fa-image': creative.creative_type === 'display',
-			'icon-title fab fa-html5': creative.creative_type === 'native',
+			'creative-icons display icon-title fas fa-image': creative.data.type === 'image',
+			'creative-icons video icon-title fab fa-html5': creative.data.type === 'html5',
+			'creative-icons native icon-title fas fa-ad': creative.creative_type === 'native',
+			'creative-icons video icon-title fas fa-video': creative.creative_type === 'video',
+			'creative-icons other icon-title fas fa-code': creative.creative_type === 'other',
 		});
+		const bannerCount = creative && creative.banners ? creative.banners.length : '-';
 		return [
-			<Col md={6} xs={12}>
+			<Col md={9} xs={12}>
 				<h3 className="creative-title">
 					<i className={iconClass} />{' '}
 					<InlineEditField
@@ -213,8 +256,10 @@ class CreativeList extends React.Component {
 					)}
 				</h3>
 				<span>
-					ID: {` ${creative.code || creative.id}`} &nbsp; | &nbsp; <FormattedMessage {...messages.banners} />:
-					5 &nbsp; | &nbsp; <FormattedMessage {...messages.type} />:{' '}
+					ID: {` ${creative.code || creative.id}`} &nbsp; | &nbsp; Created:{' '}
+					{moment(creative && creative.data ? creative.data.created : null).format('DD-MM-YYYY HH:mm')} &nbsp;
+					| &nbsp; <FormattedMessage {...messages.banners} />: {bannerCount} &nbsp; | &nbsp;{' '}
+					<FormattedMessage {...messages.type} />:{' '}
 					<span style={{ textTransform: 'capitalize' }}>{creative.creative_type}</span> &nbsp; | &nbsp; CPM: $
 					{creative.data.cpm} &nbsp; | &nbsp;{' '}
 					{creative && creative.campaigns && creative.campaigns.length ? (
@@ -232,7 +277,7 @@ class CreativeList extends React.Component {
 					)}
 				</span>
 			</Col>,
-			<Col md={6} xs={12} className="top10 bottom10 buttons__creative">
+			<Col md={3} xs={12} className="top10 bottom10 buttons__creative">
 				<LinkButton
 					to={`/app/creative/${creative.creative_type}/${creative.id}/add`}
 					size="xs"
@@ -281,13 +326,43 @@ class CreativeList extends React.Component {
 		];
 	}
 
+	changeURL(bannerId, values, type) {
+		this.props.changeBannerURL(bannerId, values, type).then(() => {
+			createToast('success', `${type} for Banner #${bannerId} successfully changed!`);
+			this.props.getCreatives();
+		});
+	}
+
+	removeBanner(bannerId) {
+		this.props.removeBanner(bannerId).then(() => {
+			createToast('success', `Banner #${bannerId} successfully removed!`);
+			this.props.getCreatives();
+			this.setState({ removeBanner: false });
+		});
+	}
+
+	changeAdSize(bannerId, value) {
+		const {
+			match: {
+				params: { id },
+			},
+		} = this.props;
+		this.props.changeBannerURL(bannerId, { ad_size: parseInt(value, 10) }).then(() => {
+			createToast('success', 'Banner Ad size successfully changed!');
+			this.props.getCreatives();
+		});
+	}
+
 	renderCreative(creative) {
 		const { filter } = this.props;
 		if (!creative || !creative.banners) {
 			return null;
 		}
 		const { searchWord, request } = filter;
-		console.log(creative)
+		const otherData = [];
+		if (creative.creative_type === 'other') {
+			otherData.push(creative.data);
+		}
 		return (
 			<Row className="margin-0" key={creative.id}>
 				<Col>
@@ -299,12 +374,29 @@ class CreativeList extends React.Component {
 					>
 						{!creative ? null : (
 							<CreativesTable
-								data={creative.banners ? creative.banners : []}
+								data={
+									creative.creative_type === 'other'
+										? otherData
+										: creative.banners
+											? creative.banners
+											: []
+								}
 								inventoryType={creative.creative_type}
+								adSize={this.props.adSize}
+								adSizeChange={(id, value) => this.changeAdSize(id, value)}
 								keyField="site"
-								onClickGetCode={link => this.setState({ previewModal: link })}
-								onClickRemoveEntry={id => this.setState({ removeBanner: id })}
+								onClickGetCode={link =>
+									this.setState({
+										previewModal: creative.creative_type === 'native' ? creative : link,
+										previewType: creative.creative_type,
+										previewAdditionalType:
+											creative.data && creative.data.type ? creative.data.type : null,
+									})
+								}
+								changeBannerURL={(id, values, type) => this.changeURL(id, values, type)}
+								removeBanner={id => this.setState({ removeBanner: id })}
 								toggleEntryStatus={this.props.toggleSlotStatus}
+								creativeId={creative.id}
 							/>
 						)}
 					</AppCard>
@@ -412,13 +504,18 @@ const withConnect = connect(
 	createStructuredSelector({
 		creatives: filteringCreatives(),
 		filter: selectCreativeFilters(),
+		adSize: selectAdSize(),
+		paginationCounts: selectPaginationCounts(),
 	}),
 	dispatch => ({
 		dispatch,
-		getCreatives: dispatch(creativeCollectionActions.getCollection()),
+		getCreatives: () => dispatch(creativeCollectionActions.getCollection()),
 		removeCreative: id => makePromiseAction(dispatch, creativeCollectionActions.removeEntry(id)),
 		patchCreative: (id, values) => makePromiseAction(dispatch, creativeCollectionActions.patchEntry(id, values)),
 		setFilter: values => dispatch(setFilterCreatives(values)),
+		changeBannerURL: (id, values) => makePromiseAction(dispatch, bannersCollectionActions.patchEntry(id, values)),
+		removeBanner: id => makePromiseAction(dispatch, bannersCollectionActions.removeEntry(id)),
+		setPaginationItemsCount: values => dispatch(setPaginationItemsCount(values)),
 	}),
 );
 

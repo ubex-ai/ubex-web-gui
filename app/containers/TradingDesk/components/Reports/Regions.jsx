@@ -1,6 +1,6 @@
 import React from 'react';
 import { Row, Col } from 'reactstrap';
-import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import { FormattedMessage, injectIntl } from 'react-intl';
 import AppTable from 'components/Tables/AppTable';
 import Datamap from 'components/Maps/Datamaps';
 import { createStructuredSelector } from 'reselect';
@@ -10,10 +10,10 @@ import PropTypes from 'prop-types';
 import AppCard from 'components/AppCard';
 import { updateCharts } from 'containers/DataMiner/actions';
 import messages from 'containers/DataMiner/messages';
-import { selectChartsDates, selectMetricByName } from 'containers/DataMiner/selectors';
-import injectReducer from 'utils/injectReducer';
-import reducer from 'containers/DataMiner/reducer';
+import { selectChartsDates } from 'containers/DataMiner/selectors';
 import DateSelect from 'components/DateSelect';
+import { getCounterRegions, getCounterRegionsTable } from '../../actions';
+import { countersSelectors, selectCountersIds, selectCounterRegions, selectCounterRegionsTable } from '../../selectors';
 
 class Regions extends React.Component {
 	columns = [
@@ -24,8 +24,36 @@ class Regions extends React.Component {
 		{ name: 'paidpercent', title: this.props.intl.formatMessage(messages.paidPercent) },
 	];
 
+	componentDidMount() {
+		const { dates, countersIds } = this.props;
+		const { startDate, endDate } = dates;
+		this.props.getCounterRegions({
+			start_date: startDate,
+			end_date: endDate,
+			ids: countersIds.slice(0, 19).join(),
+		});
+		this.props.getCounterRegionsTable({
+			start_date: startDate,
+			end_date: endDate,
+			ids: countersIds.slice(0, 19).join(),
+		});
+	}
+
+	updateCharts(params, dates) {
+		this.props.getCounterRegions({
+			start_date: dates.startDate,
+			end_date: dates.endDate,
+			ids: params.selectedOption.counter,
+		});
+		this.props.getCounterRegionsTable({
+			start_date: dates.startDate,
+			end_date: dates.endDate,
+			ids: params.selectedOption.counter,
+		});
+	}
+
 	render() {
-		const { topRegions, toTableTopCounters, dates, updateCharts } = this.props;
+		const { counterRegions, dates, counters, counterRegionsTable } = this.props;
 		const { startDate, endDate, period } = dates;
 		return (
 			<div>
@@ -44,10 +72,11 @@ class Regions extends React.Component {
 										</div>
 									</Col>
 									<DateSelect
-										onChange={(params, dates) => updateCharts(params, dates)}
+										onChange={(params, dates) => this.updateCharts(params, dates)}
 										startDate={startDate}
 										endDate={endDate}
 										period={period}
+										mining={counters}
 									/>
 								</Row>
 							</Col>
@@ -55,14 +84,19 @@ class Regions extends React.Component {
 						<Row className="margin-0">
 							<Col className="col-md-12">
 								<AppCard chart>
-									<Datamap data={topRegions} />
+									<Datamap data={counterRegions} />
 								</AppCard>
 							</Col>
 						</Row>
 						<Row className="margin-0">
 							<Col className="col-12 col-lg-12 col-xl-12">
 								<AppCard>
-									<AppTable data={toTableTopCounters} pagination columns={this.columns} grouping />
+									<AppTable
+										data={counterRegionsTable.length ? counterRegionsTable : []}
+										pagination
+										columns={this.columns}
+										grouping
+									/>
 								</AppCard>
 							</Col>
 						</Row>
@@ -97,15 +131,19 @@ Regions.propTypes = {
 };
 
 const mapStateToProps = createStructuredSelector({
-	topRegions: selectMetricByName('topRegions'),
-	toTableTopCounters: selectMetricByName('toTableTopCounters'),
+	countersIds: selectCountersIds(),
+	counters: countersSelectors.collectionList(),
 	dates: selectChartsDates(),
+	counterRegions: selectCounterRegions(),
+	counterRegionsTable: selectCounterRegionsTable(),
 });
 
 function mapDispatchToProps(dispatch) {
 	return {
 		dispatch,
 		updateCharts: (params, dates) => dispatch(updateCharts(params, dates)),
+		getCounterRegions: dates => dispatch(getCounterRegions(dates)),
+		getCounterRegionsTable: dates => dispatch(getCounterRegionsTable(dates)),
 	};
 }
 
@@ -114,8 +152,4 @@ const withConnect = connect(
 	mapDispatchToProps,
 );
 
-const withReducer = injectReducer({ key: 'dataMiner', reducer });
-export default compose(
-	withReducer,
-	withConnect,
-)(injectIntl(Regions));
+export default compose(withConnect)(injectIntl(Regions));

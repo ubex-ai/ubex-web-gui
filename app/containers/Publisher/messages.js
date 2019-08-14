@@ -208,7 +208,7 @@ export default defineMessages({
 	},
 	clicksCountPopover: {
 		id: `${scope}.popover.clicksCountPopover`,
-		defaultMessage: 'Clicks count',
+		defaultMessage: 'Clicks',
 	},
 	clicksCountPopoverText: {
 		id: `${scope}.popover.clicksCountPopoverText`,

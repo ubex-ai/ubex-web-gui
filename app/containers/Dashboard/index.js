@@ -27,14 +27,12 @@ import {
 	selectUbexPopover,
 } from 'containers/Dashboard/selectors';
 import { selectBalance } from 'containers/TradingDesk/selectors';
-import { Header, Sidebar, ChatSidebar } from '../../components';
-import { setUbexPopover } from 'containers/Dashboard/actions';
-import ProgressLoader from '../../components/ProgressLoader';
-import AgreementModal from '../../components/AgreementModal';
 import { ToastContainer } from 'react-toastify';
 import { updateData } from 'containers/UserPage/actions';
-import { Button } from 'reactstrap';
 import PaymentStatus from 'components/PaymentStatus';
+import { Header, Sidebar, ChatSidebar } from '../../components';
+import ProgressLoader from '../../components/ProgressLoader';
+import AgreementModal from '../../components/AgreementModal';
 
 /* eslint-disable react/prefer-stateless-function */
 export class Dashboard extends React.Component {
@@ -45,14 +43,15 @@ export class Dashboard extends React.Component {
 			amount: '',
 			status: '',
 		};
+		this.i = 0;
 	}
 
 	componentDidMount() {
 		const ua = window.navigator.userAgent.toLowerCase();
-		const is_ie = /trident/gi.test(ua) || /msie/gi.test(ua)
-		if(!is_ie) {
+		const isIe = /trident/gi.test(ua) || /msie/gi.test(ua);
+		if (!isIe) {
 			const searchParams = new URLSearchParams(this.props.location.search);
-			if(searchParams.get('pay_status')){
+			if (searchParams.get('pay_status')) {
 				this.props.history.push({
 					pathname: '/',
 					search: '',
@@ -115,8 +114,12 @@ export class Dashboard extends React.Component {
 					</div>
 				</div>
 				<ChatSidebar {...this.props} routes={routes} />
-				<CookieConsent buttonText="Got it!" cookieName="UbexCookie" buttonClasses="button__cookie">
-					This website uses cookies to enhance the user experience.{' '}
+				<CookieConsent buttonText="I agree!" cookieName="UbexCookie" buttonClasses="button__cookie">
+					Cookies help us deliver a better service, Ubex uses cookies to perform analytics and provide content
+					and ads tailored to your interests.
+					<br />
+					By using our services our services or clicking I agree, you agree to our use of cookies. Learn more
+					about use of cookies.{' '}
 					<a href="https://static.ubex.io/legal/policy.pdf" target="_blank">
 						Learn more
 					</a>
@@ -167,8 +170,8 @@ function mapDispatchToProps(dispatch) {
 	return {
 		dispatch,
 		changeLocale: locale => dispatch(changeLocale(locale)),
-		setUbexPopover: values => dispatch(setUbexPopover(values)),
 		updateUbex: values => dispatch(updateData(values)),
+		// getBalance: () => makePromiseAction(dispatch, balanceCollectionActions.getCollection()),
 	};
 }
 

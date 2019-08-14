@@ -11,14 +11,19 @@ import { connect } from 'react-redux';
 import { compose } from 'redux';
 import { createStructuredSelector } from 'reselect';
 import injectReducer from 'utils/injectReducer';
+import messages from 'containers/DataMiner/messages';
 import AppCard from 'components/AppCard';
 import BarChart from 'components/Charts/Bar';
 import AppTable from 'components/Tables/AppTable';
 import DateSelect from 'components/DateSelect';
-import {  updateCharts } from 'containers/DataMiner/actions';
-import reducer from 'containers/DataMiner/reducer';
-import { selectChartsDates, selectMetricByName } from 'containers/DataMiner/selectors';
-import messages from 'containers/DataMiner/messages';
+import { getCounterChannel, getCounterChannelTable } from '../../actions';
+import {
+	countersSelectors,
+	selectCountersIds,
+	selectCounterChannel,
+	selectCounterChannelTable,
+	selectChartsDates,
+} from '../../selectors';
 
 class Channel extends React.Component {
 	columns = [
@@ -29,8 +34,36 @@ class Channel extends React.Component {
 		{ name: 'paidpercent', title: this.props.intl.formatMessage(messages.paidPercent) },
 	];
 
+	componentDidMount() {
+		const { dates, countersIds } = this.props;
+		const { startDate, endDate } = dates;
+		this.props.getCounterChannel({
+			start_date: startDate,
+			end_date: endDate,
+			ids: countersIds.slice(0, 19).join(),
+		});
+		this.props.getCounterChannelTable({
+			start_date: startDate,
+			end_date: endDate,
+			ids: countersIds.slice(0, 19).join(),
+		});
+	}
+
+	updateCharts(params, dates) {
+		this.props.getCounterChannel({
+			start_date: dates.startDate,
+			end_date: dates.endDate,
+			ids: params.selectedOption.counter,
+		});
+		this.props.getCounterChannelTable({
+			start_date: dates.startDate,
+			end_date: dates.endDate,
+			ids: params.selectedOption.counter,
+		});
+	}
+
 	render() {
-		const { topChannel, toTableChannels, dates, updateCharts } = this.props;
+		const { counterChannel, dates, counters, counterChannelTable } = this.props;
 		const { startDate, endDate, period } = dates;
 		return (
 			<div>
@@ -41,16 +74,17 @@ class Channel extends React.Component {
 								<div className="page-title">
 									<div className="float-left">
 										<h1 className="title">
-											<FormattedMessage {...messages.channel} /> (reward)
+											<FormattedMessage {...messages.channel} />
 										</h1>
 									</div>
 								</div>
 							</Col>
 							<DateSelect
-								onChange={(params, dates) => updateCharts(params, dates)}
+								onChange={(params, dates) => this.updateCharts(params, dates)}
 								startDate={startDate}
 								endDate={endDate}
 								period={period}
+								mining={counters}
 							/>
 						</Row>
 					</Col>
@@ -58,14 +92,19 @@ class Channel extends React.Component {
 				<Row className="row margin-0">
 					<Col className="col-md-12">
 						<AppCard chart>
-							<BarChart data={topChannel} height={window.innerWidth > 600 ? 100 : 300} channel />
+							<BarChart data={counterChannel} height={window.innerWidth > 600 ? 100 : 300} channel />
 						</AppCard>
 					</Col>
 				</Row>
 				<Row className="row margin-0">
 					<Col className="col-12 col-lg-12 col-xl-12">
 						<AppCard>
-							<AppTable pagination grouping data={toTableChannels} columns={this.columns} />
+							<AppTable
+								data={counterChannelTable.length ? counterChannelTable : []}
+								pagination
+								columns={this.columns}
+								grouping
+							/>
 						</AppCard>
 					</Col>
 				</Row>
@@ -97,15 +136,19 @@ Channel.propTypes = {
 };
 
 const mapStateToProps = createStructuredSelector({
-	topChannel: selectMetricByName('topChannel'),
-	toTableChannels: selectMetricByName('toTableChannels'),
+	countersIds: selectCountersIds(),
+	counters: countersSelectors.collectionList(),
 	dates: selectChartsDates(),
+	counterChannel: selectCounterChannel(),
+	counterChannelTable: selectCounterChannelTable(),
 });
 
 function mapDispatchToProps(dispatch) {
 	return {
 		dispatch,
 		updateCharts: (params, dates) => dispatch(updateCharts(params, dates)),
+		getCounterChannel: dates => dispatch(getCounterChannel(dates)),
+		getCounterChannelTable: dates => dispatch(getCounterChannelTable(dates)),
 	};
 }
 
@@ -114,8 +157,4 @@ const withConnect = connect(
 	mapDispatchToProps,
 );
 
-const withReducer = injectReducer({ key: 'dataMiner', reducer });
-export default compose(
-	withReducer,
-	withConnect,
-)(injectIntl(Channel));
+export default compose(withConnect)(injectIntl(Channel));

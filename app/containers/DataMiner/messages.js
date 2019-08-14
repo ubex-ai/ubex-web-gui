@@ -154,15 +154,15 @@ Set the code as close to the top of the page as possible so that it gets loaded 
 	},
 	regions: {
 		id: `${scope}.regions`,
-		defaultMessage: 'regions',
+		defaultMessage: 'Regions',
 	},
 	devices: {
 		id: `${scope}.devices`,
-		defaultMessage: 'devices',
+		defaultMessage: 'Devices',
 	},
 	channel: {
 		id: `${scope}.channel`,
-		defaultMessage: 'channel',
+		defaultMessage: 'Channel',
 	},
 	profitCounters: {
 		id: `${scope}.profitCounters`,

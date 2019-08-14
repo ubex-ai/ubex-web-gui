@@ -19,14 +19,20 @@ const DateFormatter = ({ value }) =>
 		.format('DD-MM-YYYY hh:mm:ss');
 
 const StatusFormatter = ({ value }) =>
-	value ? (
-		<span className="badge badge-success">
-			<i className="fa fa-thumbs-up" /> DEMO
-		</span>
+	value === 'success' ? (
+		<div>
+			<span className="badge badge-success">
+				<i className="fa fa-thumbs-up" />
+			</span>
+			{value}
+		</div>
 	) : (
-		<span className="badge badge-danger">
-			<i className="fa fa-times" /> DEMO
-		</span>
+		<div>
+			<span className="badge badge-danger">
+				<i className="fa fa-times" />
+			</span>
+			{value}
+		</div>
 	);
 
 const TxFormatter = ({ value }, props) => (
@@ -48,16 +54,16 @@ class TablePaymentHistory extends React.Component {
 			rows: null,
 			columns: [
 				{ name: 'status', title: this.props.intl.formatMessage(messages.status) },
-				{ name: 'time', title: this.props.intl.formatMessage(messages.time) },
-				{ name: 'method', title: this.props.intl.formatMessage(messages.method) },
+				{ name: 'date', title: this.props.intl.formatMessage(messages.time) },
+				{ name: 'payment_method', title: this.props.intl.formatMessage(messages.method) },
+				{ name: 'operation_type', title: 'Opetation type' },
 				{ name: 'amount', title: this.props.intl.formatMessage(messages.amountTablePayment) },
-				{ name: 'txid', title: 'TxID' },
 			],
-			sorting: [{ columnName: 'created', direction: 'desc' }],
+			sorting: [{ columnName: 'date', direction: 'desc' }],
 			currentPage: 0,
 			pageSize: 10,
 			pageSizes: [5, 10, 15],
-			dateColumn: ['created'],
+			dateColumn: ['date'],
 			statusColumn: ['status'],
 			txColumn: ['txid'],
 		};

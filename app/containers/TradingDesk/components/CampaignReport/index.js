@@ -15,14 +15,25 @@ import { compose } from 'redux';
 import AppCard from 'components/AppCard';
 import DatePicker from 'react-datepicker';
 import moment from 'moment';
+import styled from 'styled-components';
+import DateSelect from 'components/DateSelect';
+import _ from 'lodash';
+import CampaignReportTable from 'containers/TradingDesk/components/CampaignReportTable';
 import LineChart from '../LineChartDynamic';
 import BarChart from '../BarChartDynamic';
 import messages from '../../messages';
-import styled from 'styled-components';
-import AppTable from '../../../../components/Tables/AppTable';
-import { updateCharts } from '../../actions';
-import DateSelect from 'components/DateSelect';
-import { selectChartsDates } from '../../selectors';
+import { getCampaignReport, setChartsDates, getCampaignReportTable } from '../../actions';
+import {
+	selectCampaignReport,
+	selectChartsDates,
+	selectCampaignsIds,
+	campaingGroupSelectors,
+	campaingsSelectors,
+	selectCampaignReportTable,
+	selectGroupsIds,
+} from '../../selectors';
+import { makePromiseAction } from '../../../../utils/CollectionHelper/actions';
+import { selectAppInitLoading, selectDashboardLoading } from '../../../Dashboard/selectors';
 // import PropTypes from 'prop-types';
 // import styled from 'styled-components';
 
@@ -30,51 +41,16 @@ import { selectChartsDates } from '../../selectors';
 class CampaignReport extends React.Component {
 	constructor(props) {
 		super(props);
-
-		this.creatives = [
-			{
-				id: 1,
-				name: 'Creative 1',
-				CTR: [20, 30, 50, 60],
-				eCPM: [5, 12, 50, 34],
-				clicks: [500, 120, 300, 240],
-				impressions: [5000, 1230, 2301, 4000],
-				spend: [230, 100, 260, 600],
-				winrate: [10, 15, 5, 10],
-				labels: ['1 Jan', '1 Feb', '1 Mar', '1 Apr'],
-			},
-			{
-				id: 2,
-				name: 'Creative 2',
-				CTR: [20, 30, 50, 60],
-				eCPM: [5, 12, 50, 34],
-				clicks: [500, 120, 300, 240],
-				impressions: [5000, 1230, 2301, 4000],
-				spend: [230, 100, 260, 600],
-				winrate: [10, 15, 10, 20],
-				labels: ['1 Jan', '1 Feb', '1 Mar', '1 Apr'],
-			},
-			{
-				id: 3,
-				name: 'Creative 3',
-				CTR: [20, 30, 50, 60],
-				eCPM: [5, 12, 50, 34],
-				clicks: [500, 120, 300, 240],
-				impressions: [5000, 1230, 2301, 4000],
-				spend: [230, 100, 260, 600],
-				winrate: [10, 15, 20, 5],
-				labels: ['1 Jan', '1 Feb', '1 Mar', '1 Apr'],
-			},
-		];
 		this.state = {
 			reportColumns: [
+				{ name: 'name', title: this.props.intl.formatMessage(messages.name) },
 				{ name: 'date', title: this.props.intl.formatMessage(messages.date) },
 				{ name: 'impressions', title: this.props.intl.formatMessage(messages.impressions) },
 				{ name: 'clicks', title: this.props.intl.formatMessage(messages.clicks) },
 				{ name: 'CTR', title: 'CTR' },
 				{ name: 'winrate', title: 'Win rate' },
 				{ name: 'spend', title: this.props.intl.formatMessage(messages.spend) },
-				{ name: 'CPM', title: 'CPM' },
+				{ name: 'eCPM', title: 'eCPM' },
 			],
 			reportData: [
 				{
@@ -86,11 +62,6 @@ class CampaignReport extends React.Component {
 					spend: '$200',
 					CPM: '$12',
 				},
-			],
-			optionsSelect: [
-				{ value: 'chocolate', label: 'Campaign 1' },
-				{ value: 'strawberry', label: 'Campaign 2' },
-				{ value: 'vanilla', label: 'Campaign 3' },
 			],
 			selectedAll: true,
 			activeColor: {
@@ -162,31 +133,40 @@ class CampaignReport extends React.Component {
 				},
 			],
 			activeAdditionalColor: {
-				r: 255,
-				g: 184,
-				b: 34,
+				r: 244,
+				g: 81,
+				b: 108,
 			},
-			activeAdditionalFilter: 'spend',
+			selectedGroup: null,
+			activeAdditionalFilter: 'clicks',
 			allData: true,
 			linesData: false,
 			selectedChange: false,
 			dataChart: {
 				arrayChart: [],
-				arrayLabels: this.creatives[0].labels,
+				arrayLabels: [],
 			},
 			dataBarChart: {
 				arrayChart: [],
-				arrayLabels: this.creatives[0].labels,
+				arrayLabels: [],
 			},
 		};
 		this.additionalFilter = false;
-		this.selectedCreatives = this.creatives.map(c => c.id);
+		this.selectedCreatives = [];
 	}
 
 	selectAdditionFilter(color, filter) {
-		this.setState({ activeAdditionalColor: color, activeAdditionalFilter: filter });
-		this.additionalFilter = filter;
-		this.dataToChartLines(this.state.activeFilter, filter);
+		if (
+			(filter === 'spent' && !this.state.activeAdditionalFilter) ||
+			filter === this.state.activeAdditionalFilter
+		) {
+			this.setState({ activeAdditionalFilter: null });
+			this.dataToChartLines(this.state.activeFilter, null);
+		} else {
+			this.setState({ activeAdditionalColor: color, activeAdditionalFilter: filter });
+			this.additionalFilter = filter;
+			this.dataToChartLines(this.state.activeFilter, filter);
+		}
 	}
 
 	selectFilter(color, filter) {
@@ -202,54 +182,67 @@ class CampaignReport extends React.Component {
 		this.setState({
 			dataChart: {
 				arrayChart: !this.state.selectedChange
-					? this.creatives.map(c => c[filter])
-					: this.creatives.filter(c => this.selectedCreatives.includes(c.id)).map(c => c[filter]),
-				arrayLabels: this.creatives[0].labels,
+					? this.props.campaignReport.map(c => c[filter])
+					: this.props.campaignReport.filter(c => this.selectedCreatives.includes(c.id)).map(c => c[filter]),
+				arrayLabels: this.props.campaignReport[0].labels,
 				creativeLabels: !this.state.selectedChange
-					? this.creatives.map(c => c.name)
-					: this.creatives.filter(c => this.selectedCreatives.includes(c.id)).map(c => c.name),
+					? this.props.campaignReport.map(c => this.getCampaignName(c.name))
+					: this.props.campaignReport
+							.filter(c => this.selectedCreatives.includes(c.id))
+							.map(c => this.getCampaignName(c.name)),
 			},
 			allData: true,
 			linesData: false,
 		});
-		this.selectedCreatives = !this.state.selectedChange ? this.creatives.map(c => c.id) : this.selectedCreatives;
-		setTimeout(() => {
-			console.log(this.state);
-		}, 100);
+		this.selectedCreatives = !this.state.selectedChange
+			? this.props.campaignReport.map(c => c.id)
+			: this.selectedCreatives;
 	}
 
-	dataToChartLines(filter = 'impressions', additionalFilter = 'spend') {
+	dataToChartLines(filter = this.state.activeFilter, additionalFilter = this.state.activeAdditionalFilter) {
 		const arrayChart = !this.state.selectedChange
-			? this.creatives.map(c => c[filter])
-			: this.creatives.filter(c => this.selectedCreatives.includes(c.id)).map(c => c[filter]);
-		const arrayLabels = this.creatives[0].labels;
+			? this.props.campaignReport.map(c => c[filter])
+			: this.props.campaignReport.filter(c => this.selectedCreatives.includes(c.id)).map(c => c[filter]);
+		const arrayLabels = this.props.campaignReport[0].labels;
 		const creativeLabels = !this.state.selectedChange
-			? this.creatives.map(c => c.name)
-			: this.creatives.filter(c => this.selectedCreatives.includes(c.id)).map(c => c.name);
+			? this.props.campaignReport.map(c => c.name)
+			: this.props.campaignReport.filter(c => this.selectedCreatives.includes(c.id)).map(c => c.name);
 
-		const arrayBarChart = !this.state.selectedChange
-			? this.creatives.map(c => c[additionalFilter])
-			: this.creatives.filter(c => this.selectedCreatives.includes(c.id)).map(c => c[additionalFilter]);
-		const arrayBarLabels = this.creatives[0].labels;
-		const creativeBarLabels = !this.state.selectedChange
-			? this.creatives.map(c => c.name)
-			: this.creatives.filter(c => this.selectedCreatives.includes(c.id)).map(c => c.name);
+		if (additionalFilter) {
+			const arrayBarChart = !this.state.selectedChange
+				? this.props.campaignReport.map(c => c[additionalFilter])
+				: this.props.campaignReport
+						.filter(c => this.selectedCreatives.includes(c.id))
+						.map(c => c[additionalFilter]);
+			const arrayBarLabels = this.props.campaignReport[0].labels;
+			const creativeBarLabels = !this.state.selectedChange
+				? this.props.campaignReport.map(c => this.getCampaignName(c.name))
+				: this.props.campaignReport
+						.filter(c => this.selectedCreatives.includes(c.id))
+						.map(c => this.getCampaignName(c.name));
+			this.setState({
+				dataBarChart: this.makeDataToChart(arrayBarChart, arrayBarLabels, creativeBarLabels),
+			});
+		} else {
+			this.setState({
+				dataBarChart: { arrayChart: [[], []], arrayLabels: [], creativeLabels: [] },
+			});
+		}
 
 		this.setState({
 			dataChart: this.makeDataToChart(arrayChart, arrayLabels, creativeLabels),
-			dataBarChart: this.makeDataToChart(arrayBarChart, arrayBarLabels, creativeBarLabels),
 			allData: false,
 			linesData: true,
 		});
 	}
 
 	makeDataToChart(arrayChart, arrayLabels, creativeLabels) {
-		var finalArray = new Array();
+		const finalArray = new Array();
 
 		Array.prototype.SumArray = function(arr) {
-			var sum = [];
+			const sum = [];
 			if (arr != null && this.length == arr.length) {
-				for (var i = 0; i < arr.length; i++) {
+				for (let i = 0; i < arr.length; i++) {
 					sum.push(this[i] + arr[i]);
 				}
 			}
@@ -263,19 +256,82 @@ class CampaignReport extends React.Component {
 		} else {
 			sum = [];
 		}
-		finalArray.push(sum);
+		finalArray.push(sum.map(value => value.toFixed(2)));
 		const dataChart = { arrayChart: finalArray, arrayLabels, creativeLabels };
 		return dataChart;
 	}
 
 	componentDidMount() {
-		this.dataToChartLines();
+		const {
+			dates,
+			groupsIds,
+			groups,
+			match: {
+				params: { filter, groupId },
+			},
+		} = this.props;
+		const filterGroup = groupId;
+		const { startDate, endDate } = dates;
+		const color = this.state.filter.filter(f => f.key === filter);
+		const additionalColor = this.state.filter.filter(
+			f => f.key === (filter === 'winrate' ? 'eCPM' : 'impressions'),
+		);
+		if (color.length) {
+			this.setState({
+				activeFilter: filter,
+				activeAdditionalFilter: filter === 'winrate' ? 'eCPM' : 'impressions',
+				activeColor: color[0].color,
+				activeAdditionalColor: additionalColor[0].color,
+			});
+		}
+		const firstGroup = groupsIds ? groupsIds[groupsIds.length-1] : 0;
+		this.setState({ selectedGroup: firstGroup });
+		this.props
+			.getCampaignReport({
+				start_date: startDate,
+				end_date: endDate,
+				campaign_group: filterGroup || firstGroup,
+			})
+			.then(() => {
+				this.dataToChartLines();
+			});
+		this.props.getCampaignReportTable({
+			start_date: startDate,
+			end_date: endDate,
+			campaign_group: filterGroup || firstGroup,
+		});
+	}
+
+	componentDidUpdate(prevProps, prevState, snapshot) {
+		if (Object.keys(this.props.campaignReport).length && prevProps.campaignReport !== this.props.campaignReport) {
+			this.selectedCreatives = this.props.campaignReport.map(c => c.id);
+		}
+	}
+
+	updateChart(params, dates) {
+		this.props.updateDates({ startDate: dates.startDate, endDate: dates.endDate, period: dates.period });
+		this.props
+			.getCampaignReport({
+				start_date: dates.startDate,
+				end_date: dates.endDate,
+				campaign_group: params.selectedOption.value,
+			})
+			.then(() => {
+				this.dataToChartLines();
+			});
+		this.props.getCampaignReportTable({
+			start_date: dates.startDate,
+			end_date: dates.endDate,
+			campaign_group: params.selectedOption.value,
+		});
 	}
 
 	async selectCreative(creative) {
 		this.setState({ selectedChange: true });
 		if (this.selectedCreatives.includes(creative)) {
-			this.selectedCreatives = await this.selectedCreatives.filter(c => c !== creative);
+			if (this.selectedCreatives.length !== 1) {
+				this.selectedCreatives = await this.selectedCreatives.filter(c => c !== creative);
+			}
 		} else {
 			this.selectedCreatives[this.selectedCreatives.length] = creative;
 		}
@@ -289,10 +345,10 @@ class CampaignReport extends React.Component {
 	async selectAll() {
 		if (this.state.selectedAll && this.selectedCreatives.length) {
 			await this.setState({ selectedAll: false, selectedChange: true });
-			this.selectedCreatives = [];
+			this.selectedCreatives = [this.props.campaignReport[0].id];
 		} else {
 			await this.setState({ selectedAll: true, selectedChange: true });
-			this.selectedCreatives = this.creatives.map(c => c.id);
+			this.selectedCreatives = this.props.campaignReport.map(c => c.id);
 		}
 
 		if (this.state.linesData) {
@@ -302,9 +358,54 @@ class CampaignReport extends React.Component {
 		}
 	}
 
+	getCampaignName(id) {
+		const campaign = _.find(this.props.campaigns, 'id', id);
+		return campaign ? campaign.name : 'Unknown';
+	}
+
+	getValue(key) {
+		if (this.props.campaignReport && this.selectedCreatives.length) {
+			Array.prototype.SumArray = function(arr) {
+				const sum = [];
+				if (arr != null && this.length == arr.length) {
+					for (let i = 0; i < arr.length; i++) {
+						sum.push(this[i] + arr[i]);
+					}
+				}
+
+				return sum;
+			};
+			const keyValue = this.props.campaignReport
+				.filter(camp => this.selectedCreatives.includes(camp.id))
+				.map(campaign => campaign[key]);
+
+			if (keyValue.length) {
+				const reducer = (accumulator, currentValue) => accumulator.SumArray(currentValue);
+				const sum = keyValue.reduce(reducer);
+
+				const finalReducer = (accumulator, currentValue) => accumulator + currentValue;
+				if (sum.reduce(finalReducer)) {
+					if (sum.reduce(finalReducer) - Math.floor(sum.reduce(finalReducer)) > 0) {
+						return sum.reduce(finalReducer).toFixed(2);
+					}
+					return sum.reduce(finalReducer).toFixed(0);
+				}
+				return 0;
+			}
+			return 0;
+		}
+		return '';
+	}
+
 	render() {
 		const { creatives } = this;
-		const { dates } = this.props;
+		const {
+			dates,
+			groups,
+			match: {
+				params: { filter, groupId },
+			},
+		} = this.props;
 		const { startDate, endDate, period } = dates;
 		return (
 			<div>
@@ -315,16 +416,18 @@ class CampaignReport extends React.Component {
 								<div className="page-title">
 									<div className="float-left">
 										<h1 className="title">
-											<FormattedMessage {...messages.campaignReports} /> (soon)
+											<FormattedMessage {...messages.campaignReports} />
 										</h1>
 									</div>
 								</div>
 							</Col>
 							<DateSelect
-								onChange={(params, dates) => updateCharts(params, dates)}
+								onChange={(params, dates) => this.updateChart(params, dates)}
 								startDate={startDate}
 								endDate={endDate}
 								period={period}
+								tradingDesk={groups}
+								tradingDeskSelected={groupId || this.state.selectedGroup}
 							/>
 						</Row>
 					</Col>
@@ -337,24 +440,29 @@ class CampaignReport extends React.Component {
 									<Row className="padding-0">
 										<Col xl={10}>
 											<Row>
-												<Col xl={2} lg={12} md={12}>
-													<h2>
+												<Col xl={9} lg={12} md={12}>
+													<h2 style={{ display: 'inline-block' }}>
 														<FormattedMessage
 															{...this.state.filter.find(
 																x => x.key === this.state.activeFilter,
 															).name}
 														/>
 													</h2>
-												</Col>
-												<Col xl={4}>
-													<h6 style={{ fontSize: '16px', paddingTop: '14px' }}>
-														<FormattedMessage {...messages.from} /> {moment().format('DD-MM-YYYY')} <FormattedMessage {...messages.to} />{' '}
-														{moment()
-															.add(7, 'days')
-															.format('DD-MM-YYYY')}
+													<h6
+														style={{
+															fontSize: '16px',
+															paddingTop: '14px',
+															display: 'inline-block',
+															marginLeft: '20px',
+														}}
+													>
+														<FormattedMessage {...messages.from} />{' '}
+														{moment(startDate).format('DD-MM-YYYY')}{' '}
+														<FormattedMessage {...messages.to} />{' '}
+														{moment(endDate).format('DD-MM-YYYY')}
 													</h6>
 												</Col>
-												<Col xl={6} className="report__export-block">
+												<Col xl={3} className="report__export-block">
 													<div>
 														<Button
 															size="sm"
@@ -394,120 +502,146 @@ class CampaignReport extends React.Component {
 												/>
 											</div>
 											<Row className="report__blocks">
-												{this.state.filter.map(filter => {
-													const Blocks = styled.div`
-														display: flex;
-														width: 100%;
-														align-items: center;
-														justify-content: center;
-														flex-direction: column;
-														border-radius: 5px;
-														background-color: rgba(
-															${filter.color.r},
-															${filter.color.g},
-															${filter.color.b},
-															0.6
-														);
+												{this.props.campaignReport &&
+												Object.keys(this.props.campaignReport).length &&
+												this.selectedCreatives.length
+													? this.state.filter.map(filter => {
+															const Blocks = styled.div`
+																display: flex;
+																width: 100%;
+																align-items: center;
+																justify-content: center;
+																flex-direction: column;
+																border-radius: 5px;
+																background-color: rgba(
+																	${filter.color.r},
+																	${filter.color.g},
+																	${filter.color.b},
+																	0.6
+																);
 
-														:hover {
-															background-color: rgba(
-																${filter.color.r},
-																${filter.color.g},
-																${filter.color.b},
-																1
-															);
-														}
-														&.active {
-															background-color: rgba(
-																${filter.color.r},
-																${filter.color.g},
-																${filter.color.b},
-																1
-															);
-															::after {
-																content: '';
-																position: absolute;
-																top: -5px;
-																border: 10px solid transparent;
-																border-bottom: 10px solid
-																	rgba(
+																:hover {
+																	background-color: rgba(
 																		${filter.color.r},
 																		${filter.color.g},
 																		${filter.color.b},
 																		1
 																	);
-															}
-														}
-													`;
-													return (
-														<Col xl={2} xs={4} md={4}>
-															<AppCard
-																onClick={() =>
-																	(this.state.activeAdditionalFilter !== filter.key ||
-																		!this.state.linesData) &&
-																	this.selectFilter(filter.color, filter.key)
 																}
-															>
-																<Blocks
-																	className={
-																		JSON.stringify(this.state.activeColor) ===
-																		JSON.stringify(filter.color)
-																			? 'active'
-																			: null
+																&.active {
+																	background-color: rgba(
+																		${filter.color.r},
+																		${filter.color.g},
+																		${filter.color.b},
+																		1
+																	);
+																	::after {
+																		content: '';
+																		position: absolute;
+																		top: -5px;
+																		border: 10px solid transparent;
+																		border-bottom: 10px solid
+																			rgba(
+																				${filter.color.r},
+																				${filter.color.g},
+																				${filter.color.b},
+																				1
+																			);
 																	}
-																>
-																	<span>
-																		<FormattedMessage {...filter.name} />
-																	</span>
-																	<strong>{filter.value}</strong>
-																</Blocks>
-															</AppCard>
-														</Col>
-													);
-												})}
+																}
+															`;
+															return (
+																<Col xl={2} xs={4} md={4}>
+																	<AppCard
+																		onClick={() =>
+																			(this.state.activeAdditionalFilter !==
+																				filter.key ||
+																				!this.state.linesData) &&
+																			this.selectFilter(filter.color, filter.key)
+																		}
+																	>
+																		<Blocks
+																			className={
+																				JSON.stringify(
+																					this.state.activeColor,
+																				) === JSON.stringify(filter.color)
+																					? 'active'
+																					: null
+																			}
+																		>
+																			<span>
+																				<FormattedMessage {...filter.name} />
+																			</span>
+																			<strong>
+																				{filter.key === 'spend' ||
+																				filter.key === 'eCPM'
+																					? '$'
+																					: null}
+																				{this.getValue(filter.key)}
+																				{filter.key === 'CTR' ||
+																				filter.key === 'winrate'
+																					? '%'
+																					: null}
+																			</strong>
+																		</Blocks>
+																	</AppCard>
+																</Col>
+															);
+													  })
+													: null}
 											</Row>
 										</Col>
 										<Col xl={2}>
 											<Row style={{ height: '100%' }}>
 												<Col xl={12}>
-													<h2><FormattedMessage {...messages.creatives} /></h2>
+													<h2>
+														<FormattedMessage {...messages.campaigns} />
+													</h2>
 													<div className="report__settings">
 														<Button onClick={() => this.selectAll()}>
-															{this.state.selectedAll && this.selectedCreatives.length
-																? <FormattedMessage {...messages.unselectAll} />
-																: <FormattedMessage {...messages.selectAll} />}
+															{this.state.selectedAll && this.selectedCreatives.length ? (
+																<FormattedMessage {...messages.unselectAll} />
+															) : (
+																<FormattedMessage {...messages.selectAll} />
+															)}
 														</Button>
 													</div>
 													<div className="report__filter-checkbox">
-														{creatives.map((creative, i) => (
-															<div className="custom-control custom-checkbox">
-																<input
-																	type="checkbox"
-																	id={`checkboxCreative-${i}`}
-																	name="customCheckbox"
-																	className="custom-control-input"
-																	onClick={() => this.selectCreative(creative.id)}
-																	checked={this.selectedCreatives.includes(
-																		creative.id,
-																	)}
-																/>
-																<label
-																	className="custom-control-label"
-																	htmlFor={`checkboxCreative-${i}`}
-																>
-																	{creative.name}
-																</label>
-															</div>
-														))}
+														{this.selectedCreatives.length
+															? this.props.campaignReport.map((campaign, i) => (
+																	<div className="custom-control custom-checkbox">
+																		<input
+																			type="checkbox"
+																			id={`checkboxCreative-${i}`}
+																			name="customCheckbox"
+																			className="custom-control-input"
+																			onClick={() =>
+																				this.selectCreative(campaign.id)
+																			}
+																			checked={this.selectedCreatives.includes(
+																				campaign.id,
+																			)}
+																		/>
+																		<label
+																			className="custom-control-label"
+																			htmlFor={`checkboxCreative-${i}`}
+																		>
+																			{this.getCampaignName(campaign.id)}
+																		</label>
+																	</div>
+															  ))
+															: null}
 													</div>
 												</Col>
 												{this.state.linesData && (
 													<Col xl={12}>
-														<h2><FormattedMessage {...messages.dataSeries} /></h2>
+														<h2>
+															<FormattedMessage {...messages.dataSeries} />
+														</h2>
 														{this.state.filter.map((filter, i) => (
-															<div className="custom-control custom-radio">
+															<div className="custom-control custom-checkbox">
 																<input
-																	type="radio"
+																	type="checkbox"
 																	id={`radioFilter-${i}`}
 																	name="radioFilter"
 																	className="custom-control-input"
@@ -539,12 +673,14 @@ class CampaignReport extends React.Component {
 							</Row>
 						</AppCard>
 						<AppCard>
-							<AppTable
+							<CampaignReportTable
 								columns={this.state.reportColumns}
-								data={this.state.reportData}
+								data={this.props.campaignReportTable.length ? this.props.campaignReportTable : []}
+								getName={id => this.getCampaignName(id)}
 								pagination
 								exportTable
 								search
+								grouping
 							/>
 						</AppCard>
 					</Col>
@@ -565,12 +701,22 @@ CampaignReport.propTypes = {
 
 const mapStateToProps = createStructuredSelector({
 	dates: selectChartsDates(),
+	campaignReport: selectCampaignReport(),
+	campaignReportTable: selectCampaignReportTable(),
+	campaignsIds: selectCampaignsIds(),
+	campaigns: campaingsSelectors.collectionList(),
+	groupsIds: selectGroupsIds(),
+	groups: campaingGroupSelectors.collectionList(),
+	appLoaing: selectDashboardLoading(),
 });
 
 function mapDispatchToProps(dispatch) {
 	return {
 		dispatch,
 		updateCharts: (params, dates) => dispatch(updateCharts(params, dates)),
+		getCampaignReport: dates => makePromiseAction(dispatch, getCampaignReport(dates)),
+		getCampaignReportTable: dates => makePromiseAction(dispatch, getCampaignReportTable(dates)),
+		updateDates: dates => dispatch(setChartsDates(dates)),
 	};
 }
 

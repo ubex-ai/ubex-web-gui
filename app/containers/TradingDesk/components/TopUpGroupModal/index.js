@@ -28,6 +28,7 @@ import Link from 'components/Link';
 import Slider from 'rc-slider';
 import { FormattedMessage } from 'react-intl';
 import IntlFieldGroup from 'components/IntlFieldGroup';
+import validateFloat from 'utils/validateFloat';
 import validateInteger from 'utils/validateInteger';
 import messages from '../../messages';
 
@@ -61,6 +62,10 @@ class TopUpGroupModal extends React.Component {
 		this.setState(initialState);
 	}
 
+	componentWillUnmount() {
+		this.setState(initialState);
+	}
+
 	toggle() {
 		this.setState({
 			open: !this.state.open,
@@ -83,10 +88,15 @@ class TopUpGroupModal extends React.Component {
 
 	setValue(e, type) {
 		const { ubexBalance, usdBalance } = this.props;
-		if (!validateInteger(e.target.value)) {
+		if (!validateFloat(e.target.value)) {
 			if (type === 'USD') {
-				if (usdBalance > 0 && e.target.value <= usdBalance) {
+				if (usdBalance > 0 && parseFloat(e.target.value) > 0 && parseFloat(e.target.value) <= usdBalance) {
 					this.setState({ paymentValueUSD: e.target.value, paymentError: false });
+				} else if (!parseFloat(e.target.value)) {
+					this.setState({
+						paymentError: 'Enter valid number (ex.: 512.00)',
+						paymentValueUSD: e.target.value,
+					});
 				} else {
 					this.setState({ paymentError: 'No enough USD', paymentValueUSD: e.target.value });
 				}
@@ -96,7 +106,7 @@ class TopUpGroupModal extends React.Component {
 				this.setState({ paymentError: 'No enough UBEX', paymentValueUbex: e.target.value });
 			}
 		} else if (type === 'USD') {
-			this.setState({ paymentError: validateInteger(e.target.value), paymentValueUSD: e.target.value });
+			this.setState({ paymentError: validateFloat(e.target.value), paymentValueUSD: e.target.value });
 		} else {
 			this.setState({ paymentError: validateInteger(e.target.value), paymentValueUbex: e.target.value });
 		}
@@ -126,7 +136,11 @@ class TopUpGroupModal extends React.Component {
 								this.setState(initialState);
 							}}
 						>
-							{!transactionHash ? <FormattedMessage {...messages.topUpCampaign} /> : <FormattedMessage {...messages.transactionCompleted} />}
+							{!transactionHash ? (
+								<FormattedMessage {...messages.topUpCampaign} />
+							) : (
+								<FormattedMessage {...messages.transactionCompleted} />
+							)}
 						</ModalHeader>
 						{!transactionHash && (
 							<ModalBody className="topUp-modal__content">
@@ -146,11 +160,14 @@ class TopUpGroupModal extends React.Component {
 											{this.state.activeCurrency}
 										</DropdownToggle>
 										<DropdownMenu>
-											{this.state.activeCurrency === 'USD' && (
-												<DropdownItem onClick={() => this.setState({ activeCurrency: 'UBEX' })}>
-													UBEX
-												</DropdownItem>
-											)}
+											{this.state.activeCurrency === 'USD' &&
+												CRYPTO_MODE && (
+													<DropdownItem
+														onClick={() => this.setState({ activeCurrency: 'UBEX' })}
+													>
+														UBEX
+													</DropdownItem>
+												)}
 											{this.state.activeCurrency === 'UBEX' && (
 												<DropdownItem onClick={() => this.setState({ activeCurrency: 'USD' })}>
 													USD
@@ -167,7 +184,10 @@ class TopUpGroupModal extends React.Component {
 												? this.state.paymentValueUSD
 												: this.state.paymentValueUbex
 										}
-										disabled={(this.state.activeCurrency === 'USD' && !usdBalance) || (this.state.activeCurrency === 'UBEX' && !ubexHash)}
+										disabled={
+											(this.state.activeCurrency === 'USD' && !usdBalance) ||
+											(this.state.activeCurrency === 'UBEX' && !ubexHash)
+										}
 									/>
 								</InputGroup>
 
@@ -175,14 +195,22 @@ class TopUpGroupModal extends React.Component {
 
 								{this.state.activeCurrency === 'UBEX' &&
 									!ubexHash && (
-										<Link onClick={attachWallet} className="mt-3 pointer text-underline" color="danger">
+										<Link
+											onClick={attachWallet}
+											className="mt-3 pointer text-underline"
+											color="danger"
+										>
 											<FormattedMessage {...messages.attachYourWallet} />
 										</Link>
 									)}
 
 								{this.state.activeCurrency === 'USD' &&
 									!usdBalance && (
-										<Link to="/app/payments/pay" className="mt-3 pointer text-underline" color="danger">
+										<Link
+											to="/app/payments/pay"
+											className="mt-3 pointer text-underline"
+											color="danger"
+										>
 											<FormattedMessage {...messages.topUpAccountBalance} />
 										</Link>
 									)}
@@ -190,7 +218,8 @@ class TopUpGroupModal extends React.Component {
 								{(this.state.activeCurrency === 'UBEX' && ubexHash) ||
 								(this.state.activeCurrency === 'USD' && usdBalance) ? (
 									<FormText color="muted">
-										<FormattedMessage {...messages.available} />: {this.state.activeCurrency === 'USD' ? usdBalance : ubexBalance}{' '}
+										<FormattedMessage {...messages.available} />:{' '}
+										{this.state.activeCurrency === 'USD' ? usdBalance : ubexBalance}{' '}
 										{this.state.activeCurrency}
 									</FormText>
 								) : null}
@@ -219,12 +248,23 @@ class TopUpGroupModal extends React.Component {
 								(this.state.activeCurrency === 'USD' && usdBalance) ? (
 									<Button
 										color={this.state.activeCurrency === 'USD' ? 'success' : 'purple'}
-										onClick={() =>
+										onClick={() => {
 											this.state.activeCurrency === 'USD'
 												? sendUSD(this.state.paymentValueUSD)
-												: sendUBEX(this.state.paymentValueUbex)
+												: sendUBEX(this.state.paymentValueUbex);
+											this.setState(initialState);
+										}}
+										disabled={
+											this.state.activeCurrency === 'USD'
+												? !usdBalance ||
+												  !this.state.paymentValueUSD ||
+												  this.state.paymentValueUSD === '0' ||
+												  this.state.paymentError
+												: !ubexBalance ||
+												  !this.state.paymentValueUbex ||
+												  this.state.paymentValueUbex === '0' ||
+												  this.state.paymentError
 										}
-										disabled={this.state.activeCurrency === 'USD' ? !usdBalance || !this.state.paymentValueUSD || this.state.paymentValueUSD === '0' || this.state.paymentError : !ubexBalance || !this.state.paymentValueUbex || this.state.paymentValueUbex === '0' || this.state.paymentError}
 									>
 										<FormattedMessage id="app.common.topUp" />
 									</Button>

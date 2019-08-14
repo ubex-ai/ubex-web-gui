@@ -8,6 +8,7 @@ import React from 'react';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 // import PropTypes from 'prop-types';
 // import styled from 'styled-components';
+import messages from 'containers/TradingDesk/messages';
 
 import { FormattedMessage } from 'react-intl';
 /* eslint-disable react/prefer-stateless-function */
@@ -31,10 +32,10 @@ class RemoveModal extends React.Component {
 		return (
 			<Modal isOpen={!!isOpen}>
 				<ModalHeader toggle={onCancel}>
-					<FormattedMessage {...title} />
+					<FormattedMessage {...messages.remove} />
 				</ModalHeader>
 				<ModalBody>
-					<FormattedMessage {...msg} />
+					<FormattedMessage {...messages.remove} />
 				</ModalBody>
 				<ModalFooter>
 					<Button color="danger" onClick={() => onSuccess(isOpen)}>

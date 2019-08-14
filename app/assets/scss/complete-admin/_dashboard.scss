@@ -923,6 +923,7 @@ th {
 	&__filter-checkbox {
 		overflow-y: auto;
 		padding-left: 5px;
+		max-height: 220px;
 		.custom-control-input:checked ~ .custom-control-label::before {
 			background-color: #767676;
 			border-color: #767676;
@@ -1024,10 +1025,28 @@ th {
 .zoom-wrapper > div {
 	height: 428px;
 }
-
 .creative-to-campaign {
-	font-family: $fontFamily;
+	&__content {
+		font-family: $fontFamily;
+		height: 70vh;
+		overflow-y: scroll;
+	}
+	&__header {
+		font-size: 0.8em;
+		margin-bottom: 0;
+	}
+	.react-datepicker {
+		width: 400px;
+	}
+	.endDatePopper {
+		.react-datepicker__triangle {
+			position: absolute;
+			left: unset;
+			right: 20px;
+		}
+	}
 }
+
 .banners-flex {
 	display: flex;
 	flex-direction: row;
@@ -1056,6 +1075,8 @@ th {
 
 .creative-title {
 	margin: 0;
+	display: flex;
+	align-items: center;
 	@include media-breakpoint-down(sm) {
 		font-size: 18px;
 		margin-left: 15px;
@@ -1066,6 +1087,8 @@ th {
 	.icon-title.fa, .icon-title.fas, .icon-title.fab {
 		font-size: 24px;
 		color: #28aaf9;
+		position: relative;
+		margin-right: 5px;
 	}
 }
 
@@ -1134,4 +1157,28 @@ th {
 		border: 2px solid #716aca;
 		background-color: #f5f6f7;
 	}
+}
+
+.loading-wrapper {
+
+}
+
+.loading-appcard {
+	background-color: rgba(255, 255, 255, 0.95);
+	position: absolute;
+	left: 0;
+	right: 0;
+	z-index: 23;
+	display: block;
+	height: 100%;
+	width: 100%;
+	border-radius: 5px;
+}
+.loading-appcard-spinner {
+	width: 3rem;
+	height: 3rem;
+	position: absolute;
+	z-index: 30;
+	margin: auto;
+	top: 0; left: 0; bottom: 0; right: 0;
 }

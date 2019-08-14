@@ -2,11 +2,12 @@ import { createSelector } from 'reselect';
 import { feature } from 'topojson-client';
 import makeCollectionSelectors, { makeListSelectors } from 'utils/CollectionHelper/selectors';
 import { initialState } from './reducer';
-import { FAQ_COLLECTION_NAME } from './constants';
+import { FAQ_COLLECTION_NAME, STORE_NAME } from './constants';
+
 /**
  * Direct selector to the dataMiner state domain
  */
-export const selectDataMinerDomain = state => (!state ? {} : state.get('dataMiner', initialState));
+export const selectDataMinerDomain = state => (!state ? {} : state.get(STORE_NAME, initialState));
 
 /**
  * Other specific selectors

@@ -74,6 +74,9 @@
     }
 
 	.navbar-toggle{
+      @include media-breakpoint-down(xs){
+        width: 25px;
+      }
 		@include media-breakpoint-down(md) {
 			top: -5px;
 			position: relative;
@@ -915,10 +918,20 @@
 		&:hover {
 			border: 1px solid #ebedf2;
 		}
+        @include media-breakpoint-down(xs){
+          width: 40px;
+        }
 		@include media-breakpoint-down(sm) {
 			position: relative;
 			top: -4px;
 		}
+        .gray-background {
+          background-color: #f3f3f3 !important;
+          color: #515151 !important;
+          border-radius: 0 !important;
+          position: relative;
+          top: 8px;
+        }
 		.dropdown-menu {
 			a {
 				&:hover {
@@ -927,6 +940,9 @@
 			}
 		}
 		.nav-link {
+            @include media-breakpoint-down(xs){
+              padding-left: 5px;
+            }
 			.header__user {
 				@include media-breakpoint-down(xs) {
 					position: relative;
@@ -950,6 +966,14 @@
 				text-align: center;
 				width: 21px;
 			}
+            .fas{
+              color: gray;
+              font-size: 14px;
+              position: relative;
+              top: 2px;
+              text-align: center;
+              width: 21px;
+            }
 		}
 	}
 }
@@ -996,3 +1020,4 @@ p.is-inline {
 		color: $default-color;
 	}
 }
+

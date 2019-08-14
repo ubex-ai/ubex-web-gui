@@ -3,12 +3,8 @@ import { fromJS } from 'immutable';
 import { isoCodeConverterData } from '../Variables/countries';
 import { GET_METRICS_ERROR, GET_METRICS_REQUEST, GET_METRICS_SUCCESS, SET_CHARTS_DATES } from '../constants';
 
-export const rehydrateState = fromJS({
-	getMetricsLoading: false,
-	getMetricsError: null,
-});
 
-export const initialState = fromJS({
+const  defaultState = {
 	dates: {
 		startDate: moment()
 			.startOf('day')
@@ -32,8 +28,13 @@ export const initialState = fromJS({
 		toTableDevices: [],
 		toTableTopCounters: [],
 	},
-	...rehydrateState,
-});
+	getMetricsLoading: false,
+	getMetricsError: null,
+};
+
+export const rehydrateState = fromJS(defaultState);
+
+export const initialState = fromJS(defaultState);
 
 export default {
 	[SET_CHARTS_DATES]: (state, { payload }) => state.update('dates', dates => dates.merge(payload)),

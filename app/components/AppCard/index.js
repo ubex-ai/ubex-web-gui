@@ -7,7 +7,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
-import { Alert, Row } from 'reactstrap';
+import { Alert, Row, Spinner } from 'reactstrap';
 import { FormattedMessage } from 'react-intl';
 import CampaignsList from '../../containers/TradingDesk/components/CampaignsList/Loadable';
 // import styled from 'styled-components';
@@ -66,10 +66,16 @@ class AppCard extends Component {
 		);
 
 		return (
-			<div className={classNames} style={this.props.style} onClick={this.props.onClick}>
-				{!this.props.arrow
-					? this.props.children
-					: this.renderWithArrow(this.props.arrowHead, this.props.children)}
+			<div>
+				<div className="loading-wrapper">
+					{this.props.loading ? <div className="loading-appcard"></div> : null}
+					{this.props.loading ? <Spinner className="loading-appcard-spinner" type="grow" /> : null}
+				</div>
+				<div className={classNames} style={this.props.style} onClick={this.props.onClick}>
+					{!this.props.arrow
+						? this.props.children
+						: this.renderWithArrow(this.props.arrowHead, this.props.children)}
+				</div>
 			</div>
 		);
 	}
@@ -84,7 +90,7 @@ AppCard.propTypes = {
 	onToggle: PropTypes.func,
 	arrow: PropTypes.bool,
 	arrowForceOpen: PropTypes.bool,
-	arrowHead: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]).isRequired,
+	arrowHead: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]),
 };
 
 AppCard.defaultProps = {

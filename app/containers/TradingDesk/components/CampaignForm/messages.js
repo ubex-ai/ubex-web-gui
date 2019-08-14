@@ -218,4 +218,8 @@ export default defineMessages({
 		id: `${scope}.budgetDistribution`,
 		defaultMessage: 'Budget  distribution',
 	},
+	language: {
+		id: `${scope}.language`,
+		defaultMessage: 'Language',
+	},
 });

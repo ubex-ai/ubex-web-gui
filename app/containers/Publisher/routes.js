@@ -6,6 +6,7 @@ import History from 'components/Payments/History';
 import Pay from 'components/Payments/Pay';
 import FAQ from 'containers/Publisher/components/FAQ/FAQ';
 import { INVENTORY_TYPES } from 'containers/Publisher/constants';
+import Developers from 'containers/Publisher/components/Developers';
 
 /*
 import SlotsListMobile from 'containers/Publisher/components/SlotsListMobile';
@@ -123,14 +124,14 @@ const routes = [
 				name: 'history',
 				component: History,
 			},
-			{
+			/* {
 				path: '/app/payments/pay',
 				name: 'pay',
 				component: Pay,
-			},
+			}, */
 		],
 	},
-
+	{ path: '/app/developers', name: 'developers', icon: 'code', component: Developers },
 	{ path: '/app/FAQ', name: 'faq', icon: 'question-circle', component: FAQ },
 ];
 

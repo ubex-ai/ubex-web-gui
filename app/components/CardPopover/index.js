@@ -62,7 +62,7 @@ class CardPopover extends React.PureComponent {
 						)}
 					</div>
 				</Popover>
-				<AppCard chart={this.props.chart}>{this.props.children}</AppCard>
+				<AppCard chart={this.props.chart} loading={this.props.loading}>{this.props.children}</AppCard>
 			</div>
 		);
 	}

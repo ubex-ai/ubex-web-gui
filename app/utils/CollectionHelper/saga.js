@@ -46,14 +46,13 @@ export function* restApiRequestHandler({
 		if (isAuth) {
 			requestHeaders['X-CSRFToken'] = getCookie('csrftoken');
 		}
-		if(NODE_ENV !== 'production') {
+		if (NODE_ENV !== 'production') {
 			requestHeaders['Test-User'] = 'test@test.test';
 		}
 		const response = yield call(request, url, {
 			method,
 			headers: {
 				'Content-Type': 'application/json',
-				'Test-User': 'test@test.test',
 				...requestHeaders,
 			},
 			data: body ? JSON.stringify(body) : null,
@@ -76,6 +75,32 @@ export function* restApiRequestHandler({
 			yield put(setDashboardError(error));
 		}
 	}
+}
+
+/**
+ * Fetch collection list
+ * @param url
+ * @param success
+ * @param resolve
+ * @param reject
+ * @param error
+ * @param hooks
+ */
+export function* getListByDateRequestHandler(
+	{ payload: { start_date, end_date }, meta: { url, resolve, reject } },
+	{ success, error },
+	hooks = {},
+) {
+	yield restApiRequestHandler({
+		url: `${ApiUrl}/${url}/?start_date=${start_date}&end_date=${end_date}`,
+		onSuccess: data => put({ type: success, payload: data }),
+		onError: e => put({ type: error, payload: e }),
+		hooks,
+		promise: {
+			resolve,
+			reject,
+		},
+	});
 }
 
 /**
@@ -315,4 +340,14 @@ export const handleSetActiveOnAddEntry = collection => {
 export const handleRequestListSaga = (collection, hooks) => {
 	const { getCollection } = makeCollectionActions(collection);
 	return takeEvery(getCollection.request, action => getListRequestHandler(action, getCollection, hooks));
+};
+
+/**
+ * handle get list request for simple list with hook support
+ * @param collection
+ * @param hooks
+ */
+export const handleRequestListByDateSaga = (collection, hooks) => {
+	const { getCollection } = makeCollectionActions(collection);
+	return takeEvery(getCollection.request, action => getListByDateRequestHandler(action, getCollection, hooks));
 };

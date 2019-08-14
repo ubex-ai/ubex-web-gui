@@ -1,4 +1,8 @@
+/**
+ * campaign filter
+ */
 import _ from 'lodash';
+
 export const findIn = (field, name) => {
 	const searchQuery = name
 		.toString()
@@ -6,7 +10,7 @@ export const findIn = (field, name) => {
 		.toLowerCase();
 	return typeof field === 'string'
 		? field
-				.trim()
+			.trim()
 			.toLowerCase()
 			.indexOf(searchQuery) !== -1
 		: null;
@@ -43,7 +47,7 @@ export function searchByStatusGroup({ groups }, status) {
 }
 
 export function searchById(campaigns, request) {
-	return campaigns.filter(campaign => campaign && campaign.id ? request.includes(campaign.id) : false);
+	return campaigns.filter(campaign => (campaign && campaign.id ? request.includes(campaign.id) : false));
 }
 
 export function searchByRequestArray({ groups, campaigns }, request) {

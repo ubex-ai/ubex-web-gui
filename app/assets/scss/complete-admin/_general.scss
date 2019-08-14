@@ -242,11 +242,13 @@ select,
 	z-index: 9999 !important;
 	height: 70px !important;
 	@media (max-width: 768px) {
-		height: 90px !important;
+		height: 225px !important;
 		flex-wrap: nowrap !important;
 	}
 	div {
 		margin: 25px !important;
+		position: relative;
+		top: -10px;
 		@media (max-width: 768px) {
 			display: inline-block;
 			max-width: 65%;

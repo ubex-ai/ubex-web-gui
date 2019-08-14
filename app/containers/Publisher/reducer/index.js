@@ -24,7 +24,18 @@ import {
 	AD_ATTRIBUTES_COLLECTION_NAME,
 	USER_CATEGORIES_BLACKLIST_COLLECTION_NAME,
 	FAQ_COLLECTION_NAME,
+	SET_CHARTS_DATES,
 } from '../constants';
+import {
+	statsInitialState,
+	statsReducer,
+	statsRehydrateState,
+} from '../../../utils/StatsHelper/reducer';
+import {
+	CONTACT_FORM,
+	HOMEPAGESTATS_COLLECTION_NAME,
+	TABLE_HOMEPAGESTATS_COLLECTION_NAME,
+} from '../../TradingDesk/constants';
 
 /*
 Andrey Belov, [21.03.19 17:59]
@@ -52,7 +63,10 @@ export const initialState = fromJS({
 	.merge(listInitialState(AD_ATTRIBUTES_COLLECTION_NAME))
 	.merge(listInitialState(USER_CATEGORIES_BLACKLIST_COLLECTION_NAME))
 	.merge(listInitialState(DSP_COLLECTION_NAME))
-	.merge(listInitialState(FAQ_COLLECTION_NAME));
+	.merge(listInitialState(FAQ_COLLECTION_NAME))
+	.merge(listInitialState(CONTACT_FORM))
+	.merge(statsInitialState(HOMEPAGESTATS_COLLECTION_NAME))
+	.merge(statsInitialState(TABLE_HOMEPAGESTATS_COLLECTION_NAME));
 
 export const rehydrateState = {
 	...collectionRehydrateState(SLOTS_COLLECTION_NAME),
@@ -63,6 +77,9 @@ export const rehydrateState = {
 	...listRehydrateState(USER_CATEGORIES_BLACKLIST_COLLECTION_NAME),
 	...listRehydrateState(DSP_COLLECTION_NAME),
 	...listRehydrateState(FAQ_COLLECTION_NAME),
+	...listRehydrateState(CONTACT_FORM),
+	...statsRehydrateState(HOMEPAGESTATS_COLLECTION_NAME),
+	...statsRehydrateState(TABLE_HOMEPAGESTATS_COLLECTION_NAME),
 };
 
 export default handleActions(
@@ -75,6 +92,10 @@ export default handleActions(
 		...listReducer(USER_CATEGORIES_BLACKLIST_COLLECTION_NAME),
 		...listReducer(DSP_COLLECTION_NAME),
 		...listReducer(FAQ_COLLECTION_NAME),
+		...listReducer(CONTACT_FORM),
+		...statsReducer(HOMEPAGESTATS_COLLECTION_NAME),
+		...statsReducer(TABLE_HOMEPAGESTATS_COLLECTION_NAME),
+		[SET_CHARTS_DATES]: (state, { payload }) => state.update('dates', filter => filter.merge(payload)),
 	},
 	initialState,
 );

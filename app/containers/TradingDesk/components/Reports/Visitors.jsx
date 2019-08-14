@@ -7,9 +7,9 @@ import PropTypes from 'prop-types';
 import { createStructuredSelector } from 'reselect';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
-import { selectChartsDates, selectMetricByName } from 'containers/DataMiner/selectors';
+import { selectCountersIds, selectChartsDates, selectCounterVisitors, countersSelectors, selectCounterVisitorsTable } from 'containers/TradingDesk/selectors';
 import reducer from 'containers/DataMiner/reducer';
-import { updateCharts } from 'containers/DataMiner/actions';
+import { getCounterVisitors, getCounterVisitorsTable } from 'containers/TradingDesk/actions';
 import DateSelect from 'components/DateSelect';
 import AppCard from 'components/AppCard';
 import injectReducer from 'utils/injectReducer';
@@ -25,8 +25,36 @@ class Visitors extends React.Component {
 		{ name: 'paidpercent', title: this.props.intl.formatMessage(messages.paidPercent) },
 	];
 
+	componentDidMount() {
+		const { dates, countersIds } = this.props;
+		const { startDate, endDate } = dates;
+		this.props.getCounterVisitors({
+			start_date: startDate,
+			end_date: endDate,
+			ids: countersIds.slice(0, 19).join(),
+		});
+		this.props.getCounterVisitorsTable({
+			start_date: startDate,
+			end_date: endDate,
+			ids: countersIds.slice(0, 19).join(),
+		});
+	}
+
+	updateCharts(params, dates) {
+		this.props.getCounterVisitors({
+			start_date: dates.startDate,
+			end_date: dates.endDate,
+			ids: params.selectedOption.counter,
+		});
+		this.props.getCounterVisitorsTable({
+			start_date: dates.startDate,
+			end_date: dates.endDate,
+			ids: params.selectedOption.counter,
+		});
+	}
+
 	render() {
-		const { topVisitors, toTableTopCounters, dates, updateCharts } = this.props;
+		const { counterVisitors, dates, counters, counterVisitorsTable } = this.props;
 		const { startDate, endDate, period } = dates;
 		return (
 			<div>
@@ -43,10 +71,11 @@ class Visitors extends React.Component {
 								</div>
 							</Col>
 							<DateSelect
-								onChange={(params, dates) => updateCharts(params, dates)}
+								onChange={(params, dates) => this.updateCharts(params, dates)}
 								startDate={startDate}
 								endDate={endDate}
 								period={period}
+								mining={counters}
 							/>
 						</Row>
 					</Col>
@@ -54,14 +83,30 @@ class Visitors extends React.Component {
 				<Row className="margin-0">
 					<Col className="col-12 col-lg-12 col-xl-12">
 						<AppCard chart>
-							<LineChart data={topVisitors} legend height={window.innerWidth > 600 ? 100 : 300} />
+							<LineChart
+								data={counterVisitors}
+								color={[
+									{
+										r: 63,
+										g: 153,
+										b: 184,
+									},
+									{
+										r: 1,
+										g: 184,
+										b: 170,
+									},
+								]}
+								legend={['Visitors', 'New']}
+								height={window.innerWidth > 600 ? 100 : 300}
+							/>
 						</AppCard>
 					</Col>
 				</Row>
 				<Row className="row margin-0">
 					<Col className="col-12 col-lg-12 col-xl-12">
 						<AppCard>
-							<AppTable data={toTableTopCounters} pagination columns={this.columns} grouping />
+							<AppTable data={counterVisitorsTable.length ? counterVisitorsTable : []} pagination columns={this.columns} grouping />
 						</AppCard>
 					</Col>
 				</Row>
@@ -72,19 +117,6 @@ class Visitors extends React.Component {
 
 Visitors.propTypes = {
 	dispatch: PropTypes.func.isRequired,
-	toTableTopCounters: PropTypes.arrayOf(
-		PropTypes.shape({
-			count: PropTypes.number.isRequired,
-			date: PropTypes.string.isRequired,
-			name: PropTypes.string.isRequired,
-			paidpercent: PropTypes.number.isRequired,
-			paidusers: PropTypes.number.isRequired,
-		}).isRequired,
-	).isRequired,
-	topVisitors: PropTypes.shape({
-		arrayChart: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.number.isRequired).isRequired),
-		arrayLabels: PropTypes.arrayOf(PropTypes.string.isRequired),
-	}).isRequired,
 	dates: PropTypes.shape({
 		startDate: PropTypes.string.isRequired,
 		endDate: PropTypes.string.isRequired,
@@ -93,15 +125,18 @@ Visitors.propTypes = {
 };
 
 const mapStateToProps = createStructuredSelector({
-	topVisitors: selectMetricByName('topVisitors'),
-	toTableTopCounters: selectMetricByName('toTableTopCounters'),
+	countersIds: selectCountersIds(),
+	counters: countersSelectors.collectionList(),
 	dates: selectChartsDates(),
+	counterVisitors: selectCounterVisitors(),
+	counterVisitorsTable: selectCounterVisitorsTable(),
 });
 
 function mapDispatchToProps(dispatch) {
 	return {
 		dispatch,
-		updateCharts: (params, dates) => dispatch(updateCharts(params, dates)),
+		getCounterVisitors: dates => dispatch(getCounterVisitors(dates)),
+		getCounterVisitorsTable: dates => dispatch(getCounterVisitorsTable(dates)),
 	};
 }
 
@@ -110,8 +145,4 @@ const withConnect = connect(
 	mapDispatchToProps,
 );
 
-const withReducer = injectReducer({ key: 'dataMiner', reducer });
-export default compose(
-	withReducer,
-	withConnect,
-)(injectIntl(Visitors));
+export default compose(withConnect)(injectIntl(Visitors));

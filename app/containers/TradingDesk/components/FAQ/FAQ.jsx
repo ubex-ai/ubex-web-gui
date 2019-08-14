@@ -96,7 +96,6 @@ class FaqPage extends React.Component {
 	}
 
 	render() {
-		console.log(this.props);
 		return (
 			<Row className="margin-0">
 				<Col md={12} className="title-with-select__other">

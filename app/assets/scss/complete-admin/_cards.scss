@@ -472,7 +472,8 @@
 		@include media-breakpoint-down(sm) {
 			justify-content: center;
 			margin-top: 5px;
-			margin-left: 10px;
+			margin-left: auto;
+			margin-right: 5px;
 			button {
 				display: block;
 				width: 50px;

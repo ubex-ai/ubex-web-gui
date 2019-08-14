@@ -35,26 +35,17 @@ const StatusFormatter = ({ value, row }, props) => {
 			onClick={() => props.toggleEntryStatus(value, data.status)}
 			className="m-portlet__nav-link btn m-btn m-btn--hover-warning m-btn--icon m-btn--icon-only m-btn--pill"
 		>
-			{data.status === SLOT_STATUS_PAUSE ? <i className="fas fa-pause" /> : <i className="fas fa-play" />}
+			{data.status !== SLOT_STATUS_PAUSE ? <i className="fas fa-pause" /> : <i className="fas fa-play" />}
 		</Button>
 	);
 	if (value === 'moderation') {
 		return <span className="badge badge-warning">Moderation</span>;
 	}
 	if (value === 'active') {
-		return [
-			<span className="badge badge-success">
-				<i className="fa fa-times" /> Online
-			</span>,
-			btn,
-		];
+		return [<span className="badge badge-success">Online</span>];
 	}
 	if (value === 'danger') {
-		return [
-			<span className="badge badge-danger">
-				<i className="fa fa-times" /> Offline
-			</span>,
-		];
+		return [<span className="badge badge-danger">Offline</span>];
 	}
 	return null;
 };
@@ -112,7 +103,7 @@ class SlotsTable extends React.Component {
 				{ name: 'status', title: this.props.intl.formatMessage(messages.status) },
 				{ name: 'summary', title: this.props.intl.formatMessage(messages.size) },
 				{ name: 'floor_price_cpm', title: this.props.intl.formatMessage(messages.priceCPM) },
-				{ name: 'updated', title:  this.props.intl.formatMessage(messages.dateOfChange) },
+				{ name: 'updated', title: this.props.intl.formatMessage(messages.dateOfChange) },
 				{ name: 'id', title: this.props.intl.formatMessage(messages.settings) },
 			],
 			sorting: [{ columnName: 'created', direction: 'desc' }],

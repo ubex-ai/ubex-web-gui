@@ -75,10 +75,11 @@ module.exports = require('./webpack.base.babel')({
 		new webpack.DefinePlugin({
 			PASSPORT_URL: JSON.stringify('https://passport.ubex.com'),
 			API_URL: JSON.stringify('https://desk.ubex.com'),
-			STATISTIC_URL: JSON.stringify('https://network.ubex.com'),
+			STATISTIC_URL: JSON.stringify('https://desk.ubex.com/stats'),
 			MINING_URL: JSON.stringify('https://mining.ubex.com'),
 			PUBLISHER_URL: JSON.stringify('https://network.ubex.com'),
 			TRADING_DESK_URL: JSON.stringify('https://desk.ubex.com'),
+			CRYPTO_MODE: true,
 		}),
 		// Minify and optimize the index.html
 		new HtmlWebpackPlugin({

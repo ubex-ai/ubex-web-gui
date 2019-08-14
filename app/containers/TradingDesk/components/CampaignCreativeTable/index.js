@@ -30,9 +30,12 @@ import {
 } from '@devexpress/dx-react-grid-bootstrap4';
 import '@devexpress/dx-react-grid-bootstrap4/dist/dx-react-grid-bootstrap4.css';
 import messages from '../../messages';
-import validateInteger from '../../../../utils/validateInteger';
-import validateStringAndNumber from '../../../../utils/validateStringAndNumber';
+import validateInteger from 'utils/validateInteger';
+import validateStringAndNumber from 'utils/validateStringAndNumber';
 import LinkButton from 'components/LinkButton';
+import moment from 'moment';
+import _ from 'lodash';
+import validateFloat from '../../../../utils/validateFloat';
 
 const EditableFormatter = ({ value, row }, props) => (
 	<div>
@@ -52,21 +55,13 @@ const EditableFormatter = ({ value, row }, props) => (
 );
 
 const EditableNameFormatter = ({ value, row }, props) => (
-	<InlineEditField
-		size="xs"
-		type="text"
-		value={row.data ? row.data.name : null}
-		onSave={val => {
-			props.changeCreativeName(row.id, val);
-		}}
-		validation={val => validateStringAndNumber(val)}
-	/>
+	<Link to={`/app/creative/${row.creative_type}/${row.id}`}>{row.data.name}</Link>
 );
 
 const EditableCPMFormatter = ({ value, row }, props) => (
-	<div>
-		{row.data && row.data.cpm_type === 1 ? 'Fixed ' : 'Max '}
-		$<InlineEditField
+	<div className="flex-center">
+		<span>{row.data && row.data.cpm_type === 1 ? 'Fixed ' : 'Max '}$</span>
+		<InlineEditField
 			size="xs"
 			type="text"
 			value={row.data ? row.data.cpm : null}
@@ -74,7 +69,7 @@ const EditableCPMFormatter = ({ value, row }, props) => (
 				console.log(val);
 				props.changeCreativeCPM(row.id, val);
 			}}
-			validation={val => validateInteger(val)}
+			validation={val => validateFloat(val)}
 		/>
 	</div>
 );
@@ -90,17 +85,40 @@ const EditableDateFormatter = ({ value, row }, props) => (
 	/>
 );
 
-const TypeFormatter = ({ value, row }, props) => (
-	<div>
-		{row.data && row.data.cpm_type === 1 ? 'Fixed' : 'Max'}
-	</div>
-);
+const DateEndFormatter = ({ value, row }, props) => {
+	const date = _.find(props.creativesWithDates, { value: row.id });
+	return (
+		<InlineEditField
+			size="xs"
+			type="date"
+			value={date && date.end_date ? date.end_date : 'unlimited'}
+			startDate={date && date.start_date ? date.start_date : null}
+			onSave={val => {
+				console.log(val);
+				props.changeCreativeEndDate(row.id, val);
+			}}
+		/>
+	);
+};
 
-const IDFormatter = ({ value, row }, props) => (
-	<div>
-		{row && row.id ? row.id : null}
-	</div>
-);
+const DateStartFormatter = ({ value, row }, props) => {
+	const date = _.find(props.creativesWithDates, { value: row.id });
+	return (
+		<InlineEditField
+			size="xs"
+			type="date"
+			value={date && date.start_date ? date.start_date : 'unlimited'}
+			endDate={date && date.end_date ? date.end_date : null}
+			onSave={val => {
+				console.log(val);
+				props.changeCreativeStartDate(row.id, val);
+			}}
+		/>
+	);
+};
+const TypeFormatter = ({ value, row }, props) => <div style={{ textTransform: 'capitalize' }}>{row.creative_type}</div>;
+
+const IDFormatter = ({ value, row }, props) => <div>{row && row.id ? row.id : null}</div>;
 
 const SettingsFormatter = ({ value, row }, props) => {
 	if (props.data) {
@@ -109,7 +127,6 @@ const SettingsFormatter = ({ value, row }, props) => {
 			return <span>loading</span>;
 		}
 	}
-	console.log(row)
 	return (
 		<span>
 			<LinkButton
@@ -135,6 +152,14 @@ const SettingsProvider = props => (
 	<DataTypeProvider formatterComponent={fCProps => SettingsFormatter(fCProps, props)} {...props} />
 );
 
+const DateStartProvider = props => (
+	<DataTypeProvider formatterComponent={fileProps => DateStartFormatter(fileProps, props)} {...props} />
+);
+
+const DateEndProvider = props => (
+	<DataTypeProvider formatterComponent={fileProps => DateEndFormatter(fileProps, props)} {...props} />
+);
+
 const TypeProvider = props => (
 	<DataTypeProvider formatterComponent={typeProps => TypeFormatter(typeProps, props)} {...props} />
 );
@@ -155,9 +180,7 @@ const EditableCPMProvider = props => (
 	<DataTypeProvider formatterComponent={fCProps => EditableCPMFormatter(fCProps, props)} {...props} />
 );
 
-const IDProvider = props => (
-	<DataTypeProvider formatterComponent={fCProps => IDFormatter(fCProps, props)} {...props} />
-);
+const IDProvider = props => <DataTypeProvider formatterComponent={fCProps => IDFormatter(fCProps, props)} {...props} />;
 class CampaignCreativeTable extends React.Component {
 	constructor(props) {
 		super(props);
@@ -173,11 +196,13 @@ class CampaignCreativeTable extends React.Component {
 				},
 			],
 			columns: [
-				{ name: 'data.name', title: this.props.intl.formatMessage(messages.name) },
 				{ name: 'data.id', title: 'ID' },
+				{ name: 'data.name', title: this.props.intl.formatMessage(messages.name) },
 				{ name: 'creative_type', title: this.props.intl.formatMessage(messages.type) },
 				// { name: 'status', title: this.props.intl.formatMessage(messages.status) },
 				{ name: 'data.cpm', title: 'CPM' },
+				{ name: 'data.startDate', title: this.props.intl.formatMessage(messages.startDate) },
+				{ name: 'data.endDate', title: this.props.intl.formatMessage(messages.endDate) },
 				{ name: 'id', title: this.props.intl.formatMessage(messages.settings) },
 				/* { name: 'spend', title: this.props.intl.formatMessage(messages.spend) },
 				{ name: 'impressions', title: this.props.intl.formatMessage(messages.impressions) },
@@ -193,6 +218,8 @@ class CampaignCreativeTable extends React.Component {
 				{ columnName: 'data.id', width: 80 },
 				{ columnName: 'creative_type', width: 120 },
 				{ columnName: 'data.cpm', width: 150 },
+				{ columnName: 'data.startDate', width: 150 },
+				{ columnName: 'data.endDate', width: 150 },
 				{ columnName: 'id', width: 100 },
 				/* { columnName: 'eCPM', width: 120 },
 				{ columnName: 'winrate', width: 120 },
@@ -205,6 +232,8 @@ class CampaignCreativeTable extends React.Component {
 				{ columnName: 'id', width: 120 }, */
 			],
 			sorting: [{ columnName: 'created', direction: 'desc' }],
+			startDate: ['data.startDate'],
+			endDate: ['data.endDate'],
 			idColumn: ['data.id'],
 			nameColumn: ['data.name'],
 			typeColumn: ['creative_type'],
@@ -238,6 +267,8 @@ class CampaignCreativeTable extends React.Component {
 			cpmColumn,
 			typeColumn,
 			idColumn,
+			startDate,
+			endDate,
 			cpmTypeColumn,
 			editableColumn,
 			editableDateColumn,
@@ -248,8 +279,10 @@ class CampaignCreativeTable extends React.Component {
 			rows,
 		} = this.state;
 		const { data } = this.props;
-		return <div className="table__card">
-				{data && <Grid rows={data} columns={columns}>
+		return (
+			<div className="table__card">
+				{data && (
+					<Grid rows={data} columns={columns}>
 						<Table columnExtensions={tableColumnExtensions} />
 						<TableHeaderRow /* showSortingControls */ />
 						<EditableNameProvider for={nameColumn} {...this.props} />
@@ -257,8 +290,12 @@ class CampaignCreativeTable extends React.Component {
 						<TypeProvider for={typeColumn} {...this.props} />
 						<SettingsProvider for={settingsColumn} {...this.props} />
 						<IDProvider for={idColumn} {...this.props} />
-					</Grid>}
-			</div>;
+						<DateStartProvider for={startDate} {...this.props} />
+						<DateEndProvider for={endDate} {...this.props} />
+					</Grid>
+				)}
+			</div>
+		);
 	}
 }
 

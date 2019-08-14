@@ -23,11 +23,18 @@ import LinkButton from 'components/LinkButton';
 import AppCard from 'components/AppCard';
 import CardPopover from 'components/CardPopover';
 import Datamap from 'components/Maps/Datamaps';
-import { inventoriesSelectors, selectChartsDates, selectSlotsTableFormat } from 'containers/Publisher/selectors';
+import LineChart from 'components/Charts/Line';
+import {
+	inventoriesSelectors,
+	selectChartsDates,
+	selectHomePageStats,
+	selectTableHomePageStats,
+	selectInventoryIds,
+} from 'containers/Publisher/selectors';
 import messages from 'containers/Publisher/messages';
 import AppTable from 'components/Tables/AppTable';
 import DateSelect from 'components/DateSelect';
-import { updateCharts } from 'containers/Publisher/actions';
+import { updateCharts, getHomePageStats, getTableStatsHomePage, setChartsDates } from 'containers/Publisher/actions';
 import InventoryShape from '../../shapes/Inventory';
 
 const moment = extendMoment(originalMoment);
@@ -74,22 +81,65 @@ export class PublisherHomePage extends React.Component {
 		dataChart: { arrayCharts: [], labels: [], average: 0 },
 	};
 
+	componentDidMount() {
+		const { dates, getHomePageStats, inventoryIds, getTableStatsHomePage } = this.props;
+		const { startDate, endDate } = dates;
+		if (inventoryIds.length) {
+			getHomePageStats({
+				inventory: inventoryIds
+					.sort((a, b) => a - b)
+					.slice(0, 19)
+					.join(),
+				start_date: startDate,
+				end_date: endDate,
+			});
+			getTableStatsHomePage({
+				inventory: inventoryIds
+					.sort((a, b) => a - b)
+					.slice(0, 19)
+					.join(),
+				start_date: startDate,
+				end_date: endDate,
+			});
+		}
+	}
+
+	updateChart(params, dates) {
+		const { getHomePageStats, getTableStatsHomePage, inventoryIds } = this.props;
+		const { startDate, endDate } = dates;
+		this.props.updateDates({ startDate: dates.startDate, endDate: dates.endDate, period: dates.period });
+		if (inventoryIds.length) {
+			getHomePageStats({
+				inventory:
+					params.selectedOption.value !== 'all'
+						? params.selectedOption.value
+						: inventoryIds
+								.sort((a, b) => a - b)
+								.slice(0, 19)
+								.join(),
+				start_date: startDate,
+				end_date: endDate,
+			});
+			getTableStatsHomePage({
+				inventory:
+					params.selectedOption.value !== 'all'
+						? params.selectedOption.value
+						: inventoryIds
+								.sort((a, b) => a - b)
+								.slice(0, 19)
+								.join(),
+				start_date: startDate,
+				end_date: endDate,
+			});
+		}
+	}
+
 	render() {
-		const { dates, inventories } = this.props;
+		const { dates, inventories, homePageStats, tableHomePageStats } = this.props;
 		const { startDate, endDate, period } = dates;
 		return (
 			<Row>
 				<Col xs={12} md={12}>
-					<div className="row margin-0 alert-padding">
-						<Col xs={12} md={12}>
-							<div className="alert alert-warning alert-dismissible">
-								<strong>
-									<FormattedMessage {...messages.warning} />:
-								</strong>{' '}
-								<FormattedMessage {...messages.warningText} />
-							</div>
-						</Col>
-					</div>
 					<Row className="margin-0">
 						<Col md={12} className="title_with_select">
 							<Row>
@@ -105,7 +155,7 @@ export class PublisherHomePage extends React.Component {
 											</div>
 										</Col>
 										<DateSelect
-											onChange={(params, dates) => updateCharts(params, dates)}
+											onChange={(params, dates) => this.updateChart(params, dates)}
 											startDate={startDate}
 											endDate={endDate}
 											period={period}
@@ -123,16 +173,16 @@ export class PublisherHomePage extends React.Component {
 								popoverBody={messages.impressionsPopoverText}
 							>
 								<i className="float-left fa fa-eye icon-md icon-rounded icon-primary" />
-								<div className="stats">
-									<div className="row">
-										<div className="col-lg-8 mobile_center">
-											<h4>
-												<strong>0</strong>
-											</h4>
-											<span>
-												<FormattedMessage {...messages.impressions} />
-											</span>
-										</div>
+								<div className="stats dashboardCard__container">
+									<div className="dashboardCard__text">
+										<h4 className="dashboardCard__title">
+											<strong>
+												{tableHomePageStats.impressions ? tableHomePageStats.impressions : 0}
+											</strong>
+										</h4>
+										<span>
+											<FormattedMessage {...messages.impressions} />
+										</span>
 									</div>
 								</div>
 							</CardPopover>
@@ -143,16 +193,14 @@ export class PublisherHomePage extends React.Component {
 								popoverBody={messages.clicksCountPopoverText}
 							>
 								<i className="float-left fas fa-hand-point-up icon-md icon-rounded icon-purple" />
-								<div className="stats">
-									<div className="row">
-										<div className="col-lg-10 mobile_center">
-											<h4>
-												<strong>0</strong>
-											</h4>
-											<span>
-												<FormattedMessage {...messages.clicksCount} />
-											</span>
-										</div>
+								<div className="stats dashboardCard__container">
+									<div className="dashboardCard__text">
+										<h4 className="dashboardCard__title">
+											<strong>{tableHomePageStats.clicks ? tableHomePageStats.clicks : 0}</strong>
+										</h4>
+										<span>
+											<FormattedMessage {...messages.clicksCount} />
+										</span>
 									</div>
 								</div>
 							</CardPopover>
@@ -160,16 +208,14 @@ export class PublisherHomePage extends React.Component {
 						<div className="col-xl-4 col-md-6 col-lg-6 col-12">
 							<CardPopover popoverHeader={messages.CTRPopover} popoverBody={messages.CTRPopoverText}>
 								<i className="float-left fas fa-sort-amount-up icon-md icon-rounded icon-danger" />
-								<div className="stats">
-									<div className="row">
-										<div className="col-lg-8 mobile_center">
-											<h4>
-												<strong>0%</strong>
-											</h4>
-											<span>
-												<FormattedMessage {...messages.CTR} />
-											</span>
-										</div>
+								<div className="stats dashboardCard__container">
+									<div className="dashboardCard__text">
+										<h4 className="dashboardCard__title">
+											<strong>{tableHomePageStats.CTR ? tableHomePageStats.CTR : 0}%</strong>
+										</h4>
+										<span>
+											<FormattedMessage {...messages.CTR} />
+										</span>
 									</div>
 								</div>
 							</CardPopover>
@@ -180,33 +226,31 @@ export class PublisherHomePage extends React.Component {
 								popoverBody={messages.fillratePopoverText}
 							>
 								<i className="float-left fas fa-fill icon-md icon-rounded icon-success" />
-								<div className="stats">
-									<Row>
-										<div className="col-lg-8 mobile_center">
-											<h4>
-												<strong>0%</strong>
-											</h4>
-											<span>
-												<FormattedMessage {...messages.fillrate} />
-											</span>
-										</div>
-									</Row>
+								<div className="stats dashboardCard__container">
+									<div className="dashboardCard__text">
+										<h4 className="dashboardCard__title">
+											<strong>
+												{tableHomePageStats.fillrate ? tableHomePageStats.fillrate : 0}%
+											</strong>
+										</h4>
+										<span>
+											<FormattedMessage {...messages.fillrate} />
+										</span>
+									</div>
 								</div>
 							</CardPopover>
 						</Col>
 						<div className="col-xl-3 col-md-6 col-lg-6 col-12 col-xl-4">
 							<CardPopover popoverHeader={messages.eCPMPopover} popoverBody={messages.eCPMPopoverText}>
 								<i className="float-left fas fa-file-invoice-dollar icon-md icon-rounded icon-warning" />
-								<div className="stats">
-									<div className="row">
-										<div className="col-lg-8 mobile_center">
-											<h4>
-												<strong>$0</strong>
-											</h4>
-											<span>
-												<FormattedMessage {...messages.eCPM} />
-											</span>
-										</div>
+								<div className="stats dashboardCard__container">
+									<div className="dashboardCard__text">
+										<h4 className="dashboardCard__title">
+											<strong>${tableHomePageStats.eCPM ? tableHomePageStats.eCPM : 0}</strong>
+										</h4>
+										<span>
+											<FormattedMessage {...messages.eCPM} />
+										</span>
 									</div>
 								</div>
 							</CardPopover>
@@ -214,49 +258,20 @@ export class PublisherHomePage extends React.Component {
 						<Col lg={6} md={6} xs={12} xl={4}>
 							<CardPopover popoverHeader={messages.RPMPopover} popoverBody={messages.RPMPopoverText}>
 								<i className="float-left fas fa-hand-holding-usd icon-md icon-rounded icon-accent" />
-								<div className="stats">
-									<div className="row">
-										<div className="col-lg-5 mobile_center">
-											<h4>
-												<strong>$0</strong>
-											</h4>
-											<span>
-												<FormattedMessage {...messages.RPM} />
-											</span>
-										</div>
+								<div className="stats dashboardCard__container">
+									<div className="dashboardCard__text">
+										<h4 className="dashboardCard__title">
+											<strong>$0</strong>
+										</h4>
+										<span>
+											<FormattedMessage {...messages.RPM} />
+										</span>
 									</div>
 								</div>
 							</CardPopover>
 						</Col>
 					</Row>
 					<Row className="margin-0">
-						<Col lg={6}>
-							<AppCard chart>
-								<header className="cardPopover__header">
-									<h2 className="cardPopover__header-title float-left">
-										<FormattedMessage {...messages.listInventory} />
-									</h2>
-									<LinkButton
-										to="/app/inventory/web"
-										color="success button-margin-left-10 button-margin-top-10"
-									>
-										{window.innerWidth > 1024 ? (
-											<FormattedMessage {...messages.addNew} />
-										) : (
-											<i className="fas fa-plus" />
-										)}
-									</LinkButton>
-								</header>
-								<div className="content-body">
-									<AppTable
-										data={this.state.sitesTableData}
-										columns={this.state.sitesTableColumns}
-										pagination={false}
-										paginationCount={false}
-									/>
-								</div>
-							</AppCard>
-						</Col>
 						<Col lg={6}>
 							<CardPopover
 								popoverHeader={messages.profitabilityPopover}
@@ -264,130 +279,146 @@ export class PublisherHomePage extends React.Component {
 								chart
 							>
 								<header className="cardPopover__header">
-									<Link to="/app/reports/workers/profitability">
-										<h2 className="cardPopover__header-title float-left">
-											<FormattedMessage {...messages.profitability} />
-										</h2>
-									</Link>
+									<h2 className="cardPopover__header-title float-left">
+										<FormattedMessage {...messages.profitability} />
+									</h2>
 								</header>
 								<div className="content-body chart-area">
-									<Line data={this.state.dataChart} />
+									<LineChart
+										data={
+											Object.entries(homePageStats).length
+												? {
+														arrayChart: [homePageStats.revenue],
+														arrayLabels: homePageStats.labels,
+												  }
+												: this.state.dataChart
+										}
+										color={{
+											r: 113,
+											g: 106,
+											b: 202,
+										}}
+										height={window.innerWidth > 600 ? null : 300}
+									/>
+								</div>
+							</CardPopover>
+						</Col>
+						<Col lg={6}>
+							<CardPopover
+								popoverHeader={messages.fillratePopover}
+								popoverBody={messages.fillratePopoverText}
+								chart
+							>
+								<header className="cardPopover__header">
+									<h2 className="cardPopover__header-title float-left">
+										<FormattedMessage {...messages.fillrate} />
+									</h2>
+								</header>
+								<div className="content-body chart-container">
+									<LineChart
+										data={
+											Object.entries(homePageStats).length
+												? {
+														arrayChart: [homePageStats.fillrate],
+														arrayLabels: homePageStats.labels,
+												  }
+												: this.state.dataChart
+										}
+										color={{
+											r: 52,
+											g: 191,
+											b: 163,
+										}}
+										height={window.innerWidth > 600 ? null : 300}
+									/>
 								</div>
 							</CardPopover>
 						</Col>
 					</Row>
 					<Row className="row margin-0">
-						<div className="col-md-12 col-lg-6">
-							<CardPopover
-								popoverHeader={messages.topRegionsPopover}
-								popoverBody={messages.topRegionsPopoverText}
-								chart
-							>
-								<header className="cardPopover__header">
-									<Link to="/app/reports/regions">
-										<h2 className="cardPopover__header-title float-left">
-											<FormattedMessage {...messages.topRegions} />{' '}
-											<FormattedMessage {...messages.reward} />
-										</h2>
-									</Link>
-								</header>
-								<div className="content-body wid-vectormap">
-									<Datamap data={{ countriesColors: {}, countriesCounts: {} }} />
-								</div>
-							</CardPopover>
-						</div>
 						<Col lg={6}>
 							<CardPopover
-								popoverHeader={messages.topInventoryPopover}
-								popoverBody={messages.topInventoryPopoverText}
+								popoverHeader={messages.impressionsPopover}
+								popoverBody={messages.impressionsPopoverText}
 								chart
 							>
 								<header className="cardPopover__header">
 									<h2 className="cardPopover__header-title float-left">
-										<FormattedMessage {...messages.topInventory} />
+										<FormattedMessage {...messages.impressions} /> /{' '}
+										<FormattedMessage {...messages.clicksCount} />
 									</h2>
 								</header>
 								<div className="content-body chart-area">
 									<div className="row">
-										<HorizontalBar data={this.state.dataChart} />
+										<LineChart
+											data={
+												Object.entries(homePageStats).length
+													? {
+															arrayChart: [
+																homePageStats.impressions,
+																homePageStats.clicks,
+															],
+															arrayLabels: homePageStats.labels,
+													  }
+													: this.state.dataChart
+											}
+											color={[
+												{
+													r: 0,
+													g: 123,
+													b: 255,
+												},
+												{
+													r: 255,
+													g: 184,
+													b: 34,
+												},
+											]}
+											height={window.innerWidth > 600 ? null : 300}
+											legend={['Impressions', 'Clicks']}
+										/>
 									</div>
 								</div>
 							</CardPopover>
 						</Col>
-						<div className="col-md-12 col-lg-6">
-							<CardPopover
-								popoverHeader={messages.devicesPopover}
-								popoverBody={messages.devicesPopoverText}
-								chart
-							>
-								<header className="cardPopover__header">
-									<Link to="/app/reports/devices">
-										<h2 className="cardPopover__header-title float-left">
-											<FormattedMessage id="app.common.devices" />{' '}
-											<FormattedMessage {...messages.reward} />
-										</h2>
-									</Link>
-								</header>
-								<div className="content-body chart-container">
-									<Bar data={this.state.dataChart} />
-								</div>
-							</CardPopover>
-						</div>
 						<Col lg={6}>
 							<CardPopover
-								popoverHeader={messages.sexPopover}
-								popoverBody={messages.sexPopoverText}
+								popoverHeader={messages.eCPMPopover}
+								popoverBody={messages.eCPMPopoverText}
 								chart
 							>
 								<header className="cardPopover__header">
 									<h2 className="cardPopover__header-title float-left">
-										<FormattedMessage {...messages.sex} /> <FormattedMessage {...messages.reward} />
+										<FormattedMessage {...messages.eCPM} /> / <FormattedMessage {...messages.CTR} />
 									</h2>
 								</header>
 								<div className="content-body chart-area">
 									<div className="row">
-										<HorizontalBar data={this.state.dataChart} />
+										<LineChart
+											data={
+												Object.entries(homePageStats).length
+													? {
+															arrayChart: [homePageStats.eCPM, homePageStats.CTR],
+															arrayLabels: homePageStats.labels,
+													  }
+													: this.state.dataChart
+											}
+											color={[
+												{
+													r: 255,
+													g: 184,
+													b: 34,
+												},
+												{
+													r: 244,
+													g: 81,
+													b: 108,
+												},
+											]}
+											height={window.innerWidth > 600 ? null : 300}
+											legend={['eCPM', 'CTR']}
+										/>
 									</div>
-								</div>
-							</CardPopover>
-						</Col>
-					</Row>
-					<Row className="margin-0">
-						<Col md={6}>
-							<CardPopover
-								popoverHeader={messages.agePopover}
-								popoverBody={messages.agePopoverText}
-								chart
-							>
-								<header className="cardPopover__header">
-									<Link to="/app/reports/devices">
-										<h2 className="cardPopover__header-title float-left">
-											<FormattedMessage {...messages.age} />{' '}
-											<FormattedMessage {...messages.reward} />
-										</h2>
-									</Link>
-								</header>
-								<div className="content-body chart-container">
-									<Bar data={this.state.dataChart} />
-								</div>
-							</CardPopover>
-						</Col>
-						<Col md={6}>
-							<CardPopover
-								popoverHeader={messages.formatPopover}
-								popoverBody={messages.formatPopoverText}
-								chart
-							>
-								<header className="cardPopover__header">
-									<Link to="/app/reports/devices">
-										<h2 className="cardPopover__header-title float-left">
-											<FormattedMessage {...messages.format} />{' '}
-											<FormattedMessage {...messages.reward} />
-										</h2>
-									</Link>
-								</header>
-								<div className="content-body chart-container">
-									<HorizontalBar data={this.state.dataChart} />
 								</div>
 							</CardPopover>
 						</Col>
@@ -406,12 +437,18 @@ PublisherHomePage.propTypes = {
 const mapStateToProps = createStructuredSelector({
 	dates: selectChartsDates(),
 	inventories: inventoriesSelectors.collectionList(),
+	inventoryIds: selectInventoryIds(),
+	homePageStats: selectHomePageStats(),
+	tableHomePageStats: selectTableHomePageStats(),
 });
 
 function mapDispatchToProps(dispatch) {
 	return {
 		dispatch,
 		updateCharts: (params, dates) => dispatch(updateCharts(params, dates)),
+		getHomePageStats: values => dispatch(getHomePageStats(values)),
+		getTableStatsHomePage: values => dispatch(getTableStatsHomePage(values)),
+		updateDates: dates => dispatch(setChartsDates(dates)),
 	};
 }
 

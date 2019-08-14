@@ -48,6 +48,7 @@ tr {
 
 .table th,
 .table td {
+	vertical-align: middle;
 	border-right: 1px solid #dee2e6;
 	&:last-child {
 		border-right: 0;
@@ -222,13 +223,13 @@ tr {
 	}
 }
 
-.page-item.active .page-link {
+/*.page-item.active .page-link {
 	background-color: #767676;
 	border-color: #767676;
 }
 .page-item.active .page-link {
 	color: #fff;
-}
+}*/
 
 .pagination > .active > a, .pagination > .active > span, .pagination > .active > a:hover, .pagination > .active > span:hover, .pagination > .active > a:focus, .pagination > .active > span:focus {
 	background-color: lightgray;

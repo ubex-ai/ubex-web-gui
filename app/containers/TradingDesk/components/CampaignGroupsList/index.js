@@ -40,12 +40,15 @@ import {
 	filteringGroups,
 	selectGroupFilters,
 	selectBalance,
+	selectPaginationCounts,
 } from 'containers/TradingDesk/selectors';
 import {
+	balanceCollectionActions,
 	campaingCollectionActions,
 	groupCollectionActions,
 	setFilterCampaigns,
 	transferMoneyGroup,
+	setPaginationItemsCount,
 } from 'containers/TradingDesk/actions';
 import InlineEditField from 'components/InlineEditField';
 import validateStringAndNumber from 'utils/validateStringAndNumber';
@@ -55,6 +58,8 @@ import { getUBEXBalance, transferUbex } from 'utils/web3helper';
 import WalletConnector from 'components/WalletConnector';
 import createToast from 'utils/toastHelper';
 import { makePromiseAction } from 'utils/CollectionHelper/actions';
+import getPaginatedItems from 'utils/pagination';
+import Pagination from 'components/Pagination';
 /* eslint-disable react/prefer-stateless-function */
 class CampaignGroupsList extends React.Component {
 	constructor(props) {
@@ -79,6 +84,8 @@ class CampaignGroupsList extends React.Component {
 			usdBalance: 0,
 			openWalletConnector: false,
 			hashTransaction: null,
+			page: 1,
+			items: props.paginationCounts.campaignGroupsCount,
 		};
 		this.addCampaign = null;
 		this.editField = null;
@@ -107,6 +114,7 @@ class CampaignGroupsList extends React.Component {
 			.then(result => {
 				this.setState({ topUpBalanceGroupModal: false, hashTransaction: null });
 				this.props.getCampaignsGroup();
+				this.props.getBalance();
 				console.log(result);
 			})
 			.catch(err => {
@@ -138,6 +146,7 @@ class CampaignGroupsList extends React.Component {
 
 	componentWillMount() {
 		this.props.getCampaignsGroup();
+		this.props.getCampaigns();
 	}
 
 	componentDidMount() {
@@ -172,6 +181,9 @@ class CampaignGroupsList extends React.Component {
 	componentDidUpdate(prevProps, prevState) {
 		const { filter } = this.props;
 		const { groups } = filter;
+		if (prevProps.paginationCounts.campaignGroupsCount !== this.props.paginationCounts.campaignGroupsCount) {
+			this.setState({ items: this.props.paginationCounts.campaignGroupsCount });
+		}
 		if (
 			this.addCampaign &&
 			JSON.stringify(prevProps.activeCampaignGroup) !== JSON.stringify(this.props.activeCampaignGroup)
@@ -328,8 +340,8 @@ class CampaignGroupsList extends React.Component {
 		const { campaigns } = this.props;
 		const colorClass = classNames({
 			'tab-label': group,
-			green: group.budget > 1,
-			red: group.budget < 1,
+			green: group.balance > 1,
+			red: group.balance < 1,
 		});
 
 		const campaignsCount = campaigns.filter(s => s.campaign_group === group.id).length;
@@ -383,6 +395,14 @@ class CampaignGroupsList extends React.Component {
 				>
 					<i className="fas fa-plus-circle size-11" />
 				</LinkButton>
+				<LinkButton
+					to={`/app/campaigns/reportByGroup/${group.id}`}
+					size="xs"
+					className="dots plus button-radius-5 float-right button-margin-left-10 background-transparent"
+					title="Statistics"
+				>
+					<i className="fas fa-chart-line size-11" />
+				</LinkButton>
 				<Dropdown
 					isOpen={this.state.dropdownOpen === group.id}
 					toggle={() => this.toggle(group.id)}
@@ -399,16 +419,17 @@ class CampaignGroupsList extends React.Component {
 						<DropdownItem>
 							<FormattedMessage {...messages.exportCSV} />
 						</DropdownItem>
-						<DropdownItem>
-							<FormattedMessage {...messages.statistics} />
-						</DropdownItem>
 						<DropdownItem
-							onClick={() =>
-								this.props.setStatus(group.id, {
-									name: group.name,
-									status: group.status === 'active' ? 'archive' : 'active',
-								})
-							}
+							onClick={() => {
+								if (parseInt(group.balance, 10) > 0) {
+									createToast('error', 'Cannot archive group if balance is greater than 0');
+								} else {
+									this.props.setStatus(group.id, {
+										name: group.name,
+										status: group.status === 'active' ? 'archive' : 'active',
+									});
+								}
+							}}
 						>
 							{group.status === 'active' ? (
 								<FormattedMessage {...messages.archiveGroup} />
@@ -416,7 +437,15 @@ class CampaignGroupsList extends React.Component {
 								<FormattedMessage {...messages.activeGroup} />
 							)}
 						</DropdownItem>
-						<DropdownItem onClick={() => this.setState({ removeGroup: group.id })}>
+						<DropdownItem
+							onClick={() => {
+								if (parseInt(group.balance, 10) > 0) {
+									createToast('error', 'Cannot delete group if balance is greater than 0');
+								} else {
+									this.setState({ removeGroup: group.id });
+								}
+							}}
+						>
 							<FormattedMessage {...messages.removeGroup} />
 						</DropdownItem>
 					</DropdownMenu>
@@ -445,7 +474,7 @@ class CampaignGroupsList extends React.Component {
 	}
 
 	render() {
-		const { filter, campaigns, userInfo } = this.props;
+		const { filter, campaigns, userInfo, setPaginationItemsCount } = this.props;
 		const { wallet } = userInfo;
 		const { groups } = filter;
 		const { amount } = this.props.selectAmount && this.props.selectAmount.length ? this.props.selectAmount[0] : '0';
@@ -461,11 +490,25 @@ class CampaignGroupsList extends React.Component {
 						</Col>
 					</Row>
 				) : (
-					groups
+					/* groups
 						.sort((a, b) => b.id - a.id)
 						.map(group =>
 							this.renderCampaignsList(group, campaigns.filter(s => s.campaign_group === group.id)),
-						)
+						) */
+					<div>
+						{getPaginatedItems(groups, this.state.page, this.state.items)
+							.data.sort((a, b) => b.id - a.id)
+							.map(group =>
+								this.renderCampaignsList(group, campaigns.filter(s => s.campaign_group === group.id)),
+							)}
+						{
+							<Pagination
+								data={getPaginatedItems(groups, this.state.page, this.state.items)}
+								changePage={page => this.setState({ page })}
+								changeItemsCount={items => setPaginationItemsCount({ campaignGroupsCount: items })}
+							/>
+						}
+					</div>
 				)}
 				<AddGroupModal
 					isOpen={this.state.addGroupModal}
@@ -534,6 +577,7 @@ const withConnect = connect(
 		addGroupError: campaingGroupSelectors.addEntryError(),
 		userInfo: selectUserData(),
 		selectAmount: selectBalance(),
+		paginationCounts: selectPaginationCounts(),
 	}),
 	dispatch => ({
 		dispatch,
@@ -541,10 +585,12 @@ const withConnect = connect(
 		addCampaignsGroup: values => makePromiseAction(dispatch, groupCollectionActions.addEntry(values)),
 		removeCampaignsGroup: values => makePromiseAction(dispatch, groupCollectionActions.removeEntry(values)),
 		setStatus: (id, values) => dispatch(groupCollectionActions.updateEntry(id, values)),
-		getCampaigns: dispatch(campaingCollectionActions.getCollection()),
+		getCampaigns: () => dispatch(campaingCollectionActions.getCollection()),
 		setFilter: values => dispatch(setFilterCampaigns(values)),
 		patchCampaignGroup: (id, values) => makePromiseAction(dispatch, groupCollectionActions.patchEntry(id, values)),
 		transferUSD: values => makePromiseAction(dispatch, transferMoneyGroup.addEntry(values)),
+		getBalance: () => makePromiseAction(dispatch, balanceCollectionActions.getCollection()),
+		setPaginationItemsCount: values => dispatch(setPaginationItemsCount(values)),
 	}),
 );
 

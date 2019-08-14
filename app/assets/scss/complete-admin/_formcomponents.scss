@@ -430,6 +430,7 @@ body {
 }
 .file_upload {
 	cursor: pointer;
+	position: relative;
 	.file {
 		position: relative;
 		overflow: hidden;
@@ -442,8 +443,8 @@ body {
 		position: absolute;
 		font-size: 22px;
 		opacity: 0;
-		right: 40px;
-		top: 22px;
+		left: 0;
+		top: 0;
 	}
 }
 

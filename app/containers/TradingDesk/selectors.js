@@ -2,20 +2,20 @@ import { createSelector } from 'reselect';
 import makeCollectionSelectors, { makeListSelectors } from 'utils/CollectionHelper/selectors';
 import { initialState } from './reducer';
 import {
+	STORE_NAME,
 	FAQ_COLLECTION_NAME,
 	CREATIVES_COLLECTION_NAME,
 	CAMPAINGS_COLLECTION_NAME,
 	CAMPAING_GROUPS_COLLECTION_NAME,
-	PAY_LINK,
 } from './constants';
 import campaignFilter from './campaignFilter';
 import creativeFilter from './creativeFilter';
 import faqFilter from './faqFilter';
+
 /**
  * Direct selector to the tradingDesk state domain
  */
-
-const selectTradingDeskDomain = state => state.get('tradingDesk', initialState);
+const selectTradingDeskDomain = state => state.get(STORE_NAME, initialState);
 
 /**
  * Other specific selectors
@@ -23,6 +23,18 @@ const selectTradingDeskDomain = state => state.get('tradingDesk', initialState);
 export const creativesSelectors = makeCollectionSelectors(selectTradingDeskDomain, CREATIVES_COLLECTION_NAME);
 export const campaingsSelectors = makeCollectionSelectors(selectTradingDeskDomain, CAMPAINGS_COLLECTION_NAME);
 export const campaingGroupSelectors = makeCollectionSelectors(selectTradingDeskDomain, CAMPAING_GROUPS_COLLECTION_NAME);
+
+export const selectCampaignsIds = () =>
+	createSelector(
+		campaingsSelectors.collectionList(),
+		campaigns => campaigns.map(campaign => campaign.id).sort((a, b) => a - b)
+	);
+
+export const selectGroupsIds = () =>
+	createSelector(
+		campaingGroupSelectors.collectionList(),
+		groups => groups.filter(f => f.status === 'active').map(group => group.id).sort((a, b) => a - b)
+	);
 export const creativeUploadingProgress = () =>
 	createSelector(
 		selectTradingDeskDomain,
@@ -104,7 +116,7 @@ export const selectCountersProp = propName =>
 export const selectCountersIds = () =>
 	createSelector(
 		countersSelectors.collectionList(),
-		counters => counters.map(counter => counter.id),
+		counters => counters.map(counter => counter.counter),
 	);
 
 export const selectCountersIdsAndNames = () =>
@@ -234,6 +246,115 @@ export const selectBalance = () =>
 	createSelector(
 		selectTradingDeskDomain,
 		state => state.get('balance').toJS(),
+	);
+
+
+export const selectPaymentHistory = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('payment-history').toJS(),
+	);
+
+export const selectAdSize = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('adsize').toJS(),
+	);
+
+export const selectLanguages = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('languages').toJS(),
+	);
+
+export const selectPaginationCounts = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('paginationItemsCount').toJS(),
+	);
+
+export const selectCampaignReport = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('campaign-report').toJS(),
+	);
+
+export const selectHomePageStats = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('homepage-stats').toJS(),
+	);
+
+export const selectTableHomePageStats = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('table-homepage-stats').toJS(),
+	);
+
+export const selectCampaignReportTable = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('campaign-report-table').toJS(),
+	);
+
+export const selectCreativeReport = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('creative-report').toJS(),
+	);
+
+export const selectCreativeReportTable = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('creative-report-table').toJS(),
+	);
+
+export const selectCounterVisitors = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('counter-visitors').toJS(),
+	);
+
+export const selectCounterVisitorsTable = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('counter-visitors-table').toJS(),
+	);
+
+export const selectCounterRegions = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('counter-regions').toJS(),
+	);
+
+export const selectCounterRegionsTable = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('counter-regions-table').toJS(),
+	);
+
+export const selectCounterDevices = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('counter-devices').toJS(),
+	);
+
+export const selectCounterDevicesTable = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('counter-devices-table').toJS(),
+	);
+
+export const selectCounterChannel = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('counter-channel').toJS(),
+	);
+
+export const selectCounterChannelTable = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('counter-channel-table').toJS(),
 	);
 
 export default makeSelectTradingDesk;

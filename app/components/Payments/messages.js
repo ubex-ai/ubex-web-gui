@@ -15,7 +15,7 @@ export default defineMessages({
 	},
 	getBenefit: {
 		id: `${scope}.pay.getBenefit`,
-		defaultMessage: 'Get the benefit by paying UBEX',
+		defaultMessage: 'Benefits of paying with UBEX',
 	},
 	bonus5: {
 		id: `${scope}.pay.bonus5`,

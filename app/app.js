@@ -42,13 +42,13 @@ const MOUNT_NODE = document.getElementById('app');
 const render = messages => {
 	ReactDOM.render(
 		<Provider store={store}>
-			<AppInitProvider loadStore={loadStore}>
-				<LanguageProvider messages={messages}>
-					<ConnectedRouter history={history}>
+			<LanguageProvider messages={messages}>
+				<ConnectedRouter history={history}>
+					<AppInitProvider loadStore={loadStore}>
 						<App />
-					</ConnectedRouter>
-				</LanguageProvider>
-			</AppInitProvider>
+					</AppInitProvider>
+				</ConnectedRouter>
+			</LanguageProvider>
 		</Provider>,
 		MOUNT_NODE,
 	);

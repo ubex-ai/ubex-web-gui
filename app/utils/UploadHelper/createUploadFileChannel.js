@@ -1,5 +1,5 @@
 import { buffers, eventChannel, END } from 'redux-saga';
-
+import getCookie from '../getCookie';
 /**
  * createUploadFileChannel
  * @param {File} formData
@@ -16,7 +16,7 @@ export default function createUploadFileChannel(formData, endpoint) {
 			}
 		};
 		const onFailure = e => {
-			emitter({ err: new Error('Upload failed') });
+			emitter({ err: e });
 			emitter(END);
 		};
 		xhr.upload.addEventListener('progress', onProgress);
@@ -29,11 +29,12 @@ export default function createUploadFileChannel(formData, endpoint) {
 					emitter({ response: JSON.parse(response) });
 					emitter(END);
 				} else {
-					onFailure(null);
+					onFailure(JSON.parse(response));
 				}
 			}
 		};
 		xhr.open('POST', endpoint, true);
+		xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken'));
 		xhr.send(formData);
 		return () => {
 			xhr.upload.removeEventListener('progress', onProgress);

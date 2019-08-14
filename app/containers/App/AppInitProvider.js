@@ -6,32 +6,49 @@ import { appInit } from 'containers/Dashboard/actions';
 import injectSaga from 'utils/injectSaga';
 import injectReducer from 'utils/injectReducer';
 import userReducer from 'containers/UserPage/reducer';
-
 import FullScreenLoader from 'components/FullScreenLoader';
-import saga from '../Dashboard/saga';
-import reducer from '../Dashboard/reducer';
+import saga from 'containers/Dashboard/saga';
+import reducer from 'containers/Dashboard/reducer';
+import activeContainerRig from 'containers/ContainerManager';
 
 class AppInitProvider extends React.Component {
+	persistor = null;
+
 	state = {
 		storeLoaded: false,
 	};
 
 	componentDidMount() {
 		// fetch needed data from server on app mount
-		this.props.loadStore(() => {
-			this.setState({
-				storeLoaded: true,
-			});
-			this.props.dispatch(appInit());
+		this.persistor = this.props.loadStore(() => {
+			this.setState(
+				{
+					storeLoaded: true,
+				},
+				() => this.props.dispatch(appInit()),
+			);
 		});
 	}
 
 	render() {
-		return !this.state.storeLoaded ? <FullScreenLoader /> : this.props.children;
+		/**
+		 redux-persist/autoRehydrate: 1 actions were fired before rehydration completed. This can be a symptom of a race
+		 condition where the rehydrate action may overwrite the previously affected state. Consider running these actions
+		 after rehydration:
+		 [{…}]
+		 0:
+		 payload: {location: {…}, action: "POP"}
+		 type: "@@router/LOCATION_CHANGE"
+		 */
+		return !this.state.storeLoaded ? (
+			<FullScreenLoader />
+		) : (
+			React.Children.map(this.props.children, child =>
+				React.cloneElement(this.props.children, { persistor: this.persistor }),
+			)
+		);
 	}
 }
-
-const mapStateToProps = () => ({});
 
 function mapDispatchToProps(dispatch) {
 	return {
@@ -40,12 +57,14 @@ function mapDispatchToProps(dispatch) {
 }
 
 const withConnect = connect(
-	mapStateToProps,
+	() => ({}),
 	mapDispatchToProps,
 );
 const withUserReducer = injectReducer({ key: 'user', reducer: userReducer });
 const withDashboardReducer = injectReducer({ key: 'dashboard', reducer });
 const withSaga = injectSaga({ key: 'dashboard', saga }, 'Dashboard');
+const withContainerReducer = injectReducer({ key: activeContainerRig.storeName, reducer: activeContainerRig.reducer });
+const withContainerSaga = injectSaga({ key: activeContainerRig.storeName, saga: activeContainerRig.saga });
 
 AppInitProvider.propTypes = {
 	loadStore: PropTypes.func.isRequired,
@@ -57,5 +76,7 @@ export default compose(
 	withConnect,
 	withUserReducer,
 	withDashboardReducer,
+	withContainerReducer,
+	withContainerSaga,
 	withSaga,
 )(AppInitProvider);

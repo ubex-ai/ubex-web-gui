@@ -6,24 +6,31 @@ import createUploadFileChannel from './createUploadFileChannel';
 export function* uploadRequestWatcherSaga({ success, error }) {
 	yield takeEvery(ActionTypes.UPLOAD_REQUEST, function*(action) {
 		const formData = action.payload;
-		const { path } = action.meta;
-		yield call(uploadFileSaga, formData, path, success, error);
+		const { path, resolve, reject } = action.meta;
+
+		yield call(uploadFileSaga, formData, path, success, error, resolve, reject);
 	});
 }
 
 // Upload the specified file
-export function* uploadFileSaga(formData, path, success, error) {
+export function* uploadFileSaga(formData, path, success, error, resolve, reject) {
 	const channel = yield call(createUploadFileChannel, formData, path);
 	while (true) {
 		const { progress = 0, err, response } = yield take(channel);
 		if (err) {
+			if (typeof reject === 'function') {
+				reject(err);
+			}
 			yield put(uploadFailure(err, formData, path));
 			if (typeof error === 'function') {
-				yield put(success(err, formData, path));
+				yield put(error(err, formData, path));
 			}
 			return;
 		}
 		if (response) {
+			if (typeof resolve === 'function') {
+				resolve(response);
+			}
 			yield put(uploadSuccess(response, formData, path));
 			if (typeof success === 'function') {
 				yield put(success(response, formData, path));

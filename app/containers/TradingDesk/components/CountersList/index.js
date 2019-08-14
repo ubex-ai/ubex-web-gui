@@ -68,7 +68,6 @@ class CountersList extends React.Component {
 
 	render() {
 		const { onlineCounters, average } = this.props;
-		console.log(onlineCounters)
 		return (
 			<Row className="margin-0">
 				<Col xs={12} md={12}>

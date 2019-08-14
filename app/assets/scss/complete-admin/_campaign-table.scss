@@ -54,7 +54,14 @@
 		&:not(&:first-child){
 			margin-left: .7em;
 		}
-
+		&--date {
+			min-width: 100px;
+			text-align: left;
+			cursor: pointer;
+			&:hover {
+				text-decoration: underline;
+			}
+		}
 		&--name {
 			min-width: 130px;
 			max-width: 130px;

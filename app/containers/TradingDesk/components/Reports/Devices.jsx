@@ -12,8 +12,14 @@ import reducer from 'containers/DataMiner/reducer';
 import { compose } from 'redux';
 import AppCard from 'components/AppCard';
 import DateSelect from 'components/DateSelect';
-import { updateCharts } from 'containers/DataMiner/actions';
-import { selectChartsDates, selectMetricByName } from 'containers/DataMiner/selectors';
+import { getCounterDevices, getCounterDevicesTable } from '../../actions';
+import {
+	countersSelectors,
+	selectCountersIds,
+	selectCounterDevices,
+	selectCounterDevicesTable,
+	selectChartsDates,
+} from '../../selectors';
 
 class Devices extends React.Component {
 	columns = [
@@ -24,8 +30,36 @@ class Devices extends React.Component {
 		{ name: 'paidpercent', title: this.props.intl.formatMessage(messages.paidPercent) },
 	];
 
+	componentDidMount() {
+		const { dates, countersIds } = this.props;
+		const { startDate, endDate } = dates;
+		this.props.getCounterDevices({
+			start_date: startDate,
+			end_date: endDate,
+			ids: countersIds.slice(0, 19).join(),
+		});
+		this.props.getCounterDevicesTable({
+			start_date: startDate,
+			end_date: endDate,
+			ids: countersIds.slice(0, 19).join(),
+		});
+	}
+
+	updateCharts(params, dates) {
+		this.props.getCounterDevices({
+			start_date: dates.startDate,
+			end_date: dates.endDate,
+			ids: params.selectedOption.counter,
+		});
+		this.props.getCounterDevicesTable({
+			start_date: dates.startDate,
+			end_date: dates.endDate,
+			ids: params.selectedOption.counter,
+		});
+	}
+
 	render() {
-		const { topDevices, toTableDevices, dates, updateCharts } = this.props;
+		const { counterDevices, dates, counters, counterDevicesTable } = this.props;
 		const { startDate, endDate, period } = dates;
 
 		return (
@@ -37,16 +71,17 @@ class Devices extends React.Component {
 								<div className="page-title">
 									<div className="float-left">
 										<h1 className="title">
-											<FormattedMessage {...messages.devices} /> (reward)
+											<FormattedMessage {...messages.devices} />
 										</h1>
 									</div>
 								</div>
 							</Col>
 							<DateSelect
-								onChange={(params, dates) => updateCharts(params, dates)}
+								onChange={(params, dates) => this.updateCharts(params, dates)}
 								startDate={startDate}
 								endDate={endDate}
 								period={period}
+								mining={counters}
 							/>
 						</Row>
 					</Col>
@@ -54,14 +89,14 @@ class Devices extends React.Component {
 				<Row className="margin-0">
 					<Col className="col-md-12">
 						<AppCard chart>
-							<BarChart data={topDevices} height={window.innerWidth > 600 ? 100 : 300} />
+							<BarChart data={counterDevices} height={window.innerWidth > 600 ? 100 : 300} />
 						</AppCard>
 					</Col>
 				</Row>
 				<Row className="margin-0">
 					<Col className="col-12 col-lg-12 col-xl-12">
 						<AppCard>
-							<AppTable data={toTableDevices} pagination columns={this.columns} grouping />
+							<AppTable data={counterDevicesTable.length ? counterDevicesTable : []} pagination columns={this.columns} grouping />
 						</AppCard>
 					</Col>
 				</Row>
@@ -93,15 +128,19 @@ Devices.propTypes = {
 };
 
 const mapStateToProps = createStructuredSelector({
-	topDevices: selectMetricByName('topDevices'),
-	toTableDevices: selectMetricByName('toTableDevices'),
+	countersIds: selectCountersIds(),
+	counters: countersSelectors.collectionList(),
 	dates: selectChartsDates(),
+	counterDevices: selectCounterDevices(),
+	counterDevicesTable: selectCounterDevicesTable(),
 });
 
 function mapDispatchToProps(dispatch) {
 	return {
 		dispatch,
 		updateCharts: (params, dates) => dispatch(updateCharts(params, dates)),
+		getCounterDevices: dates => dispatch(getCounterDevices(dates)),
+		getCounterDevicesTable: dates => dispatch(getCounterDevicesTable(dates)),
 	};
 }
 
@@ -110,8 +149,6 @@ const withConnect = connect(
 	mapDispatchToProps,
 );
 
-const withReducer = injectReducer({ key: 'dataMiner', reducer });
 export default compose(
-	withReducer,
 	withConnect,
 )(injectIntl(Devices));

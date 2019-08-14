@@ -18,7 +18,7 @@ import AppCard from 'components/AppCard';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
-import validateInteger from 'utils/validateInteger';
+import validateFloat from 'utils/validateFloat';
 import { makePromiseAction } from 'utils/CollectionHelper/actions';
 
 class Pay extends React.Component {
@@ -49,8 +49,8 @@ class Pay extends React.Component {
 	deposit() {
 		const { userGUID, userEmail } = this.props;
 		const { amount, activeTab } = this.state;
-		if (validateInteger(amount)) {
-			this.setState({ error: validateInteger(amount) });
+		if (validateFloat(amount)) {
+			this.setState({ error: validateFloat(amount) });
 			return;
 		}
 
@@ -93,41 +93,43 @@ class Pay extends React.Component {
 									</h1>
 								</div>
 							</div>
-							<Row>
-								<Col md={12} style={{ paddingLeft: '5px', paddingRight: '5px' }}>
-									<AppCard>
-										<h2 className="title" style={{ textAlign: 'center' }}>
-											<FormattedMessage {...messages.getBenefit} />
-										</h2>
-										<Row className="pay-benefits">
-											<Col md={3} sm={6} xs={6} className="mt-5">
-												<div className="number">1</div>
-												<span>
-													<FormattedMessage {...messages.bonus5} />
-												</span>
-											</Col>
-											<Col md={3} sm={6} xs={6} className="mt-5">
-												<div className="number">2</div>
-												<span>
-													<FormattedMessage {...messages.noCommission} />
-												</span>
-											</Col>
-											<Col md={3} sm={6} xs={6} className="mt-5">
-												<div className="number">3</div>
-												<span>
-													<FormattedMessage {...messages.crossBorderPayments} />
-												</span>
-											</Col>
-											<Col md={3} sm={6} xs={6} className="mt-5">
-												<div className="number">4</div>
-												<span>
-													<FormattedMessage {...messages.deferredPayment} />
-												</span>
-											</Col>
-										</Row>
-									</AppCard>
-								</Col>
-							</Row>
+							{CRYPTO_MODE && (
+								<Row>
+									<Col md={12} style={{ paddingLeft: '5px', paddingRight: '5px' }}>
+										<AppCard>
+											<h2 className="title" style={{ textAlign: 'center' }}>
+												<FormattedMessage {...messages.getBenefit} />
+											</h2>
+											<Row className="pay-benefits">
+												<Col md={3} sm={6} xs={6} className="mt-5">
+													<div className="number">1</div>
+													<span>
+														<FormattedMessage {...messages.bonus5} />
+													</span>
+												</Col>
+												<Col md={3} sm={6} xs={6} className="mt-5">
+													<div className="number">2</div>
+													<span>
+														<FormattedMessage {...messages.noCommission} />
+													</span>
+												</Col>
+												<Col md={3} sm={6} xs={6} className="mt-5">
+													<div className="number">3</div>
+													<span>
+														<FormattedMessage {...messages.crossBorderPayments} />
+													</span>
+												</Col>
+												<Col md={3} sm={6} xs={6} className="mt-5">
+													<div className="number">4</div>
+													<span>
+														<FormattedMessage {...messages.deferredPayment} />
+													</span>
+												</Col>
+											</Row>
+										</AppCard>
+									</Col>
+								</Row>
+							)}
 							<div className="row card-pay">
 								<div className="col-12 col-lg-12 col-xl-12">
 									<Row className="">
@@ -184,32 +186,36 @@ class Pay extends React.Component {
 																<img src={ubex} alt="ubex" />
 															</NavLink>
 														</NavItem> */}
-														<NavItem>
-															<NavLink
-																className={classnames({
-																	active: this.state.activeTab === '5',
-																	disabled: this.state.disabled.includes('5'),
-																})}
-																onClick={() => {
-																	this.toggle('5', eth);
-																}}
-															>
-																<img src={eth} alt="ubex" />
-															</NavLink>
-														</NavItem>
-														<NavItem>
-															<NavLink
-																className={classnames({
-																	active: this.state.activeTab === '6',
-																	disabled: this.state.disabled.includes('6'),
-																})}
-																onClick={() => {
-																	this.toggle('6', btc);
-																}}
-															>
-																<img src={btc} alt="btc" />
-															</NavLink>
-														</NavItem>
+														{CRYPTO_MODE && (
+															<NavItem>
+																<NavLink
+																	className={classnames({
+																		active: this.state.activeTab === '5',
+																		disabled: this.state.disabled.includes('5'),
+																	})}
+																	onClick={() => {
+																		this.toggle('5', eth);
+																	}}
+																>
+																	<img src={eth} alt="ubex" />
+																</NavLink>
+															</NavItem>
+														)}
+														{CRYPTO_MODE && (
+															<NavItem>
+																<NavLink
+																	className={classnames({
+																		active: this.state.activeTab === '6',
+																		disabled: this.state.disabled.includes('6'),
+																	})}
+																	onClick={() => {
+																		this.toggle('6', btc);
+																	}}
+																>
+																	<img src={btc} alt="btc" />
+																</NavLink>
+															</NavItem>
+														)}
 													</Nav>
 												</div>
 											</article>
@@ -232,15 +238,14 @@ class Pay extends React.Component {
 																{msg => (
 																	<Input
 																		type="number"
+																		pattern="\d*"
 																		placeholder={msg}
-																		step="1"
 																		onChange={e =>
 																			this.setState({ amount: e.target.value })
 																		}
 																	/>
 																)}
 															</FormattedMessage>
-															<InputGroupAddon addonType="append">.00</InputGroupAddon>
 														</InputGroup>
 														{this.state.error && (
 															<FormFeedback invalid="true">

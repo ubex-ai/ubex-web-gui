@@ -4,6 +4,7 @@ import LanguageChanger from 'components/LanguageChanger';
 import { Link } from 'react-router-dom';
 import { FormattedMessage } from 'react-intl';
 import { getUBEXBalance } from 'utils/web3helper';
+import Cookies from 'universal-cookie';
 import WalletConnector from '../WalletConnector';
 
 class Header extends React.Component {
@@ -12,6 +13,7 @@ class Header extends React.Component {
 		this.state = {
 			isOpen: false,
 			userddOpen: false,
+			moneyddOpen: false,
 			searchOpen: false,
 			messagesddOpen: false,
 			notificationsddOpen: false,
@@ -61,6 +63,12 @@ class Header extends React.Component {
 	userddToggle(e) {
 		this.setState({
 			userddOpen: !this.state.userddOpen,
+		});
+	}
+
+	moneyddToggle(e) {
+		this.setState({
+			moneyddOpen: !this.state.moneyddOpen,
 		});
 	}
 
@@ -153,8 +161,18 @@ class Header extends React.Component {
 		}
 	}
 
+	setPopoverCookie() {
+		const cookies = new Cookies();
+		cookies.set('popoverUBEX', true, { path: '/' });
+		this.setState({ popoverOpen: false });
+	}
+
+	getPopoverCookie() {
+		const cookies = new Cookies();
+		return cookies.get('popoverUBEX');
+	}
+
 	render() {
-		console.log(this.props)
 		const { display } = this.props.selectUbexPopover;
 		const { amount } = this.props.selectAmount && this.props.selectAmount.length ? this.props.selectAmount[0] : '0';
 		const { selectUbexHash } = this.props;
@@ -201,9 +219,9 @@ class Header extends React.Component {
 							<a className="dropdown-item" href="#">
 								Data Platform
 							</a>
-							<a className="dropdown-item" href="https://mining.ubex.com">
+							{/* <a className="dropdown-item" href="https://mining.ubex.com">
 								Data Mining
-							</a>
+							</a> */}
 							<a className="dropdown-item" href="https://network.ubex.com">
 								Ad Network
 							</a>
@@ -228,36 +246,38 @@ class Header extends React.Component {
 								<span>Ad Network</span>
 							</a>
 						</li>
-						<li className="nav-item">
+						{/* <li className="nav-item">
 							<a href="https://mining.ubex.com" className="mining ">
 								<i className="fas fa-server" />
 								<span>Data Mining</span>
 							</a>
-						</li>
+						</li> */}
 					</ul>
 					<ul className="navbar-nav users__header float-right">
 						{document.location.origin !== MINING_URL && (
 							<li className="nav-item nav-pay">
-								<Link className="nav-link" to="/app/payments/pay">
+								<Link className="nav-link" to="/app/payments/history">
 									<span className="tab-label">USD</span>
 									<span className="badge badge-success">
-										<span>{amount ? parseInt(amount, 10) : '0'}</span>
+										<span>{amount || '0'}</span>
 									</span>
 								</Link>
 							</li>
 						)}
-						<li className="nav-item nav-pay" id="pay-popover">
-							<a
-								className="nav-link pointer"
-								onClick={() => this.setState({ openWalletConnector: true })}
-							>
-								<span className="tab-label">UBEX</span>
-								<span className="badge badge-purple">
-									<span>{this.state.ubexBalance}</span>
-								</span>
-							</a>
-						</li>
-						{window.innerWidth >= 992 && (
+						{CRYPTO_MODE && (
+							<li className="nav-item nav-pay" id="pay-popover">
+								<a
+									className="nav-link pointer"
+									onClick={() => this.setState({ openWalletConnector: true })}
+								>
+									<span className="tab-label">UBEX</span>
+									<span className="badge badge-purple">
+										<span>{this.state.ubexBalance}</span>
+									</span>
+								</a>
+							</li>
+						)}
+						{window.innerWidth >= 992 && CRYPTO_MODE && (
 							<Popover
 								fade
 								placement="bottom"
@@ -265,7 +285,7 @@ class Header extends React.Component {
 									!this.state.openWalletConnector &&
 									this.state.popoverOpen &&
 									display &&
-									NODE_ENV === 'production'
+									!this.getPopoverCookie()
 								}
 								className="pay-popover"
 								target="pay-popover"
@@ -277,7 +297,7 @@ class Header extends React.Component {
 											type="button"
 											className="close"
 											aria-label="Close"
-											onClick={() => this.props.setUbexPopover({ display: false })}
+											onClick={() => this.setPopoverCookie()}
 										>
 											<span aria-hidden="true">×</span>
 										</button>
@@ -292,6 +312,45 @@ class Header extends React.Component {
 								</PopoverBody>
 							</Popover>
 						)}
+						<div className="nav-item desktop_none">
+							<Dropdown
+								nav
+								isOpen={this.state.moneyddOpen}
+								toggle={e => this.moneyddToggle(e)}
+								className="userdd"
+							>
+								<DropdownToggle caret nav>
+									<i className="fas fa-coins" />
+								</DropdownToggle>
+								<DropdownMenu right className="pt-0">
+									<div className="desktop_none">
+										<DropdownItem className="mt-0">
+											<li className="nav-item d-xl-block mt-0">
+												<Link className="nav-link" to="/app/payments/history">
+													<span className="tab-label">USD</span>
+													<span className="badge badge-success">
+														<span>{amount || '0'}</span>
+													</span>
+												</Link>
+											</li>
+											{CRYPTO_MODE && (
+												<li
+													className="nav-item d-xl-block"
+													onClick={() => this.setState({ openWalletConnector: true })}
+												>
+													<div className="nav-link">
+														<span className="tab-label">UBEX</span>
+														<span className="badge badge-purple">
+															<span>{this.state.ubexBalance}</span>
+														</span>
+													</div>
+												</li>
+											)}
+										</DropdownItem>
+									</div>
+								</DropdownMenu>
+							</Dropdown>
+						</div>
 						<div className="nav-item">
 							<Dropdown
 								nav
@@ -304,36 +363,21 @@ class Header extends React.Component {
 									<span>{this.props.userData && this.props.userData.email}</span>
 								</DropdownToggle>
 								<DropdownMenu right>
-									<DropdownItem disabled className="desktop_none">
-										<i className="fa fa-user header__user" />
-										<span>{this.props.userData && this.props.userData.email}</span>
-									</DropdownItem>
-									<div className="desktop_none">
-										<DropdownItem>
-											<li
-												className="nav-item d-xl-block"
-												onClick={() => this.setState({ openWalletConnector: true })}
-											>
-												<div className="nav-link">
-													<span className="tab-label">UBEX</span>
-													<span className="badge badge-purple">
-														<span>{this.state.ubexBalance}</span>
-													</span>
-												</div>
-											</li>
-										</DropdownItem>
-									</div>
 									<a href={`${PASSPORT_URL}/profile`}>
 										<DropdownItem>
 											<i className="fa fa-user" href="#!" />
 											<FormattedMessage id="app.navbar.profile" />
 										</DropdownItem>
 									</a>
-									<a href="/accounts/logout/">
+									<a href="/accounts/logout/" onClick={e => this.props.onClickLogout(e)}>
 										<DropdownItem>
 											<i className="fa fa-lock" /> <FormattedMessage id="app.navbar.logout" />
 										</DropdownItem>
 									</a>
+									<DropdownItem disabled className="desktop_none gray-background">
+										<i className="fa fa-user header__user" />
+										<span>{this.props.userData && this.props.userData.email}</span>
+									</DropdownItem>
 								</DropdownMenu>
 							</Dropdown>
 						</div>

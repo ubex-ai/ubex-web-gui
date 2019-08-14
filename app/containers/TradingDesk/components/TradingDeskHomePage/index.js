@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { Col, Row, Alert } from 'reactstrap';
-import Select from 'react-select';
+
 import { FormattedMessage } from 'react-intl';
 import DateSelect from 'components/DateSelect';
 import PropTypes from 'prop-types';
@@ -16,14 +16,24 @@ import { compose } from 'redux';
 import CardPopover from 'components/CardPopover';
 import { Link } from 'react-router-dom';
 import { HorizontalBar, Line } from 'react-chartjs-2';
-import AdCampaignsDashboardCard from 'containers/TradingDesk/components/DashboardCards/AdCampaignsDashboardCard';
-import EnoughMoneyDashboardCard from 'containers/TradingDesk/components/DashboardCards/EnoughMoneyDashboardCard';
 import AdBlockDetect from 'react-ad-block-detect';
-import messages from '../../messages';
-import { campaingCollectionActions, updateCharts, setAdBlock } from '../../actions';
-import { selectChartsDates, campaingsSelectors, selectAdBlock, campaingGroupSelectors } from '../../selectors';
-// import PropTypes from 'prop-types';
-// import styled from 'styled-components';
+import LineChart from 'components/Charts/Line';
+import messages from 'containers/TradingDesk/messages';
+import {
+	setAdBlock,
+	getHomePageStats,
+	getTableStatsHomePage,
+	setChartsDates,
+} from 'containers/TradingDesk/actions';
+import {
+	selectChartsDates,
+	campaingsSelectors,
+	selectAdBlock,
+	campaingGroupSelectors,
+	selectHomePageStats,
+	selectGroupsIds,
+	selectTableHomePageStats,
+} from 'containers/TradingDesk/selectors';
 
 /* eslint-disable react/prefer-stateless-function */
 export class TradingDeskHomePage extends React.Component {
@@ -40,8 +50,44 @@ export class TradingDeskHomePage extends React.Component {
 		this.props.setAdBlock({ display: false });
 	}
 
+	componentDidMount() {
+		const { dates, getHomePageStats, groupsIds, getTableStatsHomePage } = this.props;
+		const { startDate, endDate } = dates;
+		getHomePageStats({
+			campaign_group: groupsIds
+				.sort((a, b) => a - b)
+				.slice(0, 19)
+				.join(),
+			start_date: startDate,
+			end_date: endDate,
+		});
+		getTableStatsHomePage({
+			campaign_group: groupsIds
+				.sort((a, b) => a - b)
+				.slice(0, 19)
+				.join(),
+			start_date: startDate,
+			end_date: endDate,
+		});
+	}
+
+	updateChart(params, dates) {
+		const { getHomePageStats } = this.props;
+		this.props.updateDates({ startDate: dates.startDate, endDate: dates.endDate, period: dates.period });
+		getHomePageStats({
+			campaign_group: params.selectedOption.value,
+			start_date: dates.startDate,
+			end_date: dates.endDate,
+		});
+		getTableStatsHomePage({
+			campaign_group: params.selectedOption.value,
+			start_date: dates.startDate,
+			end_date: dates.endDate,
+		});
+	}
+
 	render() {
-		const { dates, campaigns, adBlock, groups } = this.props;
+		const { dates, campaigns, adBlock, groups, homePageStats, tableHomePageStats } = this.props;
 		const { startDate, endDate, period } = dates;
 		return (
 			<Row>
@@ -72,7 +118,7 @@ export class TradingDeskHomePage extends React.Component {
 											</div>
 										</Col>
 										<DateSelect
-											onChange={(params, dates) => updateCharts(params, dates)}
+											onChange={(params, dates) => this.updateChart(params, dates)}
 											startDate={startDate}
 											endDate={endDate}
 											period={period}
@@ -94,7 +140,9 @@ export class TradingDeskHomePage extends React.Component {
 									<Row>
 										<Col lg={12} className="mobile_center">
 											<h4>
-												<strong>0%</strong>
+												<strong>
+													{tableHomePageStats.winrate ? tableHomePageStats.winrate : 0}%
+												</strong>
 											</h4>
 											<span>
 												<FormattedMessage {...messages.winrate} />
@@ -111,7 +159,9 @@ export class TradingDeskHomePage extends React.Component {
 									<Row>
 										<Col lg={10} className="mobile_center">
 											<h4>
-												<strong>$0</strong>
+												<strong>
+													${tableHomePageStats.spent ? tableHomePageStats.spent : 0}
+												</strong>
 											</h4>
 											<span>
 												<FormattedMessage {...messages.spend} />
@@ -123,12 +173,12 @@ export class TradingDeskHomePage extends React.Component {
 						</Col>
 						<Col xl={3} md={12} lg={12} xs={12}>
 							<CardPopover popoverHeader={messages.CTRPopover} popoverBody={messages.CTRPopoverText}>
-								<i className="float-left fas fa-file-invoice-dollar icon-md icon-rounded icon-info" />
+								<i className="float-left fas fa-file-invoice-dollar icon-md icon-rounded icon-purple" />
 								<div className="stats">
 									<Row>
 										<Col lg={10} className="mobile_center">
 											<h4>
-												<strong>0.00%</strong>
+												<strong>{tableHomePageStats.CTR ? tableHomePageStats.CTR : 0}%</strong>
 											</h4>
 											<span>
 												<FormattedMessage {...messages.CTR} />
@@ -145,7 +195,9 @@ export class TradingDeskHomePage extends React.Component {
 									<Row>
 										<Col lg={10} className="mobile_center">
 											<h4>
-												<strong>$0</strong>
+												<strong>
+													${tableHomePageStats.eCPM ? tableHomePageStats.eCPM : 0}
+												</strong>
 											</h4>
 											<span>
 												<FormattedMessage {...messages.eCPM} />
@@ -164,14 +216,103 @@ export class TradingDeskHomePage extends React.Component {
 								chart
 							>
 								<header className="cardPopover__header">
-									<Link to="/app/reports/impressions">
+									<Link to="/app/campaigns/report">
 										<h2 className="cardPopover__header-title float-left">
 											<FormattedMessage {...messages.impressionsAndClicks} />
 										</h2>
 									</Link>
 								</header>
 								<div className="content-body chart-area">
-									<Line data={this.state.dataChart} />
+									<LineChart
+										data={
+											Object.entries(homePageStats).length
+												? {
+														arrayChart: [homePageStats.impressions, homePageStats.clicks],
+														arrayLabels: homePageStats.labels,
+												  }
+												: this.state.dataChart
+										}
+										color={[
+											{
+												r: 0,
+												g: 123,
+												b: 255,
+											},
+											{
+												r: 255,
+												g: 184,
+												b: 34,
+											},
+										]}
+										height={window.innerWidth > 600 ? null : 300}
+										legend={['Impressions', 'Clicks']}
+									/>
+								</div>
+							</CardPopover>
+						</Col>
+						<Col lg={6}>
+							<CardPopover
+								popoverHeader={messages.CTRPopover}
+								popoverBody={messages.CTRPopoverText}
+								chart
+							>
+								<header className="cardPopover__header">
+									<Link to="/app/campaigns/reportByFilter/CTR">
+										<h2 className="cardPopover__header-title float-left">
+											<FormattedMessage {...messages.CTR} />
+										</h2>
+									</Link>
+								</header>
+								<div className="content-body chart-area">
+									<LineChart
+										data={
+											Object.entries(homePageStats).length
+												? {
+														arrayChart: [homePageStats.CTR],
+														arrayLabels: homePageStats.labels,
+												  }
+												: this.state.dataChart
+										}
+										color={{
+											r: 113,
+											g: 106,
+											b: 202,
+										}}
+										height={window.innerWidth > 600 ? null : 300}
+									/>
+								</div>
+							</CardPopover>
+						</Col>
+						<Col lg={6}>
+							<CardPopover
+								popoverHeader={messages.winratePopover}
+								popoverBody={messages.winratePopoverText}
+								chart
+							>
+								<header className="cardPopover__header">
+									<Link to="/app/campaigns/reportByFilter/winrate">
+										<h2 className="cardPopover__header-title float-left">
+											<FormattedMessage {...messages.winrate} />
+										</h2>
+									</Link>
+								</header>
+								<div className="content-body chart-area">
+									<LineChart
+										data={
+											Object.entries(homePageStats).length
+												? {
+														arrayChart: [homePageStats.winrate],
+														arrayLabels: homePageStats.labels,
+												  }
+												: this.state.dataChart
+										}
+										color={{
+											r: 34,
+											g: 185,
+											b: 255,
+										}}
+										height={window.innerWidth > 600 ? null : 300}
+									/>
 								</div>
 							</CardPopover>
 						</Col>
@@ -182,56 +323,37 @@ export class TradingDeskHomePage extends React.Component {
 								chart
 							>
 								<header className="cardPopover__header">
-									<Link to="/app/reports/impressions">
+									<Link to="/app/campaigns/reportByFilter/spend">
 										<h2 className="cardPopover__header-title float-left">
 											<FormattedMessage {...messages.amountSpent} />
 										</h2>
 									</Link>
 								</header>
 								<div className="content-body chart-area">
-									<Line data={this.state.dataChart} />
-								</div>
-							</CardPopover>
-						</Col>
-						{/* <Col xl={6} md={12} xs={12}>
-							<AdCampaignsDashboardCard />
-						</Col>
-						<Col xl={6} md={12} xs={12}>
-							<EnoughMoneyDashboardCard />
-						</Col> */}
-						<Col lg={6}>
-							<CardPopover
-								popoverHeader={messages.top5campaignsPopover}
-								popoverBody={messages.top5campaignsPopoverText}
-								chart
-							>
-								<header className="cardPopover__header">
-									<Link to="/app/reports/impressions">
-										<h2 className="cardPopover__header-title float-left">
-											<FormattedMessage {...messages.top5campaigns} />
-										</h2>
-									</Link>
-								</header>
-								<div className="content-body chart-area">
-									<Line data={this.state.dataChart} />
-								</div>
-							</CardPopover>
-						</Col>
-						<Col lg={6}>
-							<CardPopover
-								popoverHeader={messages.top5adstypePopover}
-								popoverBody={messages.top5adstypePopoverText}
-								chart
-							>
-								<header className="cardPopover__header">
-									<Link to="/app/reports/impressions">
-										<h2 className="cardPopover__header-title float-left">
-											<FormattedMessage {...messages.top5adstype} />
-										</h2>
-									</Link>
-								</header>
-								<div className="content-body chart-area">
-									<Line data={this.state.dataChart} />
+									<LineChart
+										data={
+											Object.entries(homePageStats).length
+												? {
+														arrayChart: [homePageStats.spent, homePageStats.eCPM],
+														arrayLabels: homePageStats.labels,
+												  }
+												: this.state.dataChart
+										}
+										color={[
+											{
+												r: 52,
+												g: 191,
+												b: 163,
+											},
+											{
+												r: 244,
+												g: 81,
+												b: 108,
+											},
+										]}
+										height={window.innerWidth > 600 ? null : 300}
+										legend={['Spent', 'eCPM']}
+									/>
 								</div>
 							</CardPopover>
 						</Col>
@@ -271,42 +393,6 @@ export class TradingDeskHomePage extends React.Component {
 								</div>
 							</CardPopover>
 						</Col>
-						<Col lg={6}>
-							<CardPopover
-								popoverHeader={messages.devicesPopover}
-								popoverBody={messages.devicesPopoverText}
-								chart
-							>
-								<header className="cardPopover__header">
-									<Link to="/app/reports/impressions">
-										<h2 className="cardPopover__header-title float-left">
-											<FormattedMessage {...messages.devices} />
-										</h2>
-									</Link>
-								</header>
-								<div className="content-body chart-area">
-									<Line data={this.state.dataChart} />
-								</div>
-							</CardPopover>
-						</Col>
-						<Col lg={6}>
-							<CardPopover
-								popoverHeader={messages.channelPopover}
-								popoverBody={messages.channelPopoverText}
-								chart
-							>
-								<header className="cardPopover__header">
-									<Link to="/app/reports/impressions">
-										<h2 className="cardPopover__header-title float-left">
-											<FormattedMessage {...messages.channel} />
-										</h2>
-									</Link>
-								</header>
-								<div className="content-body chart-area">
-									<HorizontalBar data={this.state.dataChart} />
-								</div>
-							</CardPopover>
-						</Col>
 					</Row>
 				</Col>
 			</Row>
@@ -319,8 +405,6 @@ TradingDeskHomePage.propTypes = {
 	campaigns: PropTypes.array,
 	groups: PropTypes.array,
 	adBlock: PropTypes.object,
-	updateCharts: PropTypes.func,
-	getCampaigns: PropTypes.func,
 	setAdBlock: PropTypes.func,
 };
 
@@ -328,15 +412,19 @@ const mapStateToProps = createStructuredSelector({
 	dates: selectChartsDates(),
 	campaigns: campaingsSelectors.collectionList(),
 	groups: campaingGroupSelectors.collectionList(),
+	homePageStats: selectHomePageStats(),
+	groupsIds: selectGroupsIds(),
 	adBlock: selectAdBlock(),
+	tableHomePageStats: selectTableHomePageStats(),
 });
 
 function mapDispatchToProps(dispatch) {
 	return {
 		dispatch,
-		updateCharts: (params, dates) => dispatch(updateCharts(params, dates)),
-		getCampaigns: dispatch(campaingCollectionActions.getCollection()),
 		setAdBlock: values => dispatch(setAdBlock(values)),
+		getHomePageStats: dates => dispatch(getHomePageStats(dates)),
+		getTableStatsHomePage: dates => dispatch(getTableStatsHomePage(dates)),
+		updateDates: dates => dispatch(setChartsDates(dates)),
 	};
 }
 

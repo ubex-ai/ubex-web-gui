@@ -24,6 +24,8 @@ import validateEmail from 'utils/validateEmail';
 import validatePhone from 'utils/validatePhone';
 import messages from './messages';
 import { selectCountries } from '../../../Dashboard/selectors';
+import { makePromiseAction } from '../../../../utils/CollectionHelper/actions';
+import { contactForm } from '../../actions';
 /* eslint-disable react/prefer-stateless-function */
 class Developers extends React.Component {
 	constructor(props) {
@@ -52,7 +54,9 @@ class Developers extends React.Component {
 		return errors;
 	}
 
-	onSubmit(values) {}
+	onSubmit(values) {
+		this.props.sendForm(values);
+	}
 
 	renderForm({ handleSubmit, change, errors }) {
 		const { countries } = this.props;
@@ -63,7 +67,7 @@ class Developers extends React.Component {
 					name="region"
 					inputProps={{
 						type: 'select',
-						options: countries,
+						options: countries.map(country => ({ id: country.id, label: country.label, value: country.label })),
 					}}
 					label={messages.region}
 					required
@@ -78,7 +82,8 @@ class Developers extends React.Component {
 	}
 
 	render() {
-		return <div>
+		return (
+			<div>
 				<Row className="margin-0">
 					<Col md={12} className="title-with-select__other">
 						<Row>
@@ -122,7 +127,12 @@ class Developers extends React.Component {
 							<h2 className="title" style={{ textAlign: 'center' }}>
 								<FormattedMessage {...messages.contactUs} />
 							</h2>
-							<Form validate={formValues => this.validate(formValues)} onSubmit={values => this.onSubmit(values)} ref={c => (this.formRef = c)} render={this.renderForm} />
+							<Form
+								validate={formValues => this.validate(formValues)}
+								onSubmit={values => this.onSubmit(values)}
+								ref={c => (this.formRef = c)}
+								render={this.renderForm}
+							/>
 						</AppCard>
 					</Col>
 					<Col md={6}>
@@ -142,7 +152,8 @@ class Developers extends React.Component {
 						</AppCard>
 					</Col>
 				</Row>
-			</div>;
+			</div>
+		);
 	}
 }
 
@@ -155,7 +166,7 @@ const mapStateToProps = createStructuredSelector({
 });
 function mapDispatchToProps(dispatch) {
 	return {
-		dispatch,
+		sendForm: values => makePromiseAction(dispatch, contactForm.addEntry(values)),
 	};
 }
 const withConnect = connect(

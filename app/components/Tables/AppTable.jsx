@@ -78,7 +78,7 @@ class AppTable extends React.Component {
 						<IntegratedPaging />
 						{grouping && (
 							<GroupingState
-								grouping={[{ columnName: 'date' }]}
+								grouping={[{ columnName: grouping !== 'date' && typeof grouping === 'string' ? grouping : 'date' }]}
 								defaultExpandedGroups={[moment().format('YYYY-MM-DD')]}
 							/>
 						)}

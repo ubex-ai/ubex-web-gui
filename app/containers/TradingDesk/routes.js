@@ -18,6 +18,7 @@ import Developers from 'containers/TradingDesk/components/Developers';
 import ActionLog from 'containers/TradingDesk/components/ActionLog';
 import CreativeReport from 'containers/TradingDesk/components/CreativeReport';
 import CampaignReport from 'containers/TradingDesk/components/CampaignReport';
+import TrafficSources from 'containers/TradingDesk/components/TrafficSources';
 
 const routes = [
 	{ path: '#', name: 'advertising', type: 'navgroup' },
@@ -79,7 +80,20 @@ const routes = [
 		child: [
 			{ path: '/app/creatives/report', name: 'creative-report', component: CreativeReport },
 			{ path: '/app/campaigns/report', name: 'campaigns-report', component: CampaignReport },
+			{ path: '/app/traffic/sources', name: 'traffic-sources', component: TrafficSources },
 		],
+	},
+	{
+		path: '/app/campaigns/reportByGroup/:groupId',
+		component: CampaignReport,
+		name: 'campaigns-report',
+		type: 'child',
+	},
+	{
+		path: '/app/campaigns/reportByFilter/:filter',
+		component: CampaignReport,
+		name: 'campaigns-report',
+		type: 'child',
 	},
 	{
 		path: '#',
@@ -146,8 +160,8 @@ const routes = [
 		],
 	},
 	{ path: '/app/log', name: 'log', icon: 'boxes', component: ActionLog },
-	{ path: '/app/FAQ', name: 'faq', icon: 'question-circle', component: FAQ },
 	{ path: '/app/developers', name: 'developers', icon: 'code', component: Developers },
+	{ path: '/app/FAQ', name: 'faq', icon: 'question-circle', component: FAQ },
 ];
 
 export default routes;

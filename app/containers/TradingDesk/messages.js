@@ -322,7 +322,7 @@ export default defineMessages({
 	},
 	impressions: {
 		id: `${scope}.impressions`,
-		defaultMessage: 'Impressions',
+		defaultMessage: 'Impres.',
 	},
 	clicks: {
 		id: `${scope}.clicks`,
@@ -575,5 +575,9 @@ export default defineMessages({
 	available: {
 		id: `${scope}.TopUpModal.available`,
 		defaultMessage: 'Available',
+	},
+	created: {
+		id: `${scope}.created`,
+		defaultMessage: 'Created',
 	},
 });
