@@ -26,7 +26,7 @@
 
 		.navbar-nav {
 			.nav-item:first-child {
-				margin-top: 10px;
+				margin-top: 7px;
 			}
 			.nav-item:not(:last-child) {
 				margin-bottom: 10px;
@@ -110,7 +110,7 @@
 	.nav-toggle {
 		.main-panel {
 			right: 0;
-			@include transform-translate-x(260px);
+			@include transform-translate-x(225px);
 		}
 
 		.sidebar {
@@ -124,7 +124,7 @@
 
 		.menu-on-right {
 			.main-panel {
-				@include transform-translate-x(-260px);
+				@include transform-translate-x(-225px);
 			}
 
 			.navbar-collapse,
@@ -137,7 +137,7 @@
 			}
 
 			#bodyClick {
-				right: 260px;
+				right: 225px;
 				left: auto;
 			}
 		}
@@ -147,7 +147,7 @@
 		.sidebar {
 			left: auto;
 			right: 0;
-			@include transform-translate-x(260px);
+			@include transform-translate-x(225px);
 		}
 	}
 
@@ -216,7 +216,7 @@
 		opacity: 1;
 		top: 0;
 		right: 0;
-		left: 260px;
+		left: 225px;
 		content: '';
 		z-index: 9999;
 		overflow-x: hidden;
@@ -248,7 +248,7 @@
 		display: block;
 		top: 0;
 		height: 100%;
-		width: 260px;
+		width: 225px;
 		right: auto;
 		left: 0;
 		z-index: 1032;
@@ -257,7 +257,7 @@
 		padding: 0;
 		@include transition(0.5s, cubic-bezier(0.685, 0.0473, 0.346, 1));
 
-		@include transform-translate-x(-260px);
+		@include transform-translate-x(-225px);
 	}
 
 	.main-panel {
@@ -317,7 +317,7 @@
 	}
 
 	.dropdown-menu .dropdown-item {
-		color: inherit;
+		color: #5e6265;
 	}
 
 	.footer {

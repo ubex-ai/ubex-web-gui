@@ -38,7 +38,7 @@ class Sidebar extends React.Component {
 
 	// verifies if routeName is the one active (in browser input)
 	activeRoute(routeName) {
-		return this.props.location.pathname.indexOf(routeName) > -1 ? ' active' : '';
+		return this.props.location.pathname.indexOf(routeName.split(':')[0]) > -1 ? ' active' : '';
 	}
 
 	componentDidMount() {
@@ -74,10 +74,10 @@ class Sidebar extends React.Component {
 			}
 		};
 		const ua = window.navigator.userAgent.toLowerCase();
-		const is_ie = /trident/gi.test(ua) || /msie/gi.test(ua);
+		const is_ie = /trident/gi.test(ua) || /msie/gi.test(ua) || /edge/gi.test(ua);
 		const { currentLocale } = this.props;
 		return (
-			<div className="sidebar menubar" data-color="white">
+			<div className="sidebar menubar" id="appSidebar" data-color="white">
 				<div className="sidebar-wrapper" ref="sidebar">
 					<div className="profile-info row">
 						<div className="col-12">
@@ -112,12 +112,12 @@ class Sidebar extends React.Component {
 											className="nav-link"
 											onClick={() => this.handleOpendd(prop.name)}
 										>
-											<i className={`fas fa-${prop.icon}`} />
+											<i className={`${prop.icon}`} />
 											<p>
 												<FormattedMessage id={`app.sidebar.${prop.name}`} />
 											</p>
 											<span className="badge">{prop.badge}</span>
-											<span className="arrow fa fa-chevron-left" />
+											<span className="arrow fa fa-chevron-right" />
 										</a>
 										{children(prop.name, prop.child)}
 									</li>
@@ -142,8 +142,12 @@ class Sidebar extends React.Component {
 									key={key}
 									onClick={() => this.handleOpendd(prop.name)}
 								>
-									<NavLink to={prop.path} className="nav-link" activeClassName="active">
-										<i className={`fas fa-${prop.icon}`} />
+									<NavLink
+										to={prop.hasOwnProperty('defaultPath') ? prop.defaultPath : prop.path}
+										className="nav-link"
+										activeClassName="active"
+									>
+										<i className={`${prop.icon}`} />
 										<p>
 											<FormattedMessage id={`app.sidebar.${prop.name}`} />
 										</p>
@@ -159,7 +163,7 @@ class Sidebar extends React.Component {
 									<FormattedMessage id={`app.sidebar.personalManager`} />:
 								</h6>
 								<p>
-									<i className="fas fa-user" />
+									<i className="fal fa-user" />
 									{Object.keys(managers).includes(currentLocale)
 										? managers[currentLocale].name
 										: managers.en.name}
@@ -171,7 +175,7 @@ class Sidebar extends React.Component {
 											: managers.en.email
 									}`}
 								>
-									<i className="fas fa-envelope-square" />
+									<i className="fal fa-envelope" />
 									{Object.keys(managers).includes(currentLocale)
 										? managers[currentLocale].email
 										: managers.en.email}
@@ -191,14 +195,22 @@ class Sidebar extends React.Component {
 							<a href="https://www.youtube.com/c/UbexAI" target="_blank">
 								<i className="fa fa-youtube" />
 							</a>
-							<a href="https://www.instagram.com/ubex_ai/" target="_blank">
-								<i className="fa fa-instagram" />
-							</a>
 							<a href="https://www.linkedin.com/company/ubex-ai" target="_blank">
 								<i className="fa fa-linkedin" />
 							</a>
 						</div>
 					</div>
+					<span
+						style={{
+							position: 'relative',
+							top: '20px',
+							display: 'block',
+							fontSize: '10px',
+							marginLeft: '25px'
+						}}
+					>
+						VERSION: {VERSION}
+					</span>
 				</div>
 			</div>
 		);

@@ -32,7 +32,7 @@ export default ({ key, saga, mode }, from) => WrappedComponent => {
 
 			injectSaga(key, { saga, mode }, this.props);
 
-			NODE_ENV !== 'production' && console.warn('saga injected', key, from);
+			(NODE_ENV !== 'production' && NODE_ENV !== 'stage') && console.warn('saga injected', key, from);
 		}
 
 		componentWillUnmount() {
@@ -40,7 +40,7 @@ export default ({ key, saga, mode }, from) => WrappedComponent => {
 
 			ejectSaga(key);
 
-			NODE_ENV !== 'production' && console.warn('saga ejected', key, from);
+			(NODE_ENV !== 'production' && NODE_ENV !== 'stage') && console.warn('saga ejected', key, from);
 		}
 
 		render() {

@@ -54,7 +54,7 @@ import { handleRequestListStatsByParamsSaga } from '../../utils/StatsHelper/saga
 export function* onAppInit() {
 	yield getListRequestHandler(getCountries(), countriesActions, {
 		success: formatCategoriesList,
-	}),
+	});
 	yield getListRequestHandler(getLanguages(), languagesActions);
 	yield getListRequestHandler(getBanners(), bannersActions);
 	yield getListRequestHandler(getDSP(), dspActions);

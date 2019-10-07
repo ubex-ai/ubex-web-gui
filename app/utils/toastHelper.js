@@ -1,9 +1,17 @@
 import { toast, Slide } from 'react-toastify';
+import React from 'react';
 
-export default function createToast(type, text){
-	return toast[type](text, {
+const Foo = text => (
+	<div>
+		<i className="fal fa-bell" style={{ marginRight: '10px', marginLeft: '5px' }} />
+		{text}
+	</div>
+);
+
+export default function createToast(type, text) {
+	return toast[type](Foo(text), {
 		position: 'top-right',
-		autoClose: 7000,
+		autoClose: 3500,
 		hideProgressBar: false,
 		closeOnClick: true,
 		pauseOnHover: true,

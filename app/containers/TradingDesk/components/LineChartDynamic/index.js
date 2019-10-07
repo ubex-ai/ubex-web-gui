@@ -6,7 +6,7 @@ import 'chartjs-plugin-annotation';
 import { Button, ButtonDropdown, DropdownItem, DropdownMenu, DropdownToggle, Row, Col } from 'reactstrap';
 import { defoptions, defdata } from 'containers/DataMiner/Variables/graphics';
 Chart.plugins.register(ChartDataLabels);
-Chart.defaults.global.defaultFontFamily = "'Proxima Nova Rg', Arial, sans-serif";
+Chart.defaults.global.defaultFontFamily = "'Open Sans', Arial, sans-serif";
 class LineChart extends React.Component {
 	constructor(props) {
 		super(props);
@@ -123,7 +123,27 @@ class LineChart extends React.Component {
 					propagate: true,
 				},
 				datalabels: {
-					display: false,
+					color: '#767676',
+					padding: {
+						bottom: 10,
+					},
+					anchor: 'center',
+					align: 'top',
+					font: {
+						family: 'Open Sans',
+					},
+					formatter: function(value, context) {
+						const { minIndex, maxIndex } = indexOfMinMax(arrayChart[0]);
+						if (context.dataset.data.length > 25) {
+							return context.dataIndex === minIndex
+								? context.dataset.data[minIndex]
+								: context.dataIndex === maxIndex
+									? context.dataset.data[maxIndex]
+									: null;
+						} else {
+							return context.dataset.data[context.dataIndex];
+						}
+					},
 				},
 			},
 			annotation: average
@@ -167,59 +187,14 @@ class LineChart extends React.Component {
 			gradientFill.addColorStop(0, 'rgba(63, 153, 184, 0.3)');
 			gradientFill.addColorStop(1, 'rgba(53, 153, 184, 0.3)');
 			const datasets = new Array();
-			for (let i = 0; i < arrayChart.length; i++) {
-				const gradientFill2 = ctx.createLinearGradient(0, 10, 0, 300);
-				gradientFill2.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, 0.${i})`);
-				gradientFill2.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, 0.${i + 1})`);
-				!lines
-					? datasets.push({
-							label: `${creativeLabels[i]}`,
-							borderColor: `rgba(${color.r}, ${color.g}, ${color.b}, 1)`,
-							pointBorderColor: '#FFF',
-							pointBackgroundColor: `rgba(${color.r}, ${color.g}, ${color.b}, 1)`,
-							pointBorderWidth: 2,
-							pointHoverRadius: 4,
-							pointHoverBorderWidth: 1,
-							pointRadius: 4,
-							fill: true,
-							backgroundColor: gradientFill2,
-							borderWidth: 2,
-							data: JSON.parse(JSON.stringify(arrayChart[i])),
-							yAxisID: 'y-axis-0',
-							datalabels: {
-								display: true,
-								backgroundColor: `rgba(${color.r}, ${color.g}, ${color.b}`,
-								color: '#fff',
-								padding: {
-									bottom: 1,
-									top: 3,
-									left: 5,
-									right: 5,
-								},
-								borderRadius: 5,
-								anchor: 'center',
-								align: 'top',
-								font: {
-									family: 'Proxima Nova Rg',
-								},
-								formatter(value, context) {
-									const { minIndex, maxIndex } = indexOfMinMax(arrayChart[0]);
-									const d = context.dataset.data.filter(c => typeof c !== 'function');
-
-									if (d.length > 25) {
-										return context.dataIndex === minIndex
-											? d[minIndex]
-											: context.dataIndex === maxIndex
-												? d[maxIndex]
-												: null;
-									}
-									return d[context.dataIndex];
-								},
-							},
-					  })
-					: datasets.push(
-							{
-								label: `${creativeLabels[i]} Line`,
+			if (creativeLabels && creativeLabels.length) {
+				for (let i = 0; i < arrayChart.length; i++) {
+					const gradientFill2 = ctx.createLinearGradient(0, 10, 0, 300);
+					gradientFill2.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, 0.${i})`);
+					gradientFill2.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, 0.${i + 1})`);
+					!lines
+						? datasets.push({
+								label: `${creativeLabels[i]}`,
 								borderColor: `rgba(${color.r}, ${color.g}, ${color.b}, 1)`,
 								pointBorderColor: '#FFF',
 								pointBackgroundColor: `rgba(${color.r}, ${color.g}, ${color.b}, 1)`,
@@ -228,11 +203,10 @@ class LineChart extends React.Component {
 								pointHoverBorderWidth: 1,
 								pointRadius: 4,
 								fill: true,
-								backgroundColor: 'transparent',
+								backgroundColor: gradientFill2,
 								borderWidth: 2,
 								data: JSON.parse(JSON.stringify(arrayChart[i])),
 								yAxisID: 'y-axis-0',
-								type: 'line',
 								datalabels: {
 									display: true,
 									backgroundColor: `rgba(${color.r}, ${color.g}, ${color.b}`,
@@ -247,7 +221,7 @@ class LineChart extends React.Component {
 									anchor: 'center',
 									align: 'top',
 									font: {
-										family: 'Proxima Nova Rg',
+										family: 'Open Sans',
 									},
 									formatter(value, context) {
 										const { minIndex, maxIndex } = indexOfMinMax(arrayChart[0]);
@@ -263,56 +237,103 @@ class LineChart extends React.Component {
 										return d[context.dataIndex];
 									},
 								},
-							},
-							{
-								label: `${creativeLabels[i]} Bar`,
-								borderColor: `rgba(${colorBar.r}, ${colorBar.g}, ${colorBar.b}, 1)`,
-								pointBorderColor: '#FFF',
-								pointBackgroundColor: `rgba(${colorBar.r}, ${colorBar.g}, ${colorBar.b}, 1)`,
-								pointBorderWidth: 2,
-								pointHoverRadius: 4,
-								pointHoverBorderWidth: 1,
-								pointRadius: 4,
-								fill: true,
-								backgroundColor: `rgba(${colorBar.r}, ${colorBar.g}, ${colorBar.b}, 0.5)`,
-								borderWidth: 2,
-								data: JSON.parse(JSON.stringify(this.props.databar.arrayChart[i])),
-								yAxisID: 'y-axis-1',
-								datalabels: {
-									display: true,
-									backgroundColor: `rgba(${colorBar.r}, ${colorBar.g}, ${colorBar.b}`,
-									color: '#fff',
-									padding: {
-										bottom: 1,
-										top: 3,
-										left: 5,
-										right: 5,
-									},
-									borderRadius: 5,
-									anchor: 'center',
-									align: 'top',
-									font: {
-										family: 'Proxima Nova Rg',
-									},
-									formatter(value, context) {
-										const { minIndex, maxIndex } = indexOfMinMax(arrayChart[0]);
-										const d = context.dataset.data.filter(c => typeof c !== 'function');
-
-										if (d.length > 25) {
-											return context.dataIndex === minIndex
-												? d[minIndex]
-												: context.dataIndex === maxIndex
-													? d[maxIndex]
-													: null;
-										}
-										return d[context.dataIndex];
+						  })
+						: datasets.push(
+								{
+									label: ``,
+									borderColor: `rgba(${color.r}, ${color.g}, ${color.b}, 1)`,
+									pointBorderColor: '#FFF',
+									pointBackgroundColor: `rgba(${color.r}, ${color.g}, ${color.b}, 1)`,
+									pointBorderWidth: 2,
+									pointHoverRadius: 4,
+									pointHoverBorderWidth: 1,
+									pointRadius: 4,
+									fill: true,
+									backgroundColor: 'transparent',
+									borderWidth: 2,
+									data: JSON.parse(JSON.stringify(arrayChart[i])),
+									yAxisID: 'y-axis-0',
+									type: 'line',
+									datalabels: {
+										display: true,
+										backgroundColor: `rgba(${color.r}, ${color.g}, ${color.b}`,
+										color: '#fff',
+										padding: {
+											bottom: 1,
+											top: 3,
+											left: 5,
+											right: 5,
+										},
+										borderRadius: 5,
+										anchor: 'center',
+										align: 'top',
+										font: {
+											family: 'Open Sans',
+										},
+										formatter(value, context) {
+											const d = context.dataset.data.filter(c => typeof c !== 'function');
+											const { minIndex, maxIndex } = indexOfMinMax(d.map(Number));
+											if (d.length > 25) {
+												return context.dataIndex === minIndex
+													? d[minIndex]
+													: context.dataIndex === maxIndex
+														? d[maxIndex]
+														: null;
+											}
+											return d[context.dataIndex];
+										},
 									},
 								},
-							},
-					  );
+								{
+									label: ``,
+									borderColor: `rgba(${colorBar.r}, ${colorBar.g}, ${colorBar.b}, 1)`,
+									pointBorderColor: '#FFF',
+									pointBackgroundColor: `rgba(${colorBar.r}, ${colorBar.g}, ${colorBar.b}, 1)`,
+									pointBorderWidth: 2,
+									pointHoverRadius: 4,
+									pointHoverBorderWidth: 1,
+									pointRadius: 4,
+									fill: true,
+									backgroundColor: `rgba(${colorBar.r}, ${colorBar.g}, ${colorBar.b}, 0.5)`,
+									borderWidth: 2,
+									data: JSON.parse(JSON.stringify(this.props.databar.arrayChart[i])),
+									yAxisID: 'y-axis-1',
+									datalabels: {
+										display: true,
+										backgroundColor: `rgba(${colorBar.r}, ${colorBar.g}, ${colorBar.b}, 0.6)`,
+										color: '#fff',
+										padding: {
+											bottom: 1,
+											top: 3,
+											left: 5,
+											right: 5,
+										},
+										borderRadius: 5,
+										anchor: 'center',
+										align: 'top',
+										font: {
+											family: 'Open Sans',
+										},
+										formatter(value, context) {
+											const d = context.dataset.data.filter(c => typeof c !== 'function');
+											const { minIndex, maxIndex } = indexOfMinMax(d.map(Number));
+											if (d.length > 25) {
+												return context.dataIndex === minIndex
+													? d[minIndex]
+													: context.dataIndex === maxIndex
+														? d[maxIndex]
+														: null;
+											}
+											return d[context.dataIndex];
+										},
+									},
+								},
+						  );
+				}
 			}
+
 			return {
-				labels: arrayLabels,
+				labels: arrayLabels && arrayLabels.length && creativeLabels && creativeLabels.length ? arrayLabels : [],
 				datasets,
 			};
 		};

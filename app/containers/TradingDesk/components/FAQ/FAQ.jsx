@@ -40,11 +40,11 @@ class FaqPage extends React.Component {
 		this.props.setFilter({ searchWord: '' });
 	}
 
-	toggle(index) {
-		if (this.state.collapse === index) {
-			this.setState({ collapse: null });
+	toggle(index, key) {
+		if (this.state[key] === index) {
+			this.setState({ [key]: null });
 		} else {
-			this.setState({ collapse: index });
+			this.setState({ [key]: index });
 		}
 	}
 
@@ -53,31 +53,35 @@ class FaqPage extends React.Component {
 		return (
 			<div className="faq-category" key={key}>
 				<h3 className="faq-category__header">{category.name}</h3>
-				{category.qa.map((quEntry, index) => this.renderQaEntry(quEntry, index))}
+				<Row>
+					{category.qa.map((quEntry, index) => this.renderQaEntry(quEntry, index, categoryAlias))}
+				</Row>
 			</div>
 		);
 	}
 
-	renderQaEntry({ question, answer }, index) {
+	renderQaEntry({ question, answer }, index, key) {
 		return (
-			<div className="panel panel-default" key={index}>
-				<div className="panel-heading">
-					<h4 className="panel-title">
-						<a
-							className={`accordion-toggle ${this.state.collapse === index && ' collapsed'}`}
-							onClick={e => this.toggle(index)}
-							id={`accordion_${index + 1}`}
-						>
-							{question}
-						</a>
-					</h4>
-				</div>
-				<Collapse isOpen={this.state.collapse === index}>
-					<div className="panel-body">
-						<p>{answer}</p>
+			<Col md={6}>
+				<div className="panel panel-default" key={index}>
+					<div className="panel-heading">
+						<h4 className="panel-title">
+							<a
+								className={`accordion-toggle ${this.state[key] === index && ' collapsed'}`}
+								onClick={e => this.toggle(index, key)}
+								id={`accordion_${index + 1}`}
+							>
+								{question}
+							</a>
+						</h4>
 					</div>
-				</Collapse>
-			</div>
+					<Collapse isOpen={this.state[key] === index}>
+						<div className="panel-body">
+							<p>{answer}</p>
+						</div>
+					</Collapse>
+				</div>
+			</Col>
 		);
 	}
 

@@ -55,9 +55,6 @@ class Regions extends React.Component {
 	}
 
 	render() {
-		window.addEventListener('resize', event => {
-			Datamap.resize();
-		});
 		return (
 			<Row>
 				<Col xs={12} md={12}>

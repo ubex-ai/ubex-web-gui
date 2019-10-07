@@ -6,6 +6,7 @@ import userPageSaga, { fetchData as fetchUser } from 'containers/UserPage/saga';
 import { formatCountriesList, formatArrayToMap, formatCategoriesList } from './hooks';
 import {
 	categoriesActions,
+	categoriesActionsV1,
 	APP_INIT,
 	APP_INIT_SUCCESS,
 	APP_INIT_REJECT,
@@ -15,8 +16,9 @@ import {
 	COUNTRY_COLLECTION_NAME,
 	LANGUAGE_COLLECTION_NAME,
 	TIMEZONE_COLLECTION_NAME,
+	CATEGORYV1_COLLECTION_NAME,
 } from './constants';
-import { getCategories } from './actions';
+import { getCategories, getCategoriesV1 } from './actions';
 import activeContainerRig from '../ContainerManager';
 
 function* appInit() {
@@ -33,8 +35,9 @@ function* appInit() {
 
 function* fetchAppInitData() {
 	try {
-		yield getListRequestHandler(getCategories(), categoriesActions);
 		yield fetchUser();
+		yield getListRequestHandler(getCategories(), categoriesActions);
+		yield getListRequestHandler(getCategoriesV1(), categoriesActionsV1);
 		yield activeContainerRig.initSaga();
 		yield put({ type: APP_INIT_SUCCESS });
 	} catch (error) {
@@ -44,7 +47,7 @@ function* fetchAppInitData() {
 }
 
 function processError({ payload }) {
-	if (NODE_ENV !== 'production') {
+	if (NODE_ENV !== 'production' && NODE_ENV !== 'stage') {
 		console.error(payload);
 	}
 }
@@ -54,6 +57,9 @@ export default function* dashboardSaga() {
 	yield handleRequestListSaga(CATEGORY_COLLECTION_NAME, {
 		success: formatCategoriesList,
 	});
+	yield handleRequestListSaga(CATEGORYV1_COLLECTION_NAME/*, {
+		success: formatCategoriesListV2,
+	}*/);
 	yield handleRequestListSaga(COUNTRY_COLLECTION_NAME, {
 		success: formatCountriesList,
 	});
@@ -62,5 +68,6 @@ export default function* dashboardSaga() {
 	});
 	yield handleRequestListSaga(LANGUAGE_COLLECTION_NAME);
 	yield takeLatest(SET_DASHBOARD_ERROR, processError);
+
 	yield userPageSaga();
 }

@@ -12,50 +12,77 @@ import reducer from 'containers/DataMiner/reducer';
 import { compose } from 'redux';
 import AppCard from 'components/AppCard';
 import DateSelect from 'components/DateSelect';
-import { getCounterDevices, getCounterDevicesTable } from '../../actions';
+import { getCounterDevices, getCounterDevicesTable, setActiveCounterStats } from '../../actions';
 import {
 	countersSelectors,
 	selectCountersIds,
 	selectCounterDevices,
 	selectCounterDevicesTable,
 	selectChartsDates,
+	selectActiveCounterStats,
 } from '../../selectors';
 
 class Devices extends React.Component {
-	columns = [
-		{ name: 'name', title: this.props.intl.formatMessage(messages.devices) },
-		{ name: 'date', title: this.props.intl.formatMessage(messages.date) },
-		{ name: 'count', title: this.props.intl.formatMessage(messages.visitorsTable) },
-		{ name: 'paidusers', title: this.props.intl.formatMessage(messages.rewardVisitors) },
-		{ name: 'paidpercent', title: this.props.intl.formatMessage(messages.paidPercent) },
-	];
+	constructor(props) {
+		super(props);
+		this.state = {
+			columns: [
+				{ name: 'name', title: this.props.intl.formatMessage(messages.name) },
+				{ name: 'date', title: this.props.intl.formatMessage(messages.date) },
+				{ name: 'count', title: this.props.intl.formatMessage(messages.visitorsTable) },
+				{ name: 'paidusers', title: this.props.intl.formatMessage(messages.newVisitors) },
+				{ name: 'paidpercent', title: 'NEW %' },
+			],
+			selectedCounter: null,
+		};
+	}
 
 	componentDidMount() {
-		const { dates, countersIds } = this.props;
+		const { dates, countersIds, activeCounterStats } = this.props;
 		const { startDate, endDate } = dates;
-		this.props.getCounterDevices({
-			start_date: startDate,
-			end_date: endDate,
-			ids: countersIds.slice(0, 19).join(),
-		});
-		this.props.getCounterDevicesTable({
-			start_date: startDate,
-			end_date: endDate,
-			ids: countersIds.slice(0, 19).join(),
-		});
+		const firstCounter = countersIds.length ? countersIds[0] : 0;
+		this.setState({ selectedCounter: activeCounterStats || firstCounter });
+		if (countersIds.length) {
+			this.props.getCounterDevices({
+				start_date: startDate,
+				end_date: endDate,
+				ids: activeCounterStats || firstCounter,
+			});
+			this.props.getCounterDevicesTable({
+				start_date: startDate,
+				end_date: endDate,
+				ids: activeCounterStats || firstCounter,
+			});
+		}
 	}
 
 	updateCharts(params, dates) {
+		const { countersIds } = this.props;
 		this.props.getCounterDevices({
 			start_date: dates.startDate,
 			end_date: dates.endDate,
-			ids: params.selectedOption.counter,
+			ids:
+				params.selectedOption && params.selectedOption.value !== 'all'
+					? params.selectedOption.counter
+					: countersIds
+							.sort((a, b) => a - b)
+							.slice(0, 19)
+							.join(),
 		});
 		this.props.getCounterDevicesTable({
 			start_date: dates.startDate,
 			end_date: dates.endDate,
-			ids: params.selectedOption.counter,
+			ids:
+				params.selectedOption && params.selectedOption.value !== 'all'
+					? params.selectedOption.counter
+					: countersIds
+							.sort((a, b) => a - b)
+							.slice(0, 19)
+							.join(),
 		});
+		if (params.selectedOption && params.selectedOption.value !== 'all') {
+			this.props.setActiveCounterStats(params.selectedOption.counter);
+		}
 	}
 
 	render() {
@@ -67,7 +94,7 @@ class Devices extends React.Component {
 				<Row className="margin-0">
 					<Col md={12} className="title_with_select">
 						<Row>
-							<Col md={5}>
+							<Col md={4}>
 								<div className="page-title">
 									<div className="float-left">
 										<h1 className="title">
@@ -82,6 +109,8 @@ class Devices extends React.Component {
 								endDate={endDate}
 								period={period}
 								mining={counters}
+								miningSelected={this.state.selectedCounter}
+								disableDefaultSelect
 							/>
 						</Row>
 					</Col>
@@ -89,14 +118,19 @@ class Devices extends React.Component {
 				<Row className="margin-0">
 					<Col className="col-md-12">
 						<AppCard chart>
-							<BarChart data={counterDevices} height={window.innerWidth > 600 ? 100 : 300} />
+							<BarChart data={counterDevices} height={window.innerWidth > 600 ? 100 : 300} legend />
 						</AppCard>
 					</Col>
 				</Row>
 				<Row className="margin-0">
 					<Col className="col-12 col-lg-12 col-xl-12">
 						<AppCard>
-							<AppTable data={counterDevicesTable.length ? counterDevicesTable : []} pagination columns={this.columns} grouping />
+							<AppTable
+								data={counterDevicesTable.length ? counterDevicesTable : []}
+								pagination
+								grouping
+								columns={this.state.columns}
+							/>
 						</AppCard>
 					</Col>
 				</Row>
@@ -133,6 +167,7 @@ const mapStateToProps = createStructuredSelector({
 	dates: selectChartsDates(),
 	counterDevices: selectCounterDevices(),
 	counterDevicesTable: selectCounterDevicesTable(),
+	activeCounterStats: selectActiveCounterStats(),
 });
 
 function mapDispatchToProps(dispatch) {
@@ -141,6 +176,7 @@ function mapDispatchToProps(dispatch) {
 		updateCharts: (params, dates) => dispatch(updateCharts(params, dates)),
 		getCounterDevices: dates => dispatch(getCounterDevices(dates)),
 		getCounterDevicesTable: dates => dispatch(getCounterDevicesTable(dates)),
+		setActiveCounterStats: value => dispatch(setActiveCounterStats(value)),
 	};
 }
 
@@ -149,6 +185,4 @@ const withConnect = connect(
 	mapDispatchToProps,
 );
 
-export default compose(
-	withConnect,
-)(injectIntl(Devices));
+export default compose(withConnect)(injectIntl(Devices));

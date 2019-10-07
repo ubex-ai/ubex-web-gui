@@ -20,7 +20,7 @@ export default function configureStore(initialState = {}, history) {
 	// 2. routerMiddleware: Syncs the location/URL path to the state
 	const middlewares = [sagaMiddleware, routerMiddleware(history), thunk];
 
-	if (process.env.NODE_ENV !== 'production') {
+	if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'stage') {
 		const logger = createLogger({
 			stateTransformer: state => (typeof state.toJS === 'function' ? state.toJS() : state),
 		});
@@ -32,7 +32,7 @@ export default function configureStore(initialState = {}, history) {
 	// If Redux DevTools Extension is installed use it, otherwise use Redux compose
 	/* eslint-disable no-underscore-dangle, indent */
 	const composeEnhancers =
-		process.env.NODE_ENV !== 'production' &&
+		(process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'stage') &&
 		typeof window === 'object' &&
 		window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
 			? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({})
@@ -52,7 +52,7 @@ export default function configureStore(initialState = {}, history) {
 	}
 
 	const store = autoRehydrate({
-		log: process.env.NODE_ENV !== 'production',
+		log: process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'stage',
 		stateReconciler: (state, inboundState) =>
 			transformState(state, { payload: inboundState, meta: rehidrateState }),
 	})(createStore)(createReducer(), fromJS(initialState), composeEnhancers(...enhancers));

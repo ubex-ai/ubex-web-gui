@@ -7,6 +7,13 @@ import {
 	CREATIVES_COLLECTION_NAME,
 	CAMPAINGS_COLLECTION_NAME,
 	CAMPAING_GROUPS_COLLECTION_NAME,
+	HOMEPAGESTATS_COLLECTION_NAME,
+	PAYMENT_VARIANTS,
+	GROUPSHARING_COLLECTION_NAME,
+	CREATIVESHARING_COLLECTION_NAME,
+	COUNTERSHARING_COLLECTION_NAME,
+	GROUPSTATS_COLLECTION_NAME,
+	FILTERS_COLLECTION_NAME,
 } from './constants';
 import campaignFilter from './campaignFilter';
 import creativeFilter from './creativeFilter';
@@ -23,17 +30,27 @@ const selectTradingDeskDomain = state => state.get(STORE_NAME, initialState);
 export const creativesSelectors = makeCollectionSelectors(selectTradingDeskDomain, CREATIVES_COLLECTION_NAME);
 export const campaingsSelectors = makeCollectionSelectors(selectTradingDeskDomain, CAMPAINGS_COLLECTION_NAME);
 export const campaingGroupSelectors = makeCollectionSelectors(selectTradingDeskDomain, CAMPAING_GROUPS_COLLECTION_NAME);
+export const filtersSelectors = makeCollectionSelectors(selectTradingDeskDomain, FILTERS_COLLECTION_NAME);
+export const creativeSharingSelectors = makeCollectionSelectors(
+	selectTradingDeskDomain,
+	CREATIVESHARING_COLLECTION_NAME,
+);
+export const counterSharingSelectors = makeCollectionSelectors(selectTradingDeskDomain, COUNTERSHARING_COLLECTION_NAME);
 
 export const selectCampaignsIds = () =>
 	createSelector(
 		campaingsSelectors.collectionList(),
-		campaigns => campaigns.map(campaign => campaign.id).sort((a, b) => a - b)
+		campaigns => campaigns.map(campaign => campaign.id).sort((a, b) => a - b),
 	);
 
 export const selectGroupsIds = () =>
 	createSelector(
 		campaingGroupSelectors.collectionList(),
-		groups => groups.filter(f => f.status === 'active').map(group => group.id).sort((a, b) => a - b)
+		groups =>
+			groups
+				.filter(f => f.status === 'active')
+				.map(group => group.id)
+				.sort((a, b) => a - b),
 	);
 export const creativeUploadingProgress = () =>
 	createSelector(
@@ -74,6 +91,12 @@ export const selectAdBlock = () =>
 		state => state.get('adBlock').toJS(),
 	);
 
+export const selectFavoriteGroups = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('favoriteGroups').toJS(),
+	);
+
 export const filteringGroups = () =>
 	createSelector(
 		[
@@ -81,15 +104,27 @@ export const filteringGroups = () =>
 			campaingsSelectors.collectionList(),
 			creativesSelectors.collectionList(),
 			selectGroupFilters(),
+			selectFavoriteGroups(),
 		],
-		(listGroups, listCampaigns, listCreatives, groupFilters) =>
-			campaignFilter({ groups: listGroups, campaigns: listCampaigns, creatives: listCreatives }, groupFilters),
+		(listGroups, listCampaigns, listCreatives, groupFilters, favorites) =>
+			campaignFilter(
+				{ groups: listGroups, campaigns: listCampaigns, creatives: listCreatives },
+				groupFilters,
+				favorites,
+			),
+	);
+
+export const selectFavoriteCreatives = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('favoriteCreatives').toJS(),
 	);
 
 export const filteringCreatives = () =>
 	createSelector(
-		[creativesSelectors.collectionList(), selectCreativeFilters()],
-		(listCreatives, creativeFilters) => creativeFilter({ creatives: listCreatives }, creativeFilters),
+		[creativesSelectors.collectionList(), selectCreativeFilters(), selectFavoriteCreatives()],
+		(listCreatives, creativeFilters, favorites) =>
+			creativeFilter({ creatives: listCreatives }, creativeFilters, favorites),
 	);
 const makeSelectTradingDesk = () =>
 	createSelector(
@@ -183,6 +218,18 @@ export const searchFAQ = () =>
 		(faqList, faqFilters) => faqFilter(faqList, faqFilters),
 	);
 
+export const selectOpenedGroup = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('openedGroup').toJS(),
+	);
+
+export const selectOpenedFormCards = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('openedFormCards').toJS(),
+	);
+
 export const selectDeviceType = () =>
 	createSelector(
 		selectTradingDeskDomain,
@@ -236,6 +283,8 @@ export const selectPayLink = () =>
 		state => state.get('payLink').toJS(),
 	);
 
+export const selectPaymentVariants = makeCollectionSelectors(selectTradingDeskDomain, PAYMENT_VARIANTS);
+
 export const selectBudgetDistribution = () =>
 	createSelector(
 		selectTradingDeskDomain,
@@ -247,7 +296,6 @@ export const selectBalance = () =>
 		selectTradingDeskDomain,
 		state => state.get('balance').toJS(),
 	);
-
 
 export const selectPaymentHistory = () =>
 	createSelector(
@@ -285,10 +333,28 @@ export const selectHomePageStats = () =>
 		state => state.get('homepage-stats').toJS(),
 	);
 
+export const selectHomePageStatsError = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('homepage-statsError'),
+	);
+
+export const selectHomePageStatsLoading = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('homepage-statsLoading'),
+	);
+
 export const selectTableHomePageStats = () =>
 	createSelector(
 		selectTradingDeskDomain,
 		state => state.get('table-homepage-stats').toJS(),
+	);
+
+export const selectTableHomePageStatsLoading = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('table-homepage-statsLoading'),
 	);
 
 export const selectCampaignReportTable = () =>
@@ -297,10 +363,34 @@ export const selectCampaignReportTable = () =>
 		state => state.get('campaign-report-table').toJS(),
 	);
 
+export const selectCampaignReportLoading = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('campaign-reportLoading'),
+	);
+
+export const selectCampaignReportTableLoading = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('campaign-report-tableLoading'),
+	);
+
+export const selectCampaignReportCards = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('campaign-report-cards').toJS(),
+	);
+
 export const selectCreativeReport = () =>
 	createSelector(
 		selectTradingDeskDomain,
 		state => state.get('creative-report').toJS(),
+	);
+
+export const selectCreativeReportLoading = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('creative-reportLoading'),
 	);
 
 export const selectCreativeReportTable = () =>
@@ -355,6 +445,82 @@ export const selectCounterChannelTable = () =>
 	createSelector(
 		selectTradingDeskDomain,
 		state => state.get('counter-channel-table').toJS(),
+	);
+
+export const selectGroupStats = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('groupStats').toJS(),
+	);
+
+export const selectGroupStatsLoading = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('groupStatsLoading'),
+	);
+
+export const selectCounterOnline = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('onlineCounters').toJS(),
+	);
+
+export const selectCounterOnlineLoading = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('onlineCountersLoading'),
+	);
+
+export const selectActiveCounterStats = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('activeCounterStats'),
+	);
+
+export const selectActiveCampaignStats = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('activeCampaignStats'),
+	);
+
+export const selectRegions = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('regions').toJS(),
+	);
+
+export const selectCities = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('cities').toJS(),
+	);
+export const selectPublishersConfig = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('publishersConfig').toJS(),
+	);
+
+export const selectFavoriteFilters = () =>
+	createSelector(
+		selectTradingDeskDomain,
+		state => state.get('favoriteFilters').toJS(),
+	);
+
+export const filteringFilters = () =>
+	createSelector(
+		[filtersSelectors.collectionList(), selectFavoriteFilters()],
+		(listFilters, favorites) =>
+			listFilters
+				.sort((a, b) => b.id - a.id)
+				.sort((a, b) => {
+					if (favorites.includes(a.id)) {
+						return -1;
+					}
+					if (favorites.includes(b.id)) {
+						return 1;
+					}
+					return 0;
+				}),
 	);
 
 export default makeSelectTradingDesk;

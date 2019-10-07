@@ -11,7 +11,7 @@ export const scope = 'app.components.Developers';
 export default defineMessages({
 	header: {
 		id: `${scope}.header`,
-		defaultMessage: 'Developers',
+		defaultMessage: 'Partners',
 	},
 	company: {
 		id: `${scope}.company`,

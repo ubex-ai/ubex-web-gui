@@ -39,7 +39,7 @@ class CardPopover extends React.PureComponent {
 			<div className="CardPopover">
 				<Popover>
 					<button className="buttonPopoverLil">
-						<i className="far fa-question-circle" />
+						<i className="fal fa-question-circle" />
 					</button>
 					<div className="popoverContent">
 						{this.props.popoverHeader && (
@@ -62,7 +62,7 @@ class CardPopover extends React.PureComponent {
 						)}
 					</div>
 				</Popover>
-				<AppCard chart={this.props.chart} loading={this.props.loading}>{this.props.children}</AppCard>
+				<AppCard chart={this.props.chart} loading={this.props.loading} mini={this.props.mini}>{this.props.children}</AppCard>
 			</div>
 		);
 	}

@@ -12,10 +12,11 @@ import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { compose } from 'redux';
 import CookieConsent from 'react-cookie-consent';
+import { ToastContainer } from 'react-toastify';
 import FullScreenLoader from 'components/FullScreenLoader';
 import { changeLocale } from 'containers/LanguageProvider/actions';
 import { makeSelectLocale } from 'containers/LanguageProvider/selectors';
-import { selectUserData } from 'containers/UserPage/selectors';
+import { selectUserData, selectUserLanguage } from 'containers/UserPage/selectors';
 import {
 	selectAppDidFetch,
 	selectAppInitMessage,
@@ -25,14 +26,22 @@ import {
 	selectDashboardLoading,
 	selectDashboardError,
 	selectUbexPopover,
+	selectLanguageLoading,
+	selectPaymentModal,
+	selectCountries,
 } from 'containers/Dashboard/selectors';
-import { selectBalance } from 'containers/TradingDesk/selectors';
-import { ToastContainer } from 'react-toastify';
-import { updateData } from 'containers/UserPage/actions';
-import PaymentStatus from 'components/PaymentStatus';
+import { selectBalance, selectPaymentVariants } from 'containers/TradingDesk/selectors';
 import { Header, Sidebar, ChatSidebar } from '../../components';
+
+import { updateData, updateProfile, fetchData } from 'containers/UserPage/actions';
+import PaymentStatus from 'components/PaymentStatus';
 import ProgressLoader from '../../components/ProgressLoader';
 import AgreementModal from '../../components/AgreementModal';
+import { makePromiseAction } from '../../utils/CollectionHelper/actions';
+import { balanceCollectionActions, paymentCollectionActions } from '../TradingDesk/actions';
+import { setPaymentModal, getCountries } from './actions';
+import PaymentModal from '../../components/PaymentModal';
+import WalletConnector from 'components/WalletConnector';
 
 /* eslint-disable react/prefer-stateless-function */
 export class Dashboard extends React.Component {
@@ -42,13 +51,14 @@ export class Dashboard extends React.Component {
 			paymentSuccessModal: false,
 			amount: '',
 			status: '',
+			openWalletConnector: false,
 		};
 		this.i = 0;
 	}
 
 	componentDidMount() {
 		const ua = window.navigator.userAgent.toLowerCase();
-		const isIe = /trident/gi.test(ua) || /msie/gi.test(ua);
+		const isIe = /trident/gi.test(ua) || /msie/gi.test(ua) || /edge/gi.test(ua);
 		if (!isIe) {
 			const searchParams = new URLSearchParams(this.props.location.search);
 			if (searchParams.get('pay_status')) {
@@ -64,6 +74,25 @@ export class Dashboard extends React.Component {
 					status: searchParams.get('pay_status'),
 				});
 			}
+		}
+		if (this.props.userLanguage) {
+			this.props.changeLocale(this.props.userLanguage);
+		} else if (this.props.currentLocale) {
+			this.props.changeLocale(this.props.currentLocale);
+		} else {
+			this.props.changeLocale('en');
+		}
+		this.props.setPaymentModal({ display: false });
+	}
+
+	componentDidUpdate(prevProps, prevState, snapshot) {
+		if (
+			this.props.userLanguage &&
+			this.props.currentLocale &&
+			prevProps.userLanguage !== this.props.userLanguage &&
+			this.props.userLanguage !== this.props.currentLocale
+		) {
+			this.props.changeLocale(this.props.userLanguage);
 		}
 	}
 
@@ -85,7 +114,17 @@ export class Dashboard extends React.Component {
 				/>
 			);
 		}
-		const { routes, homePage, title, description } = this.props;
+		const {
+			routes,
+			homePage,
+			title,
+			description,
+			paymentVariants,
+			setPaymentModal,
+			countries,
+			getPaymentVariantsById,
+			paymentModal: { display },
+		} = this.props;
 		return (
 			<div className="wrapper">
 				<Helmet>
@@ -132,6 +171,34 @@ export class Dashboard extends React.Component {
 					status={this.state.status}
 					onCancel={() => this.closePaymentModal()}
 				/>
+				{display && (
+					<PaymentModal
+						isOpen={display}
+						onCancel={ubex => {
+							setPaymentModal({ display: !display });
+							this.setState({
+								openWalletConnector: ubex === 'ubex' || false,
+							});
+						}}
+						data={this.props.selectUbexHash}
+						paymentVariants={paymentVariants}
+						getMethods={id => getPaymentVariantsById(id)}
+						countries={countries}
+						getCountries={() => this.props.getCountries()}
+					/>
+				)}
+				<WalletConnector
+					isOpen={this.state.openWalletConnector}
+					data={this.props.selectUbexHash}
+					updateUbex={values => {
+						this.setState({
+							openWalletConnector: false,
+						});
+						this.props.updateUbex(values);
+						this.props.getUserInfo();
+					}}
+					onCancel={() => this.setState({ openWalletConnector: false })}
+				/>
 			</div>
 		);
 	}
@@ -164,13 +231,24 @@ const mapStateToProps = createStructuredSelector({
 	selectUbexPopover: selectUbexPopover(),
 	selectUbexHash: selectUserData(),
 	selectAmount: selectBalance(),
+	userLanguage: selectUserLanguage(),
+	languageLoading: selectLanguageLoading(),
+	paymentVariants: selectPaymentVariants.collectionList(),
+	paymentModal: selectPaymentModal(),
+	countries: selectCountries(),
 });
 
 function mapDispatchToProps(dispatch) {
 	return {
 		dispatch,
+		getUserInfo: () => dispatch(fetchData()),
 		changeLocale: locale => dispatch(changeLocale(locale)),
-		updateUbex: values => dispatch(updateData(values)),
+		updateProfile: values => dispatch(updateProfile(values)),
+		updateUbex: values => dispatch(updateProfile(values)),
+		getPaymentVariants: makePromiseAction(dispatch, paymentCollectionActions.getCollection()),
+		getPaymentVariantsById: id => dispatch(paymentCollectionActions.getEntry(id)),
+		setPaymentModal: values => dispatch(setPaymentModal(values)),
+		getCountries: () => makePromiseAction(dispatch, getCountries()),
 		// getBalance: () => makePromiseAction(dispatch, balanceCollectionActions.getCollection()),
 	};
 }

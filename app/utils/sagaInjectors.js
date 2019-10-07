@@ -32,7 +32,7 @@ export function injectSagaFactory(store, isValid) {
 
 		let hasSaga = Reflect.has(store.injectedSagas, key);
 
-		if (process.env.NODE_ENV !== 'production') {
+		if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'stage') {
 			const oldDescriptor = store.injectedSagas[key];
 			// enable hot reloading of daemon and once-till-unmount sagas
 			if (hasSaga && oldDescriptor.saga !== saga) {

@@ -16,7 +16,17 @@ import {
 	listReducer,
 } from 'utils/CollectionHelper/reducers';
 import { ActionTypes } from 'utils/UploadHelper/actions';
-import { statsInitialState, statsRehydrateState, statsReducer } from 'utils/StatsHelper/reducer';
+import {
+	statsInitialState,
+	statsRehydrateState,
+	statsReducer,
+	statsCollectionInitialState,
+	statsCollectionReducer,
+} from 'utils/StatsHelper/reducer';
+import onlineCountersMapReducer, {
+	initialState as onlineCountersMapState,
+	rehydrateState as onlineCountersRehydrateState,
+} from './onlineCountersMapReducer';
 import {
 	COUNTERS_COLLECTION_NAME,
 	FAQ_COLLECTION_NAME,
@@ -61,6 +71,25 @@ import {
 	COUNTER_DEVICES_TABLE_COLLECTION_NAME,
 	COUNTER_CHANNEL_COLLECTION_NAME,
 	COUNTER_CHANNEL_TABLE_COLLECTION_NAME,
+	SET_OPENED_GROUP,
+	REGIONS_COLLECTION_NAME,
+	CITIES_COLLECTION_NAME,
+	SET_OPENED_FORMCARD,
+	PAYMENT_VARIANTS,
+	GROUPSHARING_COLLECTION_NAME,
+	CREATIVESHARING_COLLECTION_NAME,
+	ONLINE_COUNTERS_COLLECTION_NAME,
+	COUNTERSHARING_COLLECTION_NAME,
+	PUBLISHERS_CONFIG_COLLECTION_NAME,
+	GROUPSTATS_COLLECTION_NAME,
+	CAMPAIGNREPORT_CARDS_COLLECTION_NAME,
+	FILTERS_COLLECTION_NAME,
+	FILTERSHARING_COLLECTION_NAME,
+	SET_ACTIVE_COUNTER_STATS,
+	SET_ACTIVE_CAMPAIGN_STATS,
+	SET_FAVORITE_GROUP,
+	SET_FAVORITE_CREATIVE,
+	SET_FAVORITE_FILTER,
 } from '../constants';
 
 export const initialState = fromJS({
@@ -69,12 +98,12 @@ export const initialState = fromJS({
 	dates: {
 		startDate: moment()
 			.startOf('day')
-			.subtract('7', 'day')
+			.subtract('1', 'month')
 			.format('YYYY-MM-DD'),
 		endDate: moment()
 			.startOf('day')
 			.format('YYYY-MM-DD'),
-		period: 'week',
+		period: 'month',
 	},
 	campaignGroupFilters: {
 		searchWord: null,
@@ -95,6 +124,13 @@ export const initialState = fromJS({
 		creativesCount: 10,
 		campaignGroupsCount: 10,
 	},
+	openedGroup: [],
+	openedFormCards: [],
+	activeCounterStats: null,
+	activeCampaignStats: null,
+	favoriteGroups: [],
+	favoriteCreatives: [],
+	favoriteFilters: [],
 })
 	.merge(listInitialState(FAQ_COLLECTION_NAME))
 	.merge(collectionInitialState(CAMPAINGS_COLLECTION_NAME))
@@ -102,6 +138,15 @@ export const initialState = fromJS({
 	.merge(collectionInitialState(COUNTERS_COLLECTION_NAME))
 	.merge(collectionInitialState(CAMPAING_GROUPS_COLLECTION_NAME))
 	.merge(collectionInitialState(BANNERS_COLLECTION_NAME))
+	.merge(collectionInitialState(GROUPSHARING_COLLECTION_NAME))
+	.merge(collectionInitialState(CREATIVESHARING_COLLECTION_NAME))
+	.merge(collectionInitialState(COUNTERSHARING_COLLECTION_NAME))
+	.merge(collectionInitialState(FILTERSHARING_COLLECTION_NAME))
+	.merge(collectionInitialState(FILTERS_COLLECTION_NAME))
+	.merge(listInitialState(PUBLISHERS_CONFIG_COLLECTION_NAME))
+	.merge(listInitialState(REGIONS_COLLECTION_NAME))
+	.merge(listInitialState(ONLINE_COUNTERS_COLLECTION_NAME))
+	.merge(listInitialState(CITIES_COLLECTION_NAME))
 	.merge(listInitialState(PLACEMENTPOSITION_COLLENCTION_NAME))
 	.merge(listInitialState(STRATEGY_COLLENCTION_NAME))
 	.merge(listInitialState(SSP_COLLENCTION_NAME))
@@ -112,6 +157,7 @@ export const initialState = fromJS({
 	.merge(listInitialState(TYPEOS_COLLENCTION_NAME))
 	.merge(listInitialState(BROWSERTYPE_COLLENCTION_NAME))
 	.merge(listInitialState(PAY_LINK))
+	.merge(collectionInitialState(PAYMENT_VARIANTS))
 	.merge(listInitialState(TRANSFER_MONEY))
 	.merge(listInitialState(CONTACT_FORM))
 	.merge(listInitialState(BALANCE_COLLECTION_NAME))
@@ -123,6 +169,7 @@ export const initialState = fromJS({
 	.merge(statsInitialState(HOMEPAGESTATS_COLLECTION_NAME))
 	.merge(statsInitialState(TABLE_HOMEPAGESTATS_COLLECTION_NAME))
 	.merge(statsInitialState(CAMPAIGNREPORT_TABLE_COLLECTION_NAME))
+	.merge(statsInitialState(CAMPAIGNREPORT_CARDS_COLLECTION_NAME))
 	.merge(statsInitialState(CREATIVEREPORT_COLLECTION_NAME))
 	.merge(statsInitialState(CREATIVEREPORT_TABLE_COLLECTION_NAME))
 	.merge(statsInitialState(COUNTER_VISITORS_COLLECTION_NAME))
@@ -132,7 +179,9 @@ export const initialState = fromJS({
 	.merge(statsInitialState(COUNTER_DEVICES_COLLECTION_NAME))
 	.merge(statsInitialState(COUNTER_DEVICES_TABLE_COLLECTION_NAME))
 	.merge(statsInitialState(COUNTER_CHANNEL_COLLECTION_NAME))
-	.merge(statsInitialState(COUNTER_CHANNEL_TABLE_COLLECTION_NAME));
+	.merge(statsInitialState(COUNTER_CHANNEL_TABLE_COLLECTION_NAME))
+	.merge(statsInitialState(GROUPSTATS_COLLECTION_NAME))
+	.merge(onlineCountersMapState);
 
 export const rehydrateState = {
 	...listRehydrateState(FAQ_COLLECTION_NAME),
@@ -141,6 +190,15 @@ export const rehydrateState = {
 	...collectionRehydrateState(CAMPAINGS_COLLECTION_NAME),
 	...collectionRehydrateState(CREATIVES_COLLECTION_NAME),
 	...collectionRehydrateState(BANNERS_COLLECTION_NAME),
+	...collectionRehydrateState(GROUPSHARING_COLLECTION_NAME),
+	...collectionRehydrateState(CREATIVESHARING_COLLECTION_NAME),
+	...collectionRehydrateState(COUNTERSHARING_COLLECTION_NAME),
+	...collectionRehydrateState(FILTERS_COLLECTION_NAME),
+	...collectionRehydrateState(FILTERSHARING_COLLECTION_NAME),
+	...listRehydrateState(PUBLISHERS_CONFIG_COLLECTION_NAME),
+	...listRehydrateState(REGIONS_COLLECTION_NAME),
+	...listRehydrateState(ONLINE_COUNTERS_COLLECTION_NAME),
+	...listRehydrateState(CITIES_COLLECTION_NAME),
 	...listRehydrateState(PLACEMENTPOSITION_COLLENCTION_NAME),
 	...listRehydrateState(STRATEGY_COLLENCTION_NAME),
 	...listRehydrateState(SSP_COLLENCTION_NAME),
@@ -154,7 +212,15 @@ export const rehydrateState = {
 	...listRehydrateState(SET_CREATIVE_FILTER),
 	...listRehydrateState(SET_ADBLOCK),
 	...listRehydrateState(SET_FAQ_FILTER),
+	...listRehydrateState(SET_OPENED_GROUP),
+	...listRehydrateState(SET_OPENED_FORMCARD),
+	...listRehydrateState(SET_ACTIVE_COUNTER_STATS),
+	...listRehydrateState(SET_ACTIVE_CAMPAIGN_STATS),
+	...listRehydrateState(SET_FAVORITE_GROUP),
+	...listRehydrateState(SET_FAVORITE_CREATIVE),
+	...listRehydrateState(SET_FAVORITE_FILTER),
 	...listRehydrateState(PAY_LINK),
+	...collectionRehydrateState(PAYMENT_VARIANTS),
 	...listRehydrateState(SET_PAGINATION_ITEMS_COUNT),
 	...listRehydrateState(TRANSFER_MONEY),
 	...listRehydrateState(CONTACT_FORM),
@@ -167,6 +233,7 @@ export const rehydrateState = {
 	...statsRehydrateState(HOMEPAGESTATS_COLLECTION_NAME),
 	...statsRehydrateState(TABLE_HOMEPAGESTATS_COLLECTION_NAME),
 	...statsRehydrateState(CAMPAIGNREPORT_TABLE_COLLECTION_NAME),
+	...statsRehydrateState(CAMPAIGNREPORT_CARDS_COLLECTION_NAME),
 	...statsRehydrateState(CREATIVEREPORT_COLLECTION_NAME),
 	...statsRehydrateState(CREATIVEREPORT_TABLE_COLLECTION_NAME),
 	...statsRehydrateState(COUNTER_VISITORS_COLLECTION_NAME),
@@ -177,6 +244,8 @@ export const rehydrateState = {
 	...statsRehydrateState(COUNTER_DEVICES_TABLE_COLLECTION_NAME),
 	...statsRehydrateState(COUNTER_CHANNEL_COLLECTION_NAME),
 	...statsRehydrateState(COUNTER_CHANNEL_TABLE_COLLECTION_NAME),
+	...statsRehydrateState(GROUPSTATS_COLLECTION_NAME),
+	...onlineCountersRehydrateState,
 };
 
 export default handleActions(
@@ -186,6 +255,15 @@ export default handleActions(
 		...collectionReducer(CAMPAINGS_COLLECTION_NAME),
 		...collectionReducer(CREATIVES_COLLECTION_NAME),
 		...collectionReducer(BANNERS_COLLECTION_NAME),
+		...collectionReducer(GROUPSHARING_COLLECTION_NAME),
+		...collectionReducer(CREATIVESHARING_COLLECTION_NAME),
+		...collectionReducer(COUNTERSHARING_COLLECTION_NAME),
+		...collectionReducer(FILTERS_COLLECTION_NAME),
+		...collectionReducer(FILTERSHARING_COLLECTION_NAME),
+		...listReducer(PUBLISHERS_CONFIG_COLLECTION_NAME),
+		...listReducer(REGIONS_COLLECTION_NAME),
+		...listReducer(ONLINE_COUNTERS_COLLECTION_NAME),
+		...listReducer(CITIES_COLLECTION_NAME),
 		...listReducer(FAQ_COLLECTION_NAME),
 		...listReducer(PLACEMENTPOSITION_COLLENCTION_NAME),
 		...listReducer(STRATEGY_COLLENCTION_NAME),
@@ -197,6 +275,7 @@ export default handleActions(
 		...listReducer(TYPEOS_COLLENCTION_NAME),
 		...listReducer(BROWSERTYPE_COLLENCTION_NAME),
 		...listReducer(PAY_LINK),
+		...collectionReducer(PAYMENT_VARIANTS),
 		...listReducer(TRANSFER_MONEY),
 		...listReducer(CONTACT_FORM),
 		...listReducer(BUDGETDISTRIBUTION_COLLECTION_NAME),
@@ -208,6 +287,7 @@ export default handleActions(
 		...statsReducer(HOMEPAGESTATS_COLLECTION_NAME),
 		...statsReducer(TABLE_HOMEPAGESTATS_COLLECTION_NAME),
 		...statsReducer(CAMPAIGNREPORT_TABLE_COLLECTION_NAME),
+		...statsReducer(CAMPAIGNREPORT_CARDS_COLLECTION_NAME),
 		...statsReducer(CREATIVEREPORT_COLLECTION_NAME),
 		...statsReducer(CREATIVEREPORT_TABLE_COLLECTION_NAME),
 		...statsReducer(COUNTER_VISITORS_COLLECTION_NAME),
@@ -218,6 +298,8 @@ export default handleActions(
 		...statsReducer(COUNTER_DEVICES_TABLE_COLLECTION_NAME),
 		...statsReducer(COUNTER_CHANNEL_COLLECTION_NAME),
 		...statsReducer(COUNTER_CHANNEL_TABLE_COLLECTION_NAME),
+		...statsReducer(GROUPSTATS_COLLECTION_NAME),
+		...onlineCountersMapReducer,
 		[ActionTypes.UPLOAD_REQUEST]: state => state.set('creativeIsUploading', true),
 		[ActionTypes.UPLOAD_PROGRESS]: (state, { payload }) => state.set('creativeUploadingProgress', payload),
 		[ActionTypes.UPLOAD_SUCCESS]: state =>
@@ -230,8 +312,15 @@ export default handleActions(
 		[SET_ADBLOCK]: (state, { payload }) => state.update('adBlock', filter => filter.merge(payload)),
 		[SET_FAQ_FILTER]: (state, { payload }) => state.update('FAQFilter', filter => filter.merge(payload)),
 		[SET_CHARTS_DATES]: (state, { payload }) => state.update('dates', filter => filter.merge(payload)),
+		[SET_OPENED_GROUP]: (state, { payload }) => state.set('openedGroup', fromJS(payload)),
+		[SET_OPENED_FORMCARD]: (state, { payload }) => state.set('openedFormCards', fromJS(payload)),
+		[SET_ACTIVE_COUNTER_STATS]: (state, { payload }) => state.set('activeCounterStats', fromJS(payload)),
+		[SET_ACTIVE_CAMPAIGN_STATS]: (state, { payload }) => state.set('activeCampaignStats', fromJS(payload)),
 		[SET_PAGINATION_ITEMS_COUNT]: (state, { payload }) =>
 			state.update('paginationItemsCount', filter => filter.merge(payload)),
+		[SET_FAVORITE_GROUP]: (state, { payload }) => state.set('favoriteGroups', fromJS(payload)),
+		[SET_FAVORITE_CREATIVE]: (state, { payload }) => state.set('favoriteCreatives', fromJS(payload)),
+		[SET_FAVORITE_FILTER]: (state, { payload }) => state.set('favoriteFilters', fromJS(payload)),
 	},
 	initialState,
 );

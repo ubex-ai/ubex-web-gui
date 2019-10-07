@@ -6,7 +6,10 @@ import 'chartjs-plugin-annotation';
 import { Button, ButtonDropdown, DropdownItem, DropdownMenu, DropdownToggle, Row, Col } from 'reactstrap';
 import { defoptions, defdata } from '../../containers/DataMiner/Variables/graphics';
 Chart.plugins.register(ChartDataLabels);
-Chart.defaults.global.defaultFontFamily = "'Proxima Nova Rg', Arial, sans-serif";
+Chart.defaults.global.defaultFontFamily = "'Open Sans', Arial, sans-serif";
+Chart.Legend.prototype.afterFit = function() {
+	this.height = this.height + 30;
+};
 class LineChart extends React.Component {
 	constructor(props) {
 		super(props);
@@ -55,7 +58,7 @@ class LineChart extends React.Component {
 
 	render() {
 		const { arrayChart, arrayLabels, average } = this.props.data;
-		const { settings, legend } = this.props;
+		const { settings, legend, legenda, lines } = this.props;
 		let color = this.props.color;
 		if (!color) {
 			color = this.state.color;
@@ -68,73 +71,59 @@ class LineChart extends React.Component {
 
 		const options1 = {
 			legend: {
-				display: legend || false,
+				display: !arrayChart || arrayChart.length === 0 || !Array.isArray(arrayChart) ? false : legend,
 			},
 			scales: {
-				yAxes: [
+				yAxes: !lines
+					? [
+							{
+								stacked: true,
+								ticks: {
+									beginAtZero: true,
+								},
+								type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+								display: true,
+								position: 'right',
+								id: 'y-axis-0',
+							},
+					  ]
+					: [
+							{
+								stacked: false,
+								ticks: {
+									beginAtZero: true,
+								},
+								type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+								display: true,
+								position: 'left',
+								id: 'y-axis-0',
+							},
+							{
+								stacked: false,
+								ticks: {
+									beginAtZero: true,
+								},
+								type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+								display: true,
+								position: 'right',
+								id: 'y-axis-1',
+								gridLines: {
+									drawOnChartArea: false, // only want the grid lines for one axis to show up
+								},
+							},
+					  ],
+				xAxes: [
 					{
+						barPercentage: 0.4,
 						ticks: {
-							beginAtZero: true,
+							display: true,
+							callback(value, index, values) {
+								return arrayLabels && arrayLabels.length <= 28 ? value : index % 2 === 0 ? value : '';
+							},
 						},
 					},
 				],
 			},
-			plugins:
-				arrayChart && arrayChart.length > 1
-					? {
-							datalabels: {
-								color: 'rgba(53, 153, 184, 1)',
-								padding: {
-									bottom: 10,
-								},
-								anchor: 'center',
-								align: 'top',
-								formatter: function(value, context) {
-									const { minIndex, maxIndex } = indexOfMinMax(arrayChart[0]);
-									if (context.dataset.data.length > 25) {
-										return context.datasetIndex === 1 && context.dataIndex === minIndex
-											? context.dataset.data[minIndex]
-											: context.datasetIndex === 1 && context.dataIndex === maxIndex
-												? context.dataset.data[maxIndex]
-												: null;
-									} else {
-										return context.datasetIndex === 1
-											? context.dataset.data[context.dataIndex]
-											: null;
-									}
-								},
-								font: {
-									family: 'Proxima Nova Rg',
-								},
-							},
-					  }
-					: arrayChart && arrayChart.length === 1
-						? {
-								datalabels: {
-									color: '#767676',
-									padding: {
-										bottom: 10,
-									},
-									anchor: 'center',
-									align: 'top',
-									font: {
-										family: 'Proxima Nova Rg',
-									},
-									formatter: function(value, context) {
-										const { minIndex, maxIndex } = indexOfMinMax(arrayChart[0]);
-										if (context.dataset.data.length > 25) {
-											return context.dataIndex === minIndex
-												? context.dataset.data[minIndex]
-												: context.dataIndex === maxIndex
-													? context.dataset.data[maxIndex]
-													: null;
-										} else {
-											return context.dataset.data[context.dataIndex];
-										}
-									},
-								},
-						  }
-						: null,
 			annotation: average
 				? {
 						annotations: [
@@ -150,7 +139,7 @@ class LineChart extends React.Component {
 								borderWidth: 0.5,
 								label: {
 									backgroundColor: 'transparent',
-									fontFamily: 'sans-serif',
+									fontFamily: 'Open Sans',
 									fontSize: 10,
 									fontStyle: 'bold',
 									fontColor: '#676767',
@@ -182,39 +171,220 @@ class LineChart extends React.Component {
 
 			return {
 				labels: arrayLabels,
-				datasets: [
-					{
-						label: legend.length ? legend[1] : '',
-						borderColor: color.length ? `rgba(${color[1].r}, ${color[1].g}, ${color[1].b}, 1)` : '#fff',
-						pointBorderColor: '#FFF',
-						pointBackgroundColor: color.length ? `rgba(${color[1].r}, ${color[1].g}, ${color[1].b}, 1)` : '#fff',
-						pointBorderWidth: 2,
-						pointHoverRadius: 4,
-						pointHoverBorderWidth: 1,
-						pointRadius: 4,
-						fill: true,
-						backgroundColor: color.length ? `rgba(${color[1].r}, ${color[1].g}, ${color[1].b}, 0.6)` : '#fff',
-						borderWidth: 2,
-						data: arrayChart[1],
-						datalabels: {
-							color: '#FFCE56',
-						},
-					},
-					{
-						label: legend.length ? legend[0] : '',
-						borderColor: color.length ? `rgba(${color[0].r}, ${color[0].g}, ${color[0].b}, 1)` : '#fff',
-						pointBorderColor: '#FFF',
-						pointBackgroundColor: color.length ? `rgba(${color[0].r}, ${color[0].g}, ${color[0].b}, 1)` : '#fff',
-						pointBorderWidth: 2,
-						pointHoverRadius: 4,
-						pointHoverBorderWidth: 1,
-						pointRadius: 4,
-						fill: true,
-						backgroundColor: color.length ? `rgba(${color[0].r}, ${color[0].g}, ${color[0].b}, 0.6)` : '#fff',
-						borderWidth: 2,
-						data: arrayChart[0],
-					},
-				],
+				datasets: !lines
+					? [
+							{
+								label: legend.length ? legend[1] : '',
+								borderColor: color.length
+									? `rgba(${color[1].r}, ${color[1].g}, ${color[1].b}, 1)`
+									: '#fff',
+								pointBorderColor: '#FFF',
+								pointBackgroundColor: color.length
+									? `rgba(${color[1].r}, ${color[1].g}, ${color[1].b}, 1)`
+									: '#fff',
+								pointBorderWidth: 2,
+								pointHoverRadius: 4,
+								pointHoverBorderWidth: 1,
+								pointRadius: 4,
+								fill: true,
+								backgroundColor: color.length
+									? `rgba(${color[1].r}, ${color[1].g}, ${color[1].b}, 0.6)`
+									: '#fff',
+								borderWidth: 2,
+								data: arrayChart[1],
+								datalabels: {
+									display: true,
+									backgroundColor: color.length
+										? `rgba(${color[1].r}, ${color[1].g}, ${color[1].b}, 0.6)`
+										: '#fff',
+									color: '#fff',
+									padding: {
+										bottom: 1,
+										top: 3,
+										left: 5,
+										right: 5,
+									},
+									borderRadius: 5,
+									anchor: 'center',
+									align: 'top',
+									font: {
+										family: 'Open Sans',
+									},
+									formatter(value, context) {
+										const d = context.dataset.data.filter(c => typeof c !== 'function');
+										const { minIndex, maxIndex } = indexOfMinMax(d.map(Number));
+										if (d.length > 25) {
+											return context.dataIndex === minIndex
+												? d[minIndex]
+												: context.dataIndex === maxIndex
+												? d[maxIndex]
+												: null;
+										}
+										return d[context.dataIndex];
+									},
+								},
+							},
+							{
+								label: legend.length ? legend[0] : '',
+								borderColor: color.length
+									? `rgba(${color[0].r}, ${color[0].g}, ${color[0].b}, 1)`
+									: '#fff',
+								pointBorderColor: '#FFF',
+								pointBackgroundColor: color.length
+									? `rgba(${color[0].r}, ${color[0].g}, ${color[0].b}, 1)`
+									: '#fff',
+								pointBorderWidth: 2,
+								pointHoverRadius: 4,
+								pointHoverBorderWidth: 1,
+								pointRadius: 4,
+								fill: true,
+								backgroundColor: color.length
+									? `rgba(${color[0].r}, ${color[0].g}, ${color[0].b}, 0.6)`
+									: '#fff',
+								borderWidth: 2,
+								data: arrayChart[0],
+								datalabels: {
+									display: true,
+									backgroundColor: color.length
+										? `rgba(${color[1].r}, ${color[1].g}, ${color[1].b}, 0.6)`
+										: '#fff',
+									color: '#fff',
+									padding: {
+										bottom: 1,
+										top: 3,
+										left: 5,
+										right: 5,
+									},
+									borderRadius: 5,
+									anchor: 'center',
+									align: 'top',
+									font: {
+										family: 'Open Sans',
+									},
+									formatter(value, context) {
+										const d = context.dataset.data.filter(c => typeof c !== 'function');
+										const { minIndex, maxIndex } = indexOfMinMax(d.map(Number));
+										if (d.length > 25) {
+											return context.dataIndex === minIndex
+												? d[minIndex]
+												: context.dataIndex === maxIndex
+												? d[maxIndex]
+												: null;
+										}
+										return d[context.dataIndex];
+									},
+								},
+							},
+					  ]
+					: [
+							{
+								label: legend.length ? legend[0] : '',
+								borderColor: color.length
+									? `rgba(${color[0].r}, ${color[0].g}, ${color[0].b}, 1)`
+									: '#fff',
+								pointBorderColor: color.length
+									? `rgba(${color[0].r}, ${color[0].g}, ${color[0].b}, 1)`
+									: '#fff',
+								pointBackgroundColor: color.length
+									? `rgba(${color[0].r}, ${color[0].g}, ${color[0].b}, 1)`
+									: '#fff',
+								pointBorderWidth: 2,
+								pointHoverRadius: 4,
+								pointHoverBorderWidth: 1,
+								pointRadius: 4,
+								fill: true,
+								backgroundColor: 'transparent',
+								borderWidth: 2,
+								data: arrayChart[0],
+								yAxisID: 'y-axis-0',
+								datalabels: {
+									display: true,
+									backgroundColor: color.length
+										? `rgba(${color[0].r}, ${color[0].g}, ${color[0].b}, 0.6)`
+										: '#fff',
+									color: '#fff',
+									padding: {
+										bottom: 1,
+										top: 3,
+										left: 5,
+										right: 5,
+									},
+									borderRadius: 5,
+									anchor: 'center',
+									align: 'top',
+									font: {
+										family: 'Open Sans',
+									},
+									formatter(value, context) {
+										const d = context.dataset.data.filter(c => typeof c !== 'function');
+										const { minIndex, maxIndex } = indexOfMinMax(d.map(Number));
+										if (d.length > 25) {
+											return context.dataIndex === minIndex
+												? d[minIndex]
+												: context.dataIndex === maxIndex
+												? d[maxIndex]
+												: null;
+										}
+										return d[context.dataIndex];
+									},
+								},
+							},
+							{
+								label: legend.length ? legend[1] : '',
+								borderColor: color.length
+									? `rgba(${color[1].r}, ${color[1].g}, ${color[1].b}, 1)`
+									: '#fff',
+								pointBorderColor: color.length
+									? `rgba(${color[1].r}, ${color[1].g}, ${color[1].b}, 1)`
+									: '#fff',
+								pointBackgroundColor: color.length
+									? `rgba(${color[1].r}, ${color[1].g}, ${color[1].b}, 1)`
+									: '#fff',
+								pointBorderWidth: 2,
+								pointHoverRadius: 4,
+								pointHoverBorderWidth: 1,
+								pointRadius: 4,
+								fill: true,
+								backgroundColor: color.length
+									? `rgba(${color[1].r}, ${color[1].g}, ${color[1].b}, 0.6)`
+									: '#fff',
+								borderWidth: 2,
+								data: arrayChart[1],
+								yAxisID: 'y-axis-1',
+								type: 'line',
+								datalabels: {
+									display: true,
+									backgroundColor: color.length
+										? `rgba(${color[1].r}, ${color[1].g}, ${color[1].b}, 0.6)`
+										: '#fff',
+									color: '#fff',
+									padding: {
+										bottom: 1,
+										top: 3,
+										left: 5,
+										right: 5,
+									},
+									borderRadius: 5,
+									anchor: 'center',
+									align: 'top',
+									font: {
+										family: 'Open Sans',
+									},
+									formatter(value, context) {
+										const d = context.dataset.data.filter(c => typeof c !== 'function');
+										const { minIndex, maxIndex } = indexOfMinMax(d.map(Number));
+										if (d.length > 25) {
+											return context.dataIndex === minIndex
+												? d[minIndex]
+												: context.dataIndex === maxIndex
+												? d[maxIndex]
+												: null;
+										}
+										return d[context.dataIndex];
+									},
+								},
+							},
+					  ],
 			};
 		};
 
@@ -233,9 +403,9 @@ class LineChart extends React.Component {
 				labels: arrayLabels,
 				datasets: [
 					{
-						label: 'UBEX',
+						label: legenda && legenda.length ? legenda[0] : '',
 						borderColor: `rgba(${color.r}, ${color.g}, ${color.b}, 1)`,
-						pointBorderColor: '#FFF',
+						pointBorderColor: `rgba(${color.r}, ${color.g}, ${color.b}, 1)`,
 						pointBackgroundColor: `rgba(${color.r}, ${color.g}, ${color.b}, 1)`,
 						pointBorderWidth: 2,
 						pointHoverRadius: 4,
@@ -245,6 +415,35 @@ class LineChart extends React.Component {
 						backgroundColor: `rgba(${color.r}, ${color.g}, ${color.b}, 0.6)`,
 						borderWidth: 2,
 						data: arrayChart[0],
+						datalabels: {
+							display: true,
+							backgroundColor: `rgba(${color.r}, ${color.g}, ${color.b}, 1)`,
+							color: '#fff',
+							padding: {
+								bottom: 1,
+								top: 3,
+								left: 5,
+								right: 5,
+							},
+							borderRadius: 5,
+							anchor: 'center',
+							align: 'top',
+							font: {
+								family: 'Open Sans',
+							},
+							formatter(value, context) {
+								const d = context.dataset.data.filter(c => typeof c !== 'function');
+								const { minIndex, maxIndex } = indexOfMinMax(d.map(Number));
+								if (d.length > 25) {
+									return context.dataIndex === minIndex
+										? d[minIndex]
+										: context.dataIndex === maxIndex
+										? d[maxIndex]
+										: null;
+								}
+								return d[context.dataIndex];
+							},
+						},
 					},
 				],
 			};
@@ -260,8 +459,8 @@ class LineChart extends React.Component {
 										!arrayChart || arrayChart.length === 0 || !Array.isArray(arrayChart)
 											? defdata
 											: arrayChart.length > 1
-												? data1
-												: data2
+											? data1
+											: data2
 									}
 									height={this.props.height}
 									options={options1}

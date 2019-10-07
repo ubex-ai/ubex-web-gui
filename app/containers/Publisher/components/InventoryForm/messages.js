@@ -138,4 +138,8 @@ export default defineMessages({
 			'<strong>ATTENTION!</strong>' +
 			' <span>Please do not add app created not for people. We will remove a bad app and block an account.</span>',
 	},
+	agreement: {
+		id: `${scope}.agreement`,
+		defaultMessage: 'Accept data from all subdomains',
+	},
 });

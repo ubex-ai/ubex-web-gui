@@ -24,7 +24,6 @@ export default defineMessages({
 	instructionsText: {
 		id: `${scope}.inventoryForm.help.instructionsText`,
 		defaultMessage:
-			'<h2>Instructions</h2>\n' +
 			'<p>To start an advertising campaign, fill in all the form fields. If you want to achieve maximum efficiency, we recommend you fill it in as much detail as possible.</p>\n' +
 			"<dt>Campaign Name</dt><dd>See the name of the campaign. For example: Children's toys 24-55, China.</dd>\n" +
 			'<dt>Type of desired audience</dt><dd>Select a campaign type - Select a new audience or Retargeting - return your audience for repeat sales.</dd>\n' +
@@ -108,7 +107,7 @@ export default defineMessages({
 	},
 	SSP: {
 		id: `${scope}.SSP`,
-		defaultMessage: 'SSP',
+		defaultMessage: 'Block ad networks',
 	},
 	frequency: {
 		id: `${scope}.frequency`,
@@ -138,7 +137,7 @@ export default defineMessages({
 		id: `${scope}.stopAdvertising`,
 		defaultMessage: 'Stop advertising if the site is not available for more than 3 minutes in a row.',
 	},
-	showPosition: {
+	placement: {
 		id: `${scope}.showPosition`,
 		defaultMessage: 'Show position',
 	},
@@ -194,6 +193,10 @@ export default defineMessages({
 		id: `${scope}.blacklist`,
 		defaultMessage: 'Blacklist',
 	},
+	whitelist: {
+		id: `${scope}.whitelist`,
+		defaultMessage: 'Whitelist',
+	},
 	mainInfo: {
 		id: `${scope}.mainInfo`,
 		defaultMessage: 'General settings',
@@ -221,5 +224,99 @@ export default defineMessages({
 	language: {
 		id: `${scope}.language`,
 		defaultMessage: 'Language',
+	},
+	directDeals: {
+		id: `${scope}.directDeals`,
+		defaultMessage: 'Direct deals',
+	},
+	domainList: {
+		id: `${scope}.domainList`,
+		defaultMessage: 'Domain List',
+	},
+	domainExample: {
+		id: `${scope}.domainExample`,
+		defaultMessage: 'Example: ubex.com, *.ubex.com, desk.ubex.com',
+	},
+	toModeration: {
+		id: `${scope}.toModeration`,
+		defaultMessage: 'To moderation',
+	},
+	seeCampaignHeader: {
+		id: `${scope}.seeCampaignHeader`,
+		defaultMessage: 'See campaign',
+	},
+	filter: {
+		id: `${scope}.filter`,
+		defaultMessage: 'Filter',
+	},
+	all: {
+		id: `${scope}.all`,
+		defaultMessage: 'All positions',
+	},
+	advertiserDomain: {
+		id: `${scope}.advertiserDomain`,
+		defaultMessage: 'Advertiser Domain',
+	},
+	advertiserDomainExample: {
+		id: `${scope}.advertiserDomainExample`,
+		defaultMessage: 'Example: ubex.com',
+	},
+	details: {
+		id: `${scope}.campaignDetails`,
+		defaultMessage: 'Details',
+	},
+	generalPopover: {
+		id: `${scope}.generalPopover`,
+		defaultMessage: 'General settings',
+	},
+	generalPopoverText: {
+		id: `${scope}.generalPopoverText`,
+		defaultMessage:
+			'To start an advertising campaign, fill in all the form fields. If you want to squeeze maximum efficiency, we recommend you to input as much detail as possible.\n' +
+			'\n' +
+			'Campaign Name\n' +
+			"Check the name of your newly creating campaign. For example: Children's toys 24-55, China.\n" +
+			'Type of desired audience\n' +
+			'Select a campaign type - Start engagement with new audience or roll out a retargeting campaign - reach out to your audience for repetitive sales.\n' +
+			'Advertising strategy\n' +
+			'Select the type of advertising you are interested in depending on your goals.\n' +
+			'24 hour display frequency\n' +
+			'Specify how many times we are eligible to display your ad to one user. For example: 5.\n' +
+			'Advertising time\n' +
+			'Specify the date and time of the beginning and end of the advertising campaign. If you wish the campaign not to stop running, leave the field "End Date" empty.\n' +
+			'Budget and Daily Budget\n' +
+			'Indicate how much you want to spend on an advertising campaign, total or per day. If there are no restrictions, leave the fields blank.\n' +
+			'Views and Daily Views\n' +
+			'Indicate how many impressions your ad should get, total or per day. If there are no restrictions, leave the fields blank.\n' +
+			'Show position\n' +
+			'Specify where to show your banners. At the top of the page in the visible part or below on the second scroll screen. Choose "default" if you want the system to decide how it will be better.',
+	},
+	allGenders: {
+		id: `${scope}.allGenders`,
+		defaultMessage: 'All genders',
+	},
+	allLanguages: {
+		id: `${scope}.allLanguages`,
+		defaultMessage: 'All languages',
+	},
+	allAges: {
+		id: `${scope}.allAges`,
+		defaultMessage: 'All ages',
+	},
+	allDevices: {
+		id: `${scope}.allDevices`,
+		defaultMessage: 'All devices',
+	},
+	allOS: {
+		id: `${scope}.allOS`,
+		defaultMessage: 'All OS',
+	},
+	allBrowsers: {
+		id: `${scope}.allBrowsers`,
+		defaultMessage: 'All browsers',
+	},
+	select: {
+		id: `${scope}.select`,
+		defaultMessage: 'Select',
 	},
 });

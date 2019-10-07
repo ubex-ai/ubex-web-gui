@@ -52,6 +52,10 @@ class ActionLog extends React.Component {
 		});
 	}
 
+	updateCharts(){
+
+	}
+
 	render() {
 		const { dates } = this.props;
 		const { startDate, endDate, period } = dates;
@@ -61,7 +65,7 @@ class ActionLog extends React.Component {
 					<Row>
 						<Col md={12} className="title_with_select">
 							<Row>
-								<Col md={12} sm={12} xl={5} lg={5}>
+								<Col md={12} sm={12} xl={4} lg={5}>
 									<div className="page-title">
 										<div className="float-left">
 											<h1 className="title">
@@ -71,7 +75,7 @@ class ActionLog extends React.Component {
 									</div>
 								</Col>
 								<DateSelect
-									onChange={(params, dates) => updateCharts(params, dates)}
+									onChange={(params, dates) => this.updateCharts(params, dates)}
 									startDate={startDate}
 									endDate={endDate}
 									period={period}

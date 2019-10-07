@@ -89,6 +89,7 @@
 .btn.btn-success {
 	background: $success-color;
 	color: #ffffff;
+	border: 1px solid #3dc2a7;
 }
 .btn.btn-warning {
 	background: $warning-color;
@@ -101,22 +102,27 @@
 .btn.btn-info {
 	background: $info-color;
 	color: #ffffff;
+	border: 1px solid #04a0e7;
 }
 .btn.btn-accent {
 	background: $accent-color;
 	color: #ffffff;
+	border: 1px solid #f5405e;
 }
 .btn.btn-purple {
 	background: $purple-color;
 	color: #ffffff !important;
+	border: 1px solid #6a63c4;
 }
 .btn.btn-primary {
 	background: $primary-color;
 	color: #ffffff !important;
+	border: 1px solid #1eaef1;
 }
 .btn.btn-secondary {
 	background: #9e9e9e;
 	color: #ffffff;
+	border: 1px solid #959595;
 }
 .btn,
 .btn.btn-default {

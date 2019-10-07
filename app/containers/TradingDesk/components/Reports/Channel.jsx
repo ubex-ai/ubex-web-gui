@@ -16,49 +16,72 @@ import AppCard from 'components/AppCard';
 import BarChart from 'components/Charts/Bar';
 import AppTable from 'components/Tables/AppTable';
 import DateSelect from 'components/DateSelect';
-import { getCounterChannel, getCounterChannelTable } from '../../actions';
+import {getCounterChannel, getCounterChannelTable, setActiveCounterStats} from '../../actions';
 import {
 	countersSelectors,
 	selectCountersIds,
 	selectCounterChannel,
 	selectCounterChannelTable,
-	selectChartsDates,
+	selectChartsDates, selectActiveCounterStats,
 } from '../../selectors';
 
 class Channel extends React.Component {
-	columns = [
-		{ name: 'name', title: this.props.intl.formatMessage(messages.channels) },
-		{ name: 'date', title: this.props.intl.formatMessage(messages.date) },
-		{ name: 'count', title: this.props.intl.formatMessage(messages.visitorsTable) },
-		{ name: 'paidusers', title: this.props.intl.formatMessage(messages.rewardVisitors) },
-		{ name: 'paidpercent', title: this.props.intl.formatMessage(messages.paidPercent) },
-	];
+	constructor(props) {
+		super(props);
+		this.state = {
+			columns: [
+				{ name: 'name', title: this.props.intl.formatMessage(messages.name) },
+				{ name: 'date', title: this.props.intl.formatMessage(messages.date) },
+				{ name: 'count', title: this.props.intl.formatMessage(messages.visitorsTable) },
+				{ name: 'paidusers', title: this.props.intl.formatMessage(messages.newVisitors) },
+				{ name: 'paidpercent', title: 'NEW %' },
+			],
+			selectedCounter: null,
+		};
+	}
 
 	componentDidMount() {
-		const { dates, countersIds } = this.props;
+		const { dates, countersIds, activeCounterStats } = this.props;
 		const { startDate, endDate } = dates;
-		this.props.getCounterChannel({
-			start_date: startDate,
-			end_date: endDate,
-			ids: countersIds.slice(0, 19).join(),
-		});
-		this.props.getCounterChannelTable({
-			start_date: startDate,
-			end_date: endDate,
-			ids: countersIds.slice(0, 19).join(),
-		});
+		const firstCounter = countersIds.length ? countersIds[0] : 0;
+		this.setState({ selectedCounter: activeCounterStats || firstCounter });
+		if (countersIds.length) {
+			this.props.getCounterChannel({
+				start_date: startDate,
+				end_date: endDate,
+				ids: activeCounterStats || firstCounter,
+			});
+			this.props.getCounterChannelTable({
+				start_date: startDate,
+				end_date: endDate,
+				ids: activeCounterStats || firstCounter,
+			});
+		}
 	}
 
 	updateCharts(params, dates) {
+		const { countersIds } = this.props;
 		this.props.getCounterChannel({
 			start_date: dates.startDate,
 			end_date: dates.endDate,
-			ids: params.selectedOption.counter,
+			ids:
+				params.selectedOption && params.selectedOption.value !== 'all'
+					? params.selectedOption.counter
+					: countersIds
+							.sort((a, b) => a - b)
+							.slice(0, 19)
+							.join(),
 		});
 		this.props.getCounterChannelTable({
 			start_date: dates.startDate,
 			end_date: dates.endDate,
-			ids: params.selectedOption.counter,
+			ids:
+				params.selectedOption && params.selectedOption.value !== 'all'
+					? params.selectedOption.counter
+					: countersIds
+							.sort((a, b) => a - b)
+							.slice(0, 19)
+							.join(),
 		});
 	}
 
@@ -70,7 +93,7 @@ class Channel extends React.Component {
 				<Row className="margin-0">
 					<Col md={12} className="title_with_select">
 						<Row>
-							<Col md={5}>
+							<Col md={4}>
 								<div className="page-title">
 									<div className="float-left">
 										<h1 className="title">
@@ -85,6 +108,8 @@ class Channel extends React.Component {
 								endDate={endDate}
 								period={period}
 								mining={counters}
+								miningSelected={this.state.selectedCounter}
+								disableDefaultSelect
 							/>
 						</Row>
 					</Col>
@@ -102,8 +127,8 @@ class Channel extends React.Component {
 							<AppTable
 								data={counterChannelTable.length ? counterChannelTable : []}
 								pagination
-								columns={this.columns}
 								grouping
+								columns={this.state.columns}
 							/>
 						</AppCard>
 					</Col>
@@ -141,6 +166,7 @@ const mapStateToProps = createStructuredSelector({
 	dates: selectChartsDates(),
 	counterChannel: selectCounterChannel(),
 	counterChannelTable: selectCounterChannelTable(),
+	activeCounterStats: selectActiveCounterStats(),
 });
 
 function mapDispatchToProps(dispatch) {
@@ -149,6 +175,7 @@ function mapDispatchToProps(dispatch) {
 		updateCharts: (params, dates) => dispatch(updateCharts(params, dates)),
 		getCounterChannel: dates => dispatch(getCounterChannel(dates)),
 		getCounterChannelTable: dates => dispatch(getCounterChannelTable(dates)),
+		setActiveCounterStats: value => dispatch(setActiveCounterStats(value)),
 	};
 }
 

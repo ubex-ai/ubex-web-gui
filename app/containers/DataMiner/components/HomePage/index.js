@@ -19,8 +19,6 @@ import injectReducer from 'utils/injectReducer';
 import originalMoment from 'moment';
 import { extendMoment } from 'moment-range';
 import randomColor from 'randomcolor';
-import 'react-dates/initialize';
-import 'react-dates/lib/css/_datepicker.css';
 import LineChart from 'components/Charts/Line';
 import BarChart from 'components/Charts/Bar';
 import CardPopover from 'components/CardPopover';
@@ -73,7 +71,7 @@ export class HomePage extends React.Component {
 			r: 244,
 			g: 81,
 			b: 108,
-		}
+		},
 	};
 
 	render() {
@@ -128,7 +126,7 @@ export class HomePage extends React.Component {
 						</Row>
 						<div className="row">
 							<div className="col-xl-6 col-md-12 col-12">
-								<CountersOnlineDashboardCard {...onlineCounters} lg={6} md={6} sm={12}  />
+								<CountersOnlineDashboardCard {...onlineCounters} lg={6} md={6} sm={12} />
 							</div>
 							<div className="col-xl-6 col-md-12 col-12">
 								<NextPayoutDashboardCard />
@@ -162,7 +160,19 @@ export class HomePage extends React.Component {
 											<LineChart
 												data={topVisitors}
 												height={window.innerWidth > 600 ? null : 300}
-												legend
+												color={[
+													{
+														r: 63,
+														g: 153,
+														b: 184,
+													},
+													{
+														r: 1,
+														g: 184,
+														b: 170,
+													},
+												]}
+												legend={['Visitors', 'Paid visitors']}
 											/>
 										</div>
 									</div>
@@ -202,7 +212,10 @@ export class HomePage extends React.Component {
 								</CardPopover>
 							</div>
 							<div className="col-xl-4 col-md-12 col-12">
-								<RevenueDashboardCard revenuePerDay={revenuePerDay} profitabilityRatio={profitabilityRatio} />
+								<RevenueDashboardCard
+									revenuePerDay={revenuePerDay}
+									profitabilityRatio={profitabilityRatio}
+								/>
 							</div>
 							<div className="col-xl-4 col-md-12 col-12">
 								<UnpaidBalanceDashboardCard />

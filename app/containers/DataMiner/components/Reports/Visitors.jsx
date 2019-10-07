@@ -54,7 +54,23 @@ class Visitors extends React.Component {
 				<Row className="margin-0">
 					<Col className="col-12 col-lg-12 col-xl-12">
 						<AppCard chart>
-							<LineChart data={topVisitors} legend height={window.innerWidth > 600 ? 100 : 300} />
+							<LineChart
+								data={topVisitors}
+								color={[
+									{
+										r: 63,
+										g: 153,
+										b: 184,
+									},
+									{
+										r: 1,
+										g: 184,
+										b: 170,
+									},
+								]}
+								legend={['Visitors', 'Paid visitors']}
+								height={window.innerWidth > 600 ? 100 : 300}
+							/>
 						</AppCard>
 					</Col>
 				</Row>

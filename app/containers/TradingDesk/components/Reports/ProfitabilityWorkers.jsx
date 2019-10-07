@@ -34,7 +34,7 @@ class ProfitabilityWorkers extends React.Component {
 						<Row className="margin-0">
 							<Col md={12} className="title_with_select">
 								<Row>
-									<Col md={5}>
+									<Col md={4}>
 										<div className="page-title">
 											<div className="float-left">
 												<h1 className="title">

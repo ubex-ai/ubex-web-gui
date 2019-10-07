@@ -13,7 +13,7 @@ function TableProgress(props) {
 	return (
 		<div>
 			{props.uploaded} / {props.total}
-			<Progress animated value={props.value} className="mb-3">
+			<Progress animated value={props.value} className="mb-3 height-30">
 				<div className="text-right mr-1">{props.value ? parseFloat(props.value).toFixed(2) : 0}%</div>
 			</Progress>
 		</div>

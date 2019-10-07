@@ -8,6 +8,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { injectIntl, intlShape } from 'react-intl';
 import { Link } from 'react-router-dom';
+import _ from 'lodash';
 import {
 	SortingState,
 	IntegratedSorting,
@@ -26,11 +27,10 @@ import {
 } from '@devexpress/dx-react-grid-bootstrap4';
 import '@devexpress/dx-react-grid-bootstrap4/dist/dx-react-grid-bootstrap4.css';
 import moment from 'moment';
-import InlineEditField from 'components/InlineEditField';
 import TableInput from 'components/TableInput';
 import validateDomain from 'utils/validateDomain';
 import messages from '../../messages';
-import _ from 'lodash';
+import classNames from 'classnames';
 
 const FileFormatter = ({ value, row }, props) => {
 	let entry;
@@ -42,17 +42,16 @@ const FileFormatter = ({ value, row }, props) => {
 	}
 	return (
 		<div>
-			{row.ad_size && row.callback_url ? null : (
-				<i
-					className="icon-status__table fas fa-exclamation icon-xs icon-rounded icon-warning"
-					title="Moderation"
-				/>
-			)}
 			<a
 				href="#"
 				onClick={e => {
 					e.preventDefault();
-					props.onClickGetCode(row.type === 'native_image' ? row.files : row.aws_s3_location);
+					props.onClickGetCode(
+						row.type === 'native_image' ? row.files : row.aws_s3_location,
+						{ width: row.width, height: row.height },
+						row.callback_url,
+						row.upload_name,
+					);
 				}}
 			>
 				{value}
@@ -64,7 +63,7 @@ const FileFormatter = ({ value, row }, props) => {
 const getAdName = (id, sizes) => {
 	return _.result(
 		_.find(sizes, function(obj) {
-			return obj.value === id;
+			return obj.id === id || obj.value === id;
 		}),
 		'label',
 	);
@@ -81,7 +80,7 @@ const LinkFormatter = ({ value, row }, props) => (
 const PreviewFormatter = ({ value, row }, props) => (
 	<Button
 		key="code"
-		className="m-portlet__nav-link btn m-btn m-btn--hover-info m-btn--icon m-btn--icon-only m-btn--pill"
+		className="m-portlet__nav-link btn m-btn m-btn--icon m-btn--icon-only m-btn--pill"
 		onClick={() => props.onClickGetCode(row.type === 'natimve_image' ? row.files : value)}
 	>
 		<i className="fas fa-file-image" />
@@ -91,13 +90,85 @@ const PreviewFormatter = ({ value, row }, props) => (
 const DateFormatter = ({ value, row }, props) =>
 	moment(row.created)
 		.local()
-		.format('DD-MM-YYYY HH:mm');
+		.format('DD.MM.YY HH:mm');
 
 const AdSizeFormatter = ({ value, row }, props) => {
 	return getAdName(row.ad_size, props.adSize) ? (
 		<div>{getAdName(row.ad_size, props.adSize)}</div>
 	) : (
-		<Link to={`/app/creative/${props.inventoryType}/${props.creativeId}/`}>Select Ad Size</Link>
+		<Link to={`/app/creative/${props.inventoryType}/${props.creativeId}/`} className="text-danger">
+			Select Ad Size
+		</Link>
+	);
+};
+
+const ModerationFormatter = ({ value, row }, props) => {
+	// ubex should be FIRST
+	let filteredArray = [];
+	if (value && Object.keys(value) && Object.keys(value).length) {
+		filteredArray = Object.keys(value);
+		const itemIndex = _.findIndex(filteredArray, 'ubex');
+		filteredArray.splice(0, 0, filteredArray.splice(itemIndex, 1)[0]);
+	}
+
+	return (
+		<div className="moderationTable">
+			<div className="sspModeration">
+				{filteredArray
+					? filteredArray.map(key => {
+							return (
+								<div className={key}>
+									<div
+										className={classNames(
+											{ badge: true },
+											{ 'badge-danger': value[key] && value[key].moderation_status === 'denied' },
+											{
+												'badge-warning':
+													value[key] && value[key].moderation_status === 'awaiting',
+											},
+											{
+												'badge-success':
+													value[key] && value[key].moderation_status === 'accepted',
+											},
+											{
+												'badge-warning':
+													value[key] && value[key].moderation_status === 'pending',
+											},
+											{
+												'badge-danger':
+													value[key] && value[key].moderation_status === 'moderation_error',
+											},
+											{ 'badge-success': value[key] && value[key].moderation_status === 'ready' },
+											{
+												'badge-warning':
+													value[key] && value[key].moderation_status === 'moderation',
+											},
+											{
+												'badge-warning':
+													value[key] && value[key].moderation_status === 'moderation_state',
+											},
+										)}
+										style={{ borderRadius: '5px' }}
+										title={`Moderation: ${value[key] !== null ? value[key].moderation_status : ''}`}
+										onClick={() =>
+											value[key] === null ||
+											(value[key].moderation_status === null &&
+												value[key].moderation_errors === null)
+												? props.moderationError({
+														moderation_status: null,
+														moderation_errors: ['No comment'],
+												  })
+												: props.moderationError(value[key])
+										}
+									>
+										<span style={{ textTransform: 'capitalize' }}>{key}</span>
+									</div>
+								</div>
+							);
+					  })
+					: null}
+			</div>
+		</div>
 	);
 };
 
@@ -108,18 +179,18 @@ const SettingsFormatter = ({ value, row }, props) => {
 			return <span>loading</span>;
 		}
 	}
-	return (
-		<span>
-			<Button
-				key="remove"
-				onClick={() => props.removeBanner(row.id)}
-				className="m-portlet__nav-link btn m-btn m-btn--hover-danger m-btn--icon m-btn--icon-only m-btn--pill"
-			>
-				<i className="fas fa-trash" />
-			</Button>
-		</span>
-	);
+	return props.permissions ? (
+		<Button
+			key="remove"
+			onClick={() => props.removeBanner(row.id)}
+			className="m-portlet__nav-link btn m-btn m-btn--icon m-btn--icon-only m-btn--pill mr-0"
+		>
+			<i className="far fa-trash" />
+		</Button>
+	) : null;
 };
+
+const IDFormatter = ({ value, row }, props) => row.id;
 
 const getRowId = row => row.id;
 const DateTypeProvider = props => (
@@ -140,6 +211,12 @@ const PreviewProvider = props => (
 const SettingsProvider = props => (
 	<DataTypeProvider formatterComponent={fCProps => SettingsFormatter(fCProps, props)} {...props} />
 );
+const ModerationProvider = props => (
+	<DataTypeProvider formatterComponent={fCProps => ModerationFormatter(fCProps, props)} {...props} />
+);
+const IDProvider = props => (
+	<DataTypeProvider formatterComponent={fileProps => IDFormatter(fileProps, props)} {...props} />
+);
 
 class CreativesTable extends React.Component {
 	constructor(props) {
@@ -157,39 +234,51 @@ class CreativesTable extends React.Component {
 			settingsColumn: ['id'],
 			previewColumn: ['aws_s3_location'],
 			rightColumns: ['id'],
+			idColumn: ['idd'],
+			moderationColumn: ['moderation'],
 			leftColumns: ['preview'],
 		};
 		this.columns = {
 			native: [
+				{ name: 'idd', title: 'ID' },
 				{ name: 'created', title: 'Created' },
 				{ name: 'upload_name', title: this.props.intl.formatMessage(messages.name) },
+				{ name: 'moderation', title: 'Moderation' },
 				{ name: 'callback_url', title: this.props.intl.formatMessage(messages.clickURL) },
 			],
 			other: [
+				{ name: 'idd', title: 'ID' },
 				{ name: 'created', title: 'Created' },
 				{ name: 'name', title: this.props.intl.formatMessage(messages.name) },
+				{ name: 'moderation', title: 'Moderation' },
 				{ name: 'ad_size', title: this.props.intl.formatMessage(messages.adSize) },
 			],
 			video: [
+				{ name: 'idd', title: 'ID' },
 				{ name: 'created', title: 'Created' },
 				{ name: 'upload_name', title: this.props.intl.formatMessage(messages.file) },
+				{ name: 'moderation', title: 'Moderation' },
 				{ name: 'callback_url', title: this.props.intl.formatMessage(messages.clickURL) },
 				{ name: 'id', title: ' ' },
 			],
 			display: [
+				{ name: 'idd', title: 'ID' },
 				{ name: 'created', title: 'Created' },
 				{ name: 'upload_name', title: this.props.intl.formatMessage(messages.file) },
+				{ name: 'moderation', title: 'Moderation' },
 				{ name: 'ad_size', title: this.props.intl.formatMessage(messages.adSize) },
 				{ name: 'callback_url', title: this.props.intl.formatMessage(messages.clickURL) },
 				{ name: 'id', title: ' ' },
 			],
 		};
 		this.columnWidths = [
-			{ columnName: 'created', width: 160 },
+			{ columnName: 'idd', width: 70 },
+			{ columnName: 'created', width: 130 },
 			{ columnName: 'upload_name', width: 'auto' },
+			{ columnName: 'moderation', width: 150 },
 			{ columnName: 'callback_url', width: 'auto' },
-			{ columnName: 'name', width: 400 },
-			{ columnName: 'id', width: 60 },
+			{ columnName: 'name', width: 'auto' },
+			{ columnName: 'id', width: 70 },
 			{ columnName: 'ad_size', width: 'auto' },
 		];
 		this.changeSorting = sorting => this.setState({ sorting });
@@ -209,6 +298,8 @@ class CreativesTable extends React.Component {
 			previewColumn,
 			fileColumn,
 			adSizeColumn,
+			idColumn,
+			moderationColumn,
 		} = this.state;
 		const { data, inventoryType } = this.props;
 		const { columns } = this;
@@ -216,7 +307,7 @@ class CreativesTable extends React.Component {
 			this.setState({ columnWidths });
 		};
 		return (
-			<div className="table__card">
+			<div className="table__card creative_list">
 				{data && (
 					<Grid rows={data} columns={columns[inventoryType]}>
 						<PagingState
@@ -229,19 +320,16 @@ class CreativesTable extends React.Component {
 						<SortingState sorting={sorting} onSortingChange={this.changeSorting} />
 						<IntegratedSorting />
 						<IntegratedPaging />
+						<IDProvider for={idColumn} {...this.props} />
 						<AdSizeProvider for={adSizeColumn} {...this.props} />
 						<FileProvider for={fileColumn} {...this.props} />
 						<LinkProvider for={linkColumn} {...this.props} />
 						<PreviewProvider for={previewColumn} {...this.props} />
 						<DateTypeProvider for={dateColumn} {...this.props} />
 						<SettingsProvider for={settingsColumn} {...this.props} />
-						<Table />
-						<TableColumnResizing
-							defaultColumnWidths={this.columnWidths}
-							onColumnWidthsChange={this.changeColumnWidths}
-						/>
+						<ModerationProvider for={moderationColumn} {...this.props} />
+						<Table columnExtensions={this.columnWidths} />
 						<TableHeaderRow showSortingControls />
-						<TableFixedColumns rightColumns={this.state.rightColumns} />
 						<PagingPanel pageSizes={pageSizes} />
 					</Grid>
 				)}

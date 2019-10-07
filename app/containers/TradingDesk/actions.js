@@ -9,6 +9,7 @@ import {
 	listActionCreator,
 	makeCRUDOnRoute,
 	listByDateActionCreator,
+	listByParamsActionCreator,
 } from 'utils/CollectionHelper/actions';
 import { listStatsByParamsActionCreator } from 'utils/StatsHelper/actions';
 import {
@@ -55,6 +56,27 @@ import {
 	COUNTER_DEVICES_TABLE_COLLECTION_NAME,
 	COUNTER_CHANNEL_COLLECTION_NAME,
 	COUNTER_CHANNEL_TABLE_COLLECTION_NAME,
+	SET_OPENED_GROUP,
+	REGIONS_COLLECTION_NAME,
+	CITIES_COLLECTION_NAME,
+	SET_OPENED_FORMCARD,
+	PAYMENT_VARIANTS,
+	GROUPSHARING_COLLECTION_NAME,
+	CREATIVESHARING_COLLECTION_NAME,
+	ONLINE_COUNTERS_COLLECTION_NAME,
+	COUNTERSHARING_COLLECTION_NAME,
+	PUBLISHERS_CONFIG_COLLECTION_NAME,
+	GROUPSTATS_COLLECTION_NAME,
+	CAMPAIGNREPORT_CARDS_COLLECTION_NAME,
+	FILTERS_COLLECTION_NAME,
+	FILTERSHARING_COLLECTION_NAME,
+	GET_ONLINE_COUNTERS_REQUEST,
+	SET_ACTIVE_COUNTER_STATS,
+	SET_ACTIVE_CAMPAIGN_STATS,
+	CAMPAING_FORM_LOADING_START,
+	SET_FAVORITE_GROUP,
+	SET_FAVORITE_CREATIVE,
+	SET_FAVORITE_FILTER,
 } from './constants';
 
 export function defaultAction() {
@@ -70,6 +92,8 @@ export const campaingCollectionActions = makeCRUDOnRoute(`api/campaign`, CAMPAIN
 export const creativeCollectionActions = makeCRUDOnRoute(`api/creative`, CREATIVES_COLLECTION_NAME);
 export const groupCollectionActions = makeCRUDOnRoute('api/campaign-group', CAMPAING_GROUPS_COLLECTION_NAME);
 export const bannersCollectionActions = makeCRUDOnRoute('api/banner', BANNERS_COLLECTION_NAME);
+export const filtersCollectionActions = makeCRUDOnRoute('api/filter', FILTERS_COLLECTION_NAME);
+
 /**
  * Counters action creator
  */
@@ -156,15 +180,28 @@ export const getPlacementPosition = listActionCreator('api/placement-position', 
 export const getCreatives = listActionCreator('api/creative', CREATIVES_COLLECTION_NAME);
 export const getGroups = listActionCreator('api/campaign-group', CAMPAING_GROUPS_COLLECTION_NAME);
 export const getCampaigns = listActionCreator('api/campaign', CAMPAINGS_COLLECTION_NAME);
+export const getFilters = listActionCreator('api/filter', FILTERS_COLLECTION_NAME);
 export const getPayLink = makeCRUDOnRoute('api/paypal/payment', PAY_LINK);
 export const transferMoneyGroup = makeCRUDOnRoute('api/payment/campaign-group/transfer-money', TRANSFER_MONEY);
-export const getBalance = listActionCreator('api/paypal/balance', BALANCE_COLLECTION_NAME);
+export const getBalance = listActionCreator('billing/balance', BALANCE_COLLECTION_NAME);
 export const getAdSize = listActionCreator('api/banner-size', ADSIZE_COLLECTION_NAME);
 export const getLanguages = listActionCreator('api/language', LANGUAGE_COLLECTION_NAME);
+export const getRegions = payload => listByParamsActionCreator(`api/country`, REGIONS_COLLECTION_NAME, payload);
+export const getCities = payload => listByParamsActionCreator(`api/country`, CITIES_COLLECTION_NAME, payload);
 export const contactForm = makeCRUDOnRoute('api/sendmail', CONTACT_FORM);
 export const getPaymentHistory = payload =>
 	listByDateActionCreator('api/payment/history', PAYMENTHISTORY_COLLECTION_NAME, payload);
-export const balanceCollectionActions = makeCRUDOnRoute('api/paypal/balance', BALANCE_COLLECTION_NAME);
+export const balanceCollectionActions = makeCRUDOnRoute('billing/balance', BALANCE_COLLECTION_NAME);
+export const paymentCollectionActions = makeCRUDOnRoute('billing/payment_methods', PAYMENT_VARIANTS);
+export const groupSharingCollectionActions = makeCRUDOnRoute('api/group-sharing', GROUPSHARING_COLLECTION_NAME);
+export const creativeSharingCollectionActions = makeCRUDOnRoute(
+	'api/creative-sharing',
+	CREATIVESHARING_COLLECTION_NAME,
+);
+export const filterSharingCollectionActions = makeCRUDOnRoute('api/filter-sharing', FILTERSHARING_COLLECTION_NAME);
+export const counterSharingCollectionActions = makeCRUDOnRoute('api/counter-sharing', COUNTERSHARING_COLLECTION_NAME);
+// export const getOnlineCounters = listActionCreator('api/online', ONLINE_COUNTERS_COLLECTION_NAME);
+export const publisherConfig = listActionCreator('api/banner/publishers', PUBLISHERS_CONFIG_COLLECTION_NAME);
 /**
  * Update data for chart
  */
@@ -225,44 +262,65 @@ export function setPaginationItemsCount(items) {
 	};
 }
 
+export function setOpenedGroup(id) {
+	return {
+		type: SET_OPENED_GROUP,
+		payload: id,
+	};
+}
+
+export function setOpenedFormCards(id) {
+	return {
+		type: SET_OPENED_FORMCARD,
+		payload: id,
+	};
+}
+
 export const getVisitors = payload => listStatsByParamsActionCreator('bydate', VISITORS_COLLECTION_NAME, payload);
 
 export const getCampaignReport = payload =>
 	listStatsByParamsActionCreator('desk/bydate', CAMPAIGNREPORT_COLLECTION_NAME, {
 		...payload,
-		metrics: 'impressions,clicks,winrate,spent,ctr,ecpm',
-		group: 'day',
+		metrics: 'impressions,clicks,winrate,spent,ctr,ecpm,cpc',
 		dimensions: 'campaign',
 	});
 
 export const getCampaignReportTable = payload =>
 	listStatsByParamsActionCreator('desk/bydate', CAMPAIGNREPORT_TABLE_COLLECTION_NAME, {
 		...payload,
-		metrics: 'impressions,clicks,winrate,spent,ctr,ecpm',
+		metrics: 'impressions,clicks,winrate,spent,ctr,ecpm,cpc',
 		group: 'day',
 		dimensions: 'campaign',
+	});
+
+export const getCampaignReportCards = payload =>
+	listStatsByParamsActionCreator('desk/table', CAMPAIGNREPORT_CARDS_COLLECTION_NAME, {
+		...payload,
+		metrics: 'impressions,clicks,winrate,spent,ctr,ecpm,cpc',
+		group: null,
+		// dimensions: null,
 	});
 
 export const getHomePageStats = payload =>
 	listStatsByParamsActionCreator('desk/bydate', HOMEPAGESTATS_COLLECTION_NAME, {
 		...payload,
-		metrics: 'impressions,clicks,winrate,spent,ctr,ecpm',
+		metrics: 'impressions,clicks,winrate,spent,ctr,ecpm,cpc',
 		group: 'day',
-		dimensions: 'campaign_group',
+		// dimensions: 'campaign_group',
 	});
 
 export const getTableStatsHomePage = payload =>
 	listStatsByParamsActionCreator('desk/table', TABLE_HOMEPAGESTATS_COLLECTION_NAME, {
 		...payload,
-		metrics: 'winrate,spent,ctr,ecpm',
+		metrics: 'winrate,spent,ctr,ecpm,cpc,impressions,clicks',
 		group: null,
-		dimensions: null,
+		// dimensions: null,
 	});
 
 export const getCreativeReport = payload =>
 	listStatsByParamsActionCreator('desk/bydate', CREATIVEREPORT_COLLECTION_NAME, {
 		...payload,
-		metrics: 'impressions,clicks,winrate,spent,ctr,ecpm',
+		metrics: 'impressions,clicks,winrate,spent,ctr,ecpm,cpc',
 		group: 'day',
 		dimensions: 'creative',
 	});
@@ -270,13 +328,13 @@ export const getCreativeReport = payload =>
 export const getCreativeReportTable = payload =>
 	listStatsByParamsActionCreator('desk/bydate', CREATIVEREPORT_TABLE_COLLECTION_NAME, {
 		...payload,
-		metrics: 'impressions,clicks,winrate,spent,ctr,ecpm',
+		metrics: 'impressions,clicks,winrate,spent,ctr,ecpm,cpc',
 		group: 'day',
 		dimensions: 'creative',
 	});
 
 export const getCounterVisitors = payload =>
-	listStatsByParamsActionCreator('mining/bydate', COUNTER_VISITORS_COLLECTION_NAME, {
+	listStatsByParamsActionCreator('counter/bydate', COUNTER_VISITORS_COLLECTION_NAME, {
 		...payload,
 		metrics: 'visitors,paid_visitors',
 		group: 'day',
@@ -284,7 +342,7 @@ export const getCounterVisitors = payload =>
 	});
 
 export const getCounterVisitorsTable = payload =>
-	listStatsByParamsActionCreator('mining/bydate', COUNTER_VISITORS_TABLE_COLLECTION_NAME, {
+	listStatsByParamsActionCreator('counter/bydate', COUNTER_VISITORS_TABLE_COLLECTION_NAME, {
 		...payload,
 		metrics: 'visitors,paid_visitors',
 		group: 'day',
@@ -292,7 +350,7 @@ export const getCounterVisitorsTable = payload =>
 	});
 
 export const getCounterRegions = payload =>
-	listStatsByParamsActionCreator('mining/bydate', COUNTER_REGIONS_COLLECTION_NAME, {
+	listStatsByParamsActionCreator('counter/bydate', COUNTER_REGIONS_COLLECTION_NAME, {
 		...payload,
 		metrics: 'visitors,paid_visitors',
 		group: 'day',
@@ -300,15 +358,15 @@ export const getCounterRegions = payload =>
 	});
 
 export const getCounterRegionsTable = payload =>
-	listStatsByParamsActionCreator('mining/bydate', COUNTER_REGIONS_TABLE_COLLECTION_NAME, {
+	listStatsByParamsActionCreator('counter/bydate', COUNTER_REGIONS_TABLE_COLLECTION_NAME, {
 		...payload,
 		metrics: 'visitors,paid_visitors',
 		group: 'day',
-		dimensions: 'ids',
+		dimensions: 'country_iso',
 	});
 
 export const getCounterDevices = payload =>
-	listStatsByParamsActionCreator('mining/bydate', COUNTER_DEVICES_COLLECTION_NAME, {
+	listStatsByParamsActionCreator('counter/bydate', COUNTER_DEVICES_COLLECTION_NAME, {
 		...payload,
 		metrics: 'visitors,paid_visitors',
 		group: 'day',
@@ -316,15 +374,15 @@ export const getCounterDevices = payload =>
 	});
 
 export const getCounterDevicesTable = payload =>
-	listStatsByParamsActionCreator('mining/bydate', COUNTER_DEVICES_TABLE_COLLECTION_NAME, {
+	listStatsByParamsActionCreator('counter/bydate', COUNTER_DEVICES_TABLE_COLLECTION_NAME, {
 		...payload,
 		metrics: 'visitors,paid_visitors',
 		group: 'day',
-		dimensions: 'ids',
+		dimensions: 'device_category',
 	});
 
 export const getCounterChannel = payload =>
-	listStatsByParamsActionCreator('mining/bydate', COUNTER_CHANNEL_COLLECTION_NAME, {
+	listStatsByParamsActionCreator('counter/bydate', COUNTER_CHANNEL_COLLECTION_NAME, {
 		...payload,
 		metrics: 'visitors,paid_visitors',
 		group: 'day',
@@ -332,9 +390,64 @@ export const getCounterChannel = payload =>
 	});
 
 export const getCounterChannelTable = payload =>
-	listStatsByParamsActionCreator('mining/bydate', COUNTER_CHANNEL_TABLE_COLLECTION_NAME, {
+	listStatsByParamsActionCreator('counter/bydate', COUNTER_CHANNEL_TABLE_COLLECTION_NAME, {
 		...payload,
 		metrics: 'visitors,paid_visitors',
 		group: 'day',
-		dimensions: 'ids',
+		dimensions: 'channel',
 	});
+
+export const getGroupStats = payload =>
+	listStatsByParamsActionCreator('desk/table', GROUPSTATS_COLLECTION_NAME, {
+		...payload,
+		metrics: 'impressions,clicks,ctr,spent,cpc',
+		dimensions: 'campaign',
+	});
+
+export function getOnlineCounter(id) {
+	return {
+		type: GET_ONLINE_COUNTERS_REQUEST,
+		payload: id,
+	};
+}
+
+export function setActiveCounterStats(id) {
+	return {
+		type: SET_ACTIVE_COUNTER_STATS,
+		payload: id,
+	};
+}
+
+export function setActiveCampaignStats(id) {
+	return {
+		type: SET_ACTIVE_CAMPAIGN_STATS,
+		payload: id,
+	};
+}
+
+export function campaingFormLoadingStart() {
+	return {
+		type: CAMPAING_FORM_LOADING_START,
+	};
+}
+
+export function setFavoriteGroup(group) {
+	return {
+		type: SET_FAVORITE_GROUP,
+		payload: group,
+	};
+}
+
+export function setFavoriteCreative(creative) {
+	return {
+		type: SET_FAVORITE_CREATIVE,
+		payload: creative,
+	};
+}
+
+export function setFavoriteFilter(filters) {
+	return {
+		type: SET_FAVORITE_FILTER,
+		payload: filters,
+	};
+}

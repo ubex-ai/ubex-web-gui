@@ -8,6 +8,16 @@
 	-ms-border-radius: 0px;
 	-moz-border-radius: 0px;
 	-webkit-border-radius: 0px;
+	font-family: $fontFamily;
+	.page-link {
+		height: 40px;
+	}
+	margin-top: 20px;
+	.page-item {
+		@include media-breakpoint-down(sm){
+			width: 27px;
+		}
+	}
 }
 .pagination > li:first-child > a,
 .pagination > li:first-child > span {
@@ -37,7 +47,7 @@
 }
 .pagination > li > a,
 .pagination > li > span {
-	color: #777777;
+	color: #5e6265;
 	border: 1px solid #eaeaea;
 }
 .pagination > .active > a,
@@ -47,8 +57,8 @@
 .pagination > .active > a:focus,
 .pagination > .active > span:focus {
 	color: #fff;
-	background-color: $primary-color;
-	border-color: $primary-color;
+	background-color: $primary-color !important;
+	border-color: $primary-color !important;
 }
 .pager li > a,
 .pager li > span {
@@ -67,4 +77,10 @@
 .pager.primary li > a:hover,
 .pager.primary li > a:focus {
 	background-color: rgba(0, 131, 122, 1);
+}
+
+.page-item.active.disabled {
+	.page-link {
+		color: #fff;
+	}
 }

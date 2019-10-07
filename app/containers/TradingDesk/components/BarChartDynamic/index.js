@@ -6,7 +6,7 @@ import 'chartjs-plugin-annotation';
 import { Button, ButtonDropdown, DropdownItem, DropdownMenu, DropdownToggle, Row, Col } from 'reactstrap';
 import { defoptions, defdata } from 'containers/DataMiner/Variables/graphics';
 Chart.plugins.register(ChartDataLabels);
-Chart.defaults.global.defaultFontFamily = "'Proxima Nova Rg', Arial, sans-serif";
+Chart.defaults.global.defaultFontFamily = "'Open Sans', Arial, sans-serif";
 class BarChart extends React.Component {
 	constructor(props) {
 		super(props);

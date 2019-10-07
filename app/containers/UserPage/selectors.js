@@ -48,6 +48,11 @@ export const selectUserGUID = () =>
 		selectUserPageDomain,
 		substate => substate.get('data').get('guid'),
 	);
+export const selectUserLanguage = () =>
+	createSelector(
+		selectUserPageDomain,
+		substate => substate.get('data').get('language'),
+	);
 export default makeSelectUserPage;
 export { makeSelectUserPage, selectUserPageDomain, selectUserData };
 

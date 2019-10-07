@@ -15,6 +15,10 @@ input[type=checkbox], input[type=color], input[type=date], input[type=datetime-l
     -moz-border-radius: 0px;
     -webkit-border-radius: 0px;
     border: 1px solid #e1e1e1;
+  font-size: 0.9rem;
+}
+.input-group-text {
+    font-size: 0.8rem;
 }
 .form-control:focus, .has-focus .form-control {
     background: #f8f8f8;

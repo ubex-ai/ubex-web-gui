@@ -10,9 +10,9 @@ export const findIn = (field, name) => {
 		.toLowerCase();
 	return typeof field === 'string'
 		? field
-			.trim()
-			.toLowerCase()
-			.indexOf(searchQuery) !== -1
+				.trim()
+				.toLowerCase()
+				.indexOf(searchQuery) !== -1
 		: null;
 };
 export function searchByWord(list, word) {
@@ -42,8 +42,19 @@ function searchByWordAnywere({ groups, creatives, campaigns }, word) {
 	return { groups: groupsArray, campaigns: campaignsArray, creatives: creativesArray };
 }
 
-export function searchByStatusGroup({ groups }, status) {
-	return groups.filter(group => (status === 'all' ? group : group.status === status));
+export function searchByStatusGroup({ groups }, status, favorites) {
+	return groups
+		.filter(group => (status === 'all' ? group : group.status === status))
+		.sort((a, b) => b.id - a.id)
+		.sort((a, b) => {
+			if (favorites.includes(a.id)) {
+				return -1;
+			}
+			if (favorites.includes(b.id)) {
+				return 1;
+			}
+			return 0;
+		});
 }
 
 export function searchById(campaigns, request) {
@@ -56,14 +67,14 @@ export function searchByRequestArray({ groups, campaigns }, request) {
 	return { groups: filterGroupsByCampaigns(groups, campaignsArray), campaigns: campaignsArray };
 }
 
-export default function campaignFilter(data, { searchWord, statusFilter, request }) {
+export default function campaignFilter(data, { searchWord, statusFilter, request }, favorites) {
 	if (request) {
 		return searchByRequestArray(data, request);
 	}
 
 	if (!searchWord) {
 		return {
-			groups: searchByStatusGroup(data, statusFilter),
+			groups: searchByStatusGroup(data, statusFilter, favorites),
 			creatives: data.creatives,
 			campaigns: data.campaigns,
 		};

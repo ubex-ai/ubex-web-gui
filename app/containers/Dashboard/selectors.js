@@ -49,6 +49,11 @@ export const selectCategories = () =>
 		selectDashboardDomain,
 		substate => substate.get('categories').toJS(),
 	);
+export const selectCategoriesV1 = () =>
+	createSelector(
+		selectDashboardDomain,
+		substate => substate.get('categoriesV1').toJS(),
+	);
 export const selectDashboardLoading = () =>
 	createSelector(
 		selectDashboardDomain,
@@ -83,6 +88,18 @@ export const selectUbexPopover = () =>
 	createSelector(
 		selectDashboardDomain,
 		state => state.get('ubexPopover').toJS(),
+	);
+
+export const selectLanguageLoading = () =>
+	createSelector(
+		selectDashboardDomain,
+		substate => substate.get('languageLoading'),
+	);
+
+export const selectPaymentModal = () =>
+	createSelector(
+		selectDashboardDomain,
+		state => state.get('paymentModal').toJS(),
 	);
 
 export default makeSelectDashboard;

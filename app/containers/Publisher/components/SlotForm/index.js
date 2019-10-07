@@ -34,7 +34,9 @@ import InventoryShape from 'containers/Publisher/shapes/Inventory';
 import SlotShape from 'containers/Publisher/shapes/Slot';
 import createToast from 'utils/toastHelper';
 import { makePromiseAction } from 'utils/CollectionHelper/actions';
-
+import CodeMirror from 'react-codemirror';
+import 'codemirror/lib/codemirror.css';
+require('codemirror/mode/htmlembedded/htmlembedded');
 /* eslint-disable react/prefer-stateless-function */
 class SlotForm extends React.Component {
 	constructor(props) {
@@ -43,6 +45,7 @@ class SlotForm extends React.Component {
 			formDisabled: false,
 			width: null,
 			height: null,
+			backFillCode: null,
 			selectedBlockedCategories: [],
 			selectedBlockedPlacementAttribute: [],
 		};
@@ -51,6 +54,7 @@ class SlotForm extends React.Component {
 		this.selectedBlockedPlacementAttributeTouched = false;
 		this.selectedBlockedCategoriesTouched = false;
 		this.devicesTouched = false;
+		this.updateBackFillCode = this.updateBackFillCode.bind(this);
 	}
 
 	componentDidMount() {
@@ -141,6 +145,7 @@ class SlotForm extends React.Component {
 				})),
 			width: activeSlot.banner ? activeSlot.banner.width : 0,
 			height: activeSlot.banner ? activeSlot.banner.height : 0,
+			backFillCode: activeSlot.back_fill ? activeSlot.back_fill : null,
 		});
 	}
 
@@ -152,12 +157,13 @@ class SlotForm extends React.Component {
 		} = this.props;
 		const result = {
 			...values,
-			back_fill: values.back_fill ? values.back_fill : '',
+			back_fill: this.state.backFillCode ? this.state.backFillCode : '',
 			position: parseInt(values.position, 10),
 			inventory: this.props.activeInventoryId,
 			category_blacklist: this.state.selectedBlockedCategories.map(c => c.id),
 			blocked_ad_attribute: this.state.selectedBlockedPlacementAttribute.map(c => c.id),
 			floor_price_cpm: values.floor_price_cpm ? parseFloat(values.floor_price_cpm) : null,
+			status: 'moderation',
 		};
 		if (type === 'web') {
 			['is_pc', 'is_mobile', 'is_tablet', 'not_exact_size', 'optimal_floor_price'].forEach(k => {
@@ -242,6 +248,10 @@ class SlotForm extends React.Component {
 			return <AppAlertError key="addSlotError" message={this.props.addSlotError.message} />;
 		}
 		return null;
+	}
+
+	updateBackFillCode(backFillCode) {
+		this.setState({ backFillCode });
 	}
 
 	renderForm({ handleSubmit, values, change, errors }) {
@@ -411,15 +421,18 @@ class SlotForm extends React.Component {
 						}}
 						prepend="$"
 					/>
-
-					<IntlFieldGroup
-						name="back_fill"
-						inputProps={{
-							type: 'textarea',
-							rows: '5',
-						}}
-						label={messages.back_fill}
-					/>
+					<div className="form-group">
+						<Label className="">
+							<FormattedMessage {...messages.back_fill} />
+						</Label>
+						{this.state.backFillCode ? (
+							<CodeMirror
+								value={this.state.backFillCode}
+								onChange={this.updateBackFillCode}
+								options={{ lineNumbers: true, mode: 'htmlembedded' }}
+							/>
+						) : null}
+					</div>
 				</AppCard>
 				<AppCard>
 					<h2>

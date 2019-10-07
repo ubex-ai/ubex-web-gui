@@ -95,17 +95,18 @@
 		}
 	}
 	&__body {
-		width: 310px;
+		width: 275px;
 		padding: 20px 14px;
 		color: #767676;
 	}
 	&__title {
 		padding: 0 14px;
+		font-size: 0.9rem;
 	}
 	&__list {
 		list-style-type: none;
 		margin-top: 10px;
-		font-size: 15px;
+		font-size: 0.8rem;
 		li:before {
 			content: "\f058"; /* FontAwesome Unicode */
 			font-family: FontAwesome;
@@ -120,4 +121,7 @@
 	position: absolute;
 	right: 5px;
 	top: 0;
+	.close {
+		font-size: 1.5rem !important;
+	}
 }

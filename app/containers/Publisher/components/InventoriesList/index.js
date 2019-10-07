@@ -33,10 +33,11 @@ const withConnect = connect(
 	}),
 	dispatch => ({
 		dispatch,
-		getInventories: () => dispatch(inventoryCollectionActions.getCollection()),
+		getInventories: () => makePromiseAction(dispatch, inventoryCollectionActions.getCollection()),
 		removeInventory: id => makePromiseAction(dispatch, inventoryCollectionActions.removeEntry(id)),
 		getSlots: () => dispatch(slotCollectionActions.getCollection()),
 		removeSlot: id => makePromiseAction(dispatch, slotCollectionActions.removeEntry(id)),
+		patchSlot: (id, values) => makePromiseAction(dispatch, slotCollectionActions.patchEntry(id, values)),
 		toggleSlotStatus: (id, status) => dispatch(toggleSlotStatus(id, status)),
 	}),
 );
@@ -67,7 +68,12 @@ class InventoriesList extends React.Component {
 	}
 
 	componentDidMount() {
-		this.props.getInventories();
+		this.props.getInventories().then(inventories => {
+			const lastInventory = Math.max(...inventories.map(inv => inv.id));
+			if (!this.state[lastInventory]) {
+				this.setState({ [lastInventory]: true });
+			}
+		});
 		this.props.getSlots();
 	}
 
@@ -190,12 +196,78 @@ class InventoriesList extends React.Component {
 		);
 	}
 
-	renderInventory(inventory, slots) {
+	toggleCard(id) {
+		if (this.editField !== id) {
+			this.setState({ [id]: !this.state[id] });
+		}
+	}
+
+	patchSlot(id, values) {
+		this.props
+			.patchSlot(id, values)
+			.then(() => {
+				createToast('success', 'Slot status successfully changed!');
+				this.props.getSlots();
+			})
+			.catch(() => {
+				createToast('error', 'Error changing slot status!');
+			});
+	}
+
+	renderInventoryHeader(inventory) {
 		const iconClass = classNames({
 			'fas fa-desktop': inventory.type === 'web',
 			'fab fa-apple': inventory.type === 'ios',
 			'fab fa-android': inventory.type === 'android',
 		});
+		return {
+			header: (
+				<Col md={6} xs={6} sm={6}>
+					<h3 className="invetory-title">
+						<i className={iconClass} />{' '}
+						{inventory.name && inventory.name.length ? inventory.name : `Unnamed`}
+					</h3>
+					<span>ID: {` ${inventory.code || inventory.id}`}</span>
+				</Col>
+			),
+			buttons: (
+				<Col md={12} sm={12} xs={12} className="top10 bottom10 buttons__inventory">
+					<Dropdown
+						isOpen={this.state.dropdownOpen === inventory.id}
+						toggle={() => this.toggle(inventory.id)}
+						size="xs"
+						title="Other actions"
+						key={inventory.id}
+						className="float-right"
+					>
+						<DropdownToggle className="dots background-transparent button-margin-left-10">
+							<i className="fas fa-ellipsis-h" />
+						</DropdownToggle>
+						<DropdownMenu className="normal-transform">
+							<DropdownItem>
+								<Link to={`/app/inventory/${inventory.type}/edit/${inventory.id}`}>
+									<FormattedMessage {...messages.editInventory} />
+								</Link>
+							</DropdownItem>
+							<DropdownItem onClick={() => this.setState({ deletedInventory: inventory.id })}>
+								<FormattedMessage {...messages.removeInventory} />
+							</DropdownItem>
+						</DropdownMenu>
+					</Dropdown>
+					<LinkButton
+						className="dots plus button-radius-5 float-right button-margin-left-10 background-transparent"
+						title="Add slot to inventory"
+						size="xs"
+						to={`/app/inventory/${inventory.type}/${inventory.id}/slot/add`}
+					>
+						<i className="fas fa-plus-circle size-11" />
+					</LinkButton>
+				</Col>
+			),
+		};
+	}
+
+	renderInventory(inventory, slots) {
 		const {
 			match: {
 				params: { type },
@@ -204,47 +276,12 @@ class InventoriesList extends React.Component {
 		return (
 			<Row className="margin-0" key={inventory.id}>
 				<Col>
-					<AppCard>
-						<Row>
-							<Col md={6}
-							     xs={6}
-							     sm={6}>
-								<h3 className="invetory-title">
-									<i className={iconClass} />{' '}
-									{inventory.name && inventory.name.length ? inventory.name : `Unnamed`}
-								</h3>
-								<span>ID: {` ${inventory.code || inventory.id}`}</span>
-							</Col>
-							<Col md={6} sm={6} xs={6} className="top10 bottom10 buttons__inventory">
-								<Dropdown
-									isOpen={this.state.dropdownOpen === inventory.id}
-									toggle={() => this.toggle(inventory.id)}
-									size="xs"
-									title="Other actions"
-									key={inventory.id}
-									className="float-right"
-								>
-									<DropdownToggle className="dots background-transparent button-margin-left-10">
-										<i className="fas fa-ellipsis-h" />
-									</DropdownToggle>
-									<DropdownMenu className="normal-transform">
-										<DropdownItem>
-											<Link to={`/app/inventory/${inventory.type}/${inventory.id}/slot/add`}>
-												<FormattedMessage {...messages.addSlot} />
-											</Link>
-										</DropdownItem>
-										<DropdownItem>
-											<Link to={`/app/inventory/${inventory.type}/edit/${inventory.id}`}>
-												<FormattedMessage {...messages.editInventory} />
-											</Link>
-										</DropdownItem>
-										<DropdownItem onClick={() => this.setState({ deletedInventory: inventory.id })}>
-											<FormattedMessage {...messages.removeInventory} />
-										</DropdownItem>
-									</DropdownMenu>
-								</Dropdown>
-							</Col>
-						</Row>
+					<AppCard
+						arrow
+						arrowForceOpen={this.state[inventory.id]}
+						arrowHead={this.renderInventoryHeader(inventory)}
+						onToggle={() => this.toggleCard(inventory.id)}
+					>
 						{inventory.status === INVENTORY_STATUSES.moderation ? (
 							<Alert color="warning">
 								<FormattedMessage {...messages.onModeration} />
@@ -257,6 +294,7 @@ class InventoriesList extends React.Component {
 								keyField="site"
 								onClickGetCode={id => this.setState({ showCode: id })}
 								onClickRemoveEntry={id => this.setState({ deletedSlot: id })}
+								patchSlot={(id, values) => this.patchSlot(id, values)}
 								toggleEntryStatus={this.props.toggleSlotStatus}
 							/>
 						) : (

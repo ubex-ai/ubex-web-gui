@@ -36,6 +36,7 @@ import LinkButton from 'components/LinkButton';
 import moment from 'moment';
 import _ from 'lodash';
 import validateFloat from '../../../../utils/validateFloat';
+import createToast from '../../../../utils/toastHelper';
 
 const EditableFormatter = ({ value, row }, props) => (
 	<div>
@@ -44,12 +45,14 @@ const EditableFormatter = ({ value, row }, props) => (
 		</span>
 		$
 		<InlineEditField
+			key={row.id + row.cpm_select}
 			size="xs"
 			type="text"
 			value={value}
 			onSave={val => {
 				console.log(val);
 			}}
+			permissions={props.permissions}
 		/>
 	</div>
 );
@@ -62,6 +65,7 @@ const EditableCPMFormatter = ({ value, row }, props) => (
 	<div className="flex-center">
 		<span>{row.data && row.data.cpm_type === 1 ? 'Fixed ' : 'Max '}$</span>
 		<InlineEditField
+			key={row.id + row.data.cpm_type}
 			size="xs"
 			type="text"
 			value={row.data ? row.data.cpm : null}
@@ -70,18 +74,21 @@ const EditableCPMFormatter = ({ value, row }, props) => (
 				props.changeCreativeCPM(row.id, val);
 			}}
 			validation={val => validateFloat(val)}
+			permissions={props.permissions}
 		/>
 	</div>
 );
 
 const EditableDateFormatter = ({ value, row }, props) => (
 	<InlineEditField
+		key={row.id + value}
 		size="xs"
 		type="date"
 		value={value}
 		onSave={val => {
 			console.log(val);
 		}}
+		permissions={props.permissions}
 	/>
 );
 
@@ -89,6 +96,7 @@ const DateEndFormatter = ({ value, row }, props) => {
 	const date = _.find(props.creativesWithDates, { value: row.id });
 	return (
 		<InlineEditField
+			key={date && date.end_date ? date.end_date + row.id : null}
 			size="xs"
 			type="date"
 			value={date && date.end_date ? date.end_date : 'unlimited'}
@@ -97,6 +105,7 @@ const DateEndFormatter = ({ value, row }, props) => {
 				console.log(val);
 				props.changeCreativeEndDate(row.id, val);
 			}}
+			permissions={props.permissions}
 		/>
 	);
 };
@@ -105,6 +114,7 @@ const DateStartFormatter = ({ value, row }, props) => {
 	const date = _.find(props.creativesWithDates, { value: row.id });
 	return (
 		<InlineEditField
+			key={date && date.start_date ? date.start_date + row.id : null}
 			size="xs"
 			type="date"
 			value={date && date.start_date ? date.start_date : 'unlimited'}
@@ -113,6 +123,7 @@ const DateStartFormatter = ({ value, row }, props) => {
 				console.log(val);
 				props.changeCreativeStartDate(row.id, val);
 			}}
+			permissions={props.permissions}
 		/>
 	);
 };
@@ -120,6 +131,32 @@ const TypeFormatter = ({ value, row }, props) => <div style={{ textTransform: 'c
 
 const IDFormatter = ({ value, row }, props) => <div>{row && row.id ? row.id : null}</div>;
 
+const BannersFormatter = ({ value, row }, props) => (
+	<div>{row && row.banners && row.banners.length ? row.banners.length : 0}</div>
+);
+
+const StatusFormatter = ({ value, row }, props) => {
+	const creative = _.find(props.creativesWithDates, { value: row.id });
+	return (
+		<div key={row.id} className="campaign-table__cell campaign-table__cell--status">
+			<div className="custom-control custom-switch">
+				<input
+					type="checkbox"
+					className="custom-control-input"
+					id={`customSwitch_${props.campaignId + row.id}`}
+					defaultChecked={!!(creative && creative.status === 'active')}
+					onClick={() =>
+						props.changeCreativeStatus(
+							row.id,
+							creative.status === 'active' ? 'disabled' : 'active',
+						)
+					}
+				/>
+				<label className="custom-control-label" htmlFor={`customSwitch_${props.campaignId + row.id}`} />
+			</div>
+		</div>
+	);
+};
 const SettingsFormatter = ({ value, row }, props) => {
 	if (props.data) {
 		const entry = props.data.find(c => c.id === value);
@@ -132,16 +169,16 @@ const SettingsFormatter = ({ value, row }, props) => {
 			<LinkButton
 				key="preview"
 				to={`/app/creative-banners/${row.id}`}
-				className="m-portlet__nav-link btn m-btn m-btn--hover-info m-btn--icon m-btn--icon-only m-btn--pill"
+				className="m-portlet__nav-link btn m-btn m-btn--icon m-btn--icon-only m-btn--pill"
 			>
-				<i className="fas fa-search" />
+				<i className="fal fa-search-plus" />
 			</LinkButton>
 			<Button
 				key="remove"
 				onClick={() => props.onClickRemoveEntry(value)}
-				className="m-portlet__nav-link btn m-btn m-btn--hover-danger m-btn--icon m-btn--icon-only m-btn--pill"
+				className="m-portlet__nav-link btn m-btn m-btn--icon m-btn--icon-only m-btn--pill"
 			>
-				<i className="fas fa-trash" />
+				<i className="fal fa-trash" />
 			</Button>
 		</span>
 	);
@@ -150,6 +187,10 @@ const SettingsFormatter = ({ value, row }, props) => {
 const getRowId = row => row.id;
 const SettingsProvider = props => (
 	<DataTypeProvider formatterComponent={fCProps => SettingsFormatter(fCProps, props)} {...props} />
+);
+
+const StatusProvider = props => (
+	<DataTypeProvider formatterComponent={fCProps => StatusFormatter(fCProps, props)} {...props} />
 );
 
 const DateStartProvider = props => (
@@ -180,6 +221,10 @@ const EditableCPMProvider = props => (
 	<DataTypeProvider formatterComponent={fCProps => EditableCPMFormatter(fCProps, props)} {...props} />
 );
 
+const BannersProvider = props => (
+	<DataTypeProvider formatterComponent={fCProps => BannersFormatter(fCProps, props)} {...props} />
+);
+
 const IDProvider = props => <DataTypeProvider formatterComponent={fCProps => IDFormatter(fCProps, props)} {...props} />;
 class CampaignCreativeTable extends React.Component {
 	constructor(props) {
@@ -197,9 +242,10 @@ class CampaignCreativeTable extends React.Component {
 			],
 			columns: [
 				{ name: 'data.id', title: 'ID' },
-				{ name: 'data.name', title: this.props.intl.formatMessage(messages.name) },
+				{ name: 'data.name', title: this.props.intl.formatMessage(messages.creativeName) },
+				{ name: 'status', title: this.props.intl.formatMessage(messages.status) },
+				{ name: 'data.banners', title: this.props.intl.formatMessage(messages.banners) },
 				{ name: 'creative_type', title: this.props.intl.formatMessage(messages.type) },
-				// { name: 'status', title: this.props.intl.formatMessage(messages.status) },
 				{ name: 'data.cpm', title: 'CPM' },
 				{ name: 'data.startDate', title: this.props.intl.formatMessage(messages.startDate) },
 				{ name: 'data.endDate', title: this.props.intl.formatMessage(messages.endDate) },
@@ -214,13 +260,14 @@ class CampaignCreativeTable extends React.Component {
 				{ name: 'id', title: this.props.intl.formatMessage(messages.settings) }, */
 			],
 			tableColumnExtensions: [
-				{ columnName: 'data.name', width: 160 },
-				{ columnName: 'data.id', width: 80 },
-				{ columnName: 'creative_type', width: 120 },
-				{ columnName: 'data.cpm', width: 150 },
-				{ columnName: 'data.startDate', width: 150 },
-				{ columnName: 'data.endDate', width: 150 },
-				{ columnName: 'id', width: 100 },
+				{ columnName: 'data.name', width: 'auto' },
+				{ columnName: 'data.id', width: 50 },
+				{ columnName: 'data.banners', width: 110 },
+				{ columnName: 'creative_type', width: 110 },
+				{ columnName: 'data.cpm', width: 'auto' },
+				{ columnName: 'data.startDate', width: 'auto' },
+				{ columnName: 'data.endDate', width: 'auto' },
+				{ columnName: 'status', width: 90 },
 				/* { columnName: 'eCPM', width: 120 },
 				{ columnName: 'winrate', width: 120 },
 				{ columnName: 'start', width: 120 },
@@ -228,7 +275,7 @@ class CampaignCreativeTable extends React.Component {
 				{ columnName: 'spend', width: 120 },
 				{ columnName: 'impressions', width: 120 },
 				{ columnName: 'clicks', width: 120 },
-				{ columnName: 'status', width: 120 },
+
 				{ columnName: 'id', width: 120 }, */
 			],
 			sorting: [{ columnName: 'created', direction: 'desc' }],
@@ -236,6 +283,7 @@ class CampaignCreativeTable extends React.Component {
 			endDate: ['data.endDate'],
 			idColumn: ['data.id'],
 			nameColumn: ['data.name'],
+			bannersColumn: ['data.banners'],
 			typeColumn: ['creative_type'],
 			cpmColumn: ['data.cpm'],
 			cpmTypeColumn: ['data.cpm_type'],
@@ -269,7 +317,7 @@ class CampaignCreativeTable extends React.Component {
 			idColumn,
 			startDate,
 			endDate,
-			cpmTypeColumn,
+			bannersColumn,
 			editableColumn,
 			editableDateColumn,
 			defaultHiddenColumnNames,
@@ -287,8 +335,10 @@ class CampaignCreativeTable extends React.Component {
 						<TableHeaderRow /* showSortingControls */ />
 						<EditableNameProvider for={nameColumn} {...this.props} />
 						<EditableCPMProvider for={cpmColumn} {...this.props} />
+						<StatusProvider for={statusColumn} {...this.props} />
 						<TypeProvider for={typeColumn} {...this.props} />
 						<SettingsProvider for={settingsColumn} {...this.props} />
+						<BannersProvider for={bannersColumn} {...this.props} />
 						<IDProvider for={idColumn} {...this.props} />
 						<DateStartProvider for={startDate} {...this.props} />
 						<DateEndProvider for={endDate} {...this.props} />

@@ -10,45 +10,84 @@ import PropTypes from 'prop-types';
 import AppCard from 'components/AppCard';
 import { updateCharts } from 'containers/DataMiner/actions';
 import messages from 'containers/DataMiner/messages';
-import { selectChartsDates } from 'containers/DataMiner/selectors';
 import DateSelect from 'components/DateSelect';
-import { getCounterRegions, getCounterRegionsTable } from '../../actions';
-import { countersSelectors, selectCountersIds, selectCounterRegions, selectCounterRegionsTable } from '../../selectors';
+import moment from 'moment';
+import {getCounterRegions, getCounterRegionsTable, setActiveCounterStats, setChartsDates} from '../../actions';
+import {
+	selectChartsDates,
+	countersSelectors,
+	selectCountersIds,
+	selectCounterRegions,
+	selectCounterRegionsTable, selectActiveCounterStats,
+} from '../../selectors';
 
 class Regions extends React.Component {
-	columns = [
-		{ name: 'name', title: this.props.intl.formatMessage(messages.counter) },
-		{ name: 'date', title: this.props.intl.formatMessage(messages.date) },
-		{ name: 'count', title: this.props.intl.formatMessage(messages.visitorsTable) },
-		{ name: 'paidusers', title: this.props.intl.formatMessage(messages.rewardVisitors) },
-		{ name: 'paidpercent', title: this.props.intl.formatMessage(messages.paidPercent) },
-	];
+	constructor(props) {
+		super(props);
+		this.state = {
+			columns: [
+				{ name: 'name', title: this.props.intl.formatMessage(messages.country) },
+				{ name: 'date', title: this.props.intl.formatMessage(messages.date) },
+				{ name: 'count', title: this.props.intl.formatMessage(messages.visitorsTable) },
+				{ name: 'paidusers', title: this.props.intl.formatMessage(messages.newVisitors) },
+				{ name: 'paidpercent', title: 'NEW %' },
+			],
+			selectedCounter: null,
+		};
+	}
 
 	componentDidMount() {
-		const { dates, countersIds } = this.props;
+		const { dates, countersIds, activeCounterStats } = this.props;
 		const { startDate, endDate } = dates;
-		this.props.getCounterRegions({
-			start_date: startDate,
-			end_date: endDate,
-			ids: countersIds.slice(0, 19).join(),
+		const firstCounter = countersIds.length ? countersIds[0] : 0;
+		this.props.updateDates({
+			startDate: moment()
+				.startOf('day')
+				.subtract('1', 'month')
+				.format('YYYY-MM-DD'),
+			endDate: moment()
+				.startOf('day')
+				.format('YYYY-MM-DD'),
+			period: 'month',
 		});
-		this.props.getCounterRegionsTable({
-			start_date: startDate,
-			end_date: endDate,
-			ids: countersIds.slice(0, 19).join(),
-		});
+		this.setState({ selectedCounter: activeCounterStats || firstCounter });
+		if (countersIds.length) {
+			this.props.getCounterRegions({
+				start_date: startDate,
+				end_date: endDate,
+				ids: activeCounterStats || firstCounter,
+			});
+			this.props.getCounterRegionsTable({
+				start_date: startDate,
+				end_date: endDate,
+				ids: activeCounterStats || firstCounter,
+			});
+		}
 	}
 
 	updateCharts(params, dates) {
+		const { countersIds } = this.props;
 		this.props.getCounterRegions({
 			start_date: dates.startDate,
 			end_date: dates.endDate,
-			ids: params.selectedOption.counter,
+			ids:
+				params.selectedOption && params.selectedOption.value !== 'all'
+					? params.selectedOption.counter
+					: countersIds
+							.sort((a, b) => a - b)
+							.slice(0, 19)
+							.join(),
 		});
 		this.props.getCounterRegionsTable({
 			start_date: dates.startDate,
 			end_date: dates.endDate,
-			ids: params.selectedOption.counter,
+			ids:
+				params.selectedOption && params.selectedOption.value !== 'all'
+					? params.selectedOption.counter
+					: countersIds
+							.sort((a, b) => a - b)
+							.slice(0, 19)
+							.join(),
 		});
 	}
 
@@ -62,7 +101,7 @@ class Regions extends React.Component {
 						<Row className="margin-0">
 							<Col md={12} className="title_with_select">
 								<Row>
-									<Col md={5}>
+									<Col md={4}>
 										<div className="page-title">
 											<div className="float-left">
 												<h1 className="title">
@@ -77,6 +116,8 @@ class Regions extends React.Component {
 										endDate={endDate}
 										period={period}
 										mining={counters}
+										miningSelected={this.state.selectedCounter}
+										disableDefaultSelect
 									/>
 								</Row>
 							</Col>
@@ -94,8 +135,9 @@ class Regions extends React.Component {
 									<AppTable
 										data={counterRegionsTable.length ? counterRegionsTable : []}
 										pagination
-										columns={this.columns}
+										pSize={100}
 										grouping
+										columns={this.state.columns}
 									/>
 								</AppCard>
 							</Col>
@@ -109,7 +151,6 @@ class Regions extends React.Component {
 
 Regions.propTypes = {
 	dispatch: PropTypes.func.isRequired,
-	updateCharts: PropTypes.func.isRequired,
 	toTableTopCounters: PropTypes.arrayOf(
 		PropTypes.shape({
 			count: PropTypes.number.isRequired,
@@ -136,14 +177,16 @@ const mapStateToProps = createStructuredSelector({
 	dates: selectChartsDates(),
 	counterRegions: selectCounterRegions(),
 	counterRegionsTable: selectCounterRegionsTable(),
+	activeCounterStats: selectActiveCounterStats(),
 });
 
 function mapDispatchToProps(dispatch) {
 	return {
 		dispatch,
-		updateCharts: (params, dates) => dispatch(updateCharts(params, dates)),
+		updateDates: dates => dispatch(setChartsDates(dates)),
 		getCounterRegions: dates => dispatch(getCounterRegions(dates)),
 		getCounterRegionsTable: dates => dispatch(getCounterRegionsTable(dates)),
+		setActiveCounterStats: value => dispatch(setActiveCounterStats(value)),
 	};
 }
 

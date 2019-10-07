@@ -14,7 +14,7 @@ import { FormattedMessage, FormattedHTMLMessage } from 'react-intl';
 import { Form } from 'react-final-form';
 import CodeCard from 'components/CodeCard';
 import MultiSelect from '@kenshooui/react-multi-select';
-import validateDomain from 'utils/validateDomain';
+import validateDomainWithoutHttp from 'utils/validateDomainWithoutHttp';
 import validateEmpty from 'utils/validateEmpty';
 import validateAliases from 'utils/validateAliases';
 import checkboxForDjango from 'utils/checkboxForDjango';
@@ -24,11 +24,13 @@ import AppCard from 'components/AppCard';
 import AppAlertError from 'components/AppAlertError';
 import { selectCategories, selectCountries, selectTimezones } from 'containers/Dashboard/selectors';
 import { countersSelectors } from 'containers/TradingDesk/selectors';
+import { getCountries } from '../../../Dashboard/actions';
 import {
 	addCounter,
 	updateCounter,
 	setActiveCounter,
 	unsetActiveCounter,
+	countersCollectionActions,
 	getCounter,
 } from 'containers/TradingDesk/actions';
 import DomainDynamicField from 'components/DomainDynamicField';
@@ -36,6 +38,8 @@ import messages, { scope as messageScope } from 'containers/DataMiner/messages';
 import createToast from 'utils/toastHelper';
 import findTimezone from 'utils/findTimezone';
 import moment from '../CampaignForm';
+import TreeSelect from 'antd/es/tree-select';
+const { SHOW_PARENT } = TreeSelect;
 
 /* eslint-disable react/prefer-stateless-function */
 class CounterForm extends React.Component {
@@ -45,11 +49,11 @@ class CounterForm extends React.Component {
 			formDisabled: false,
 			embeddedScript: null,
 			aliases: [],
-			selectedCategories: [],
+			categoriesSelected: [],
 		};
 		this.renderForm = this.renderForm.bind(this);
 		this.formRef = null;
-		this.categoryListTouched = false;
+		this.categoriesTouched = false;
 	}
 
 	componentDidMount() {
@@ -91,6 +95,9 @@ class CounterForm extends React.Component {
 			this.edit = true;
 		}
 		this.setInitialStateForEdit(prevProps);
+		if (!(this.props.countries && this.props.countries.length)) {
+			this.props.getCountries();
+		}
 	}
 
 	componentWillUnmount() {
@@ -115,9 +122,7 @@ class CounterForm extends React.Component {
 
 		this.setState({
 			aliases: activeCounter.aliases ? activeCounter.aliases : [],
-			selectedCategories: activeCounter.categories
-				? categories.filter(category => activeCounter.categories.indexOf(category.id) >= 0)
-				: [],
+			categoriesSelected: activeCounter && activeCounter.categories ? activeCounter.categories : [],
 		});
 	}
 
@@ -127,17 +132,16 @@ class CounterForm extends React.Component {
 		errors.name = validateEmpty(formValues.name);
 		errors.main_domain = validateEmpty(formValues.main_domain);
 		errors.region = validateEmpty(formValues.region);
-		errors.timezone = validateEmpty(formValues.timezone);
 		errors.is_agreed_process_data = validateEmpty(formValues.is_agreed_process_data);
 
 		if (this.state.aliases && this.state.aliases.length) {
 			errors.aliases = validateAliases(formValues.aliases);
 		}
 		if (!errors.main_domain) {
-			errors.main_domain = validateDomain(formValues.main_domain);
+			errors.main_domain = validateDomainWithoutHttp(formValues.main_domain);
 		}
 
-		if (!this.state.selectedCategories.length || this.state.selectedCategories.length > 3) {
+		if (!this.state.categoriesSelected.length || this.state.categoriesSelected.length > 3) {
 			errors.categories = 'Required. Min 1, max 3';
 		}
 
@@ -149,20 +153,30 @@ class CounterForm extends React.Component {
 			...values,
 			timezone: parseInt(values.timezone, 10),
 			region: parseInt(values.region, 10),
-			categories: this.state.selectedCategories.map(c => c.id),
+			categories: this.state.categoriesSelected,
 			aliases: values.aliases ? values.aliases.filter(a => !!a) : [],
 		};
 		['is_agreed_process_data', 'is_allowed_keep_customers_ip', 'is_subdomain_accept'].forEach(k => {
 			result[k] = checkboxForDjango(values[k]);
 		});
 		if (this.props.activeCounterId) {
-			this.props.updateCounter(this.props.activeCounterId, result).then(() => {
-				createToast('success', 'Counter successfully updated!');
-			});
+			this.props
+				.updateCounter(this.props.activeCounterId, result)
+				.then(() => {
+					createToast('success', 'Counter successfully updated!');
+				})
+				.catch(() => {
+					createToast('error', 'Counter update error!');
+				});
 		} else {
-			this.props.addCounter(result).then(() => {
-				createToast('success', 'Counter successfully added!');
-			});
+			this.props
+				.addCounter(result)
+				.then(() => {
+					createToast('success', 'Counter successfully added!');
+				})
+				.catch(() => {
+					createToast('error', 'Counter add error!');
+				});
 		}
 	}
 
@@ -187,15 +201,107 @@ class CounterForm extends React.Component {
 		return null;
 	}
 
+	renderSelectByName(field, values, errors) {
+		let required = false;
+		let blocked = false;
+		if (field === 'categories') {
+			required = true;
+		}
+		return this.renderSelectFieldGroup({
+			msg: messages[field],
+			items: this.props[field] ? this.props[field] : [],
+			selectedItems: this.state[`${field}Selected`],
+			touched: this[`${field}Touched`],
+			field,
+			blocked,
+			errors,
+			showSelectAll: true,
+			required,
+			onChange: items => {
+				this[`${field}Touched`] = true;
+				const s = `${field}Selected`;
+				const ns = {};
+				ns[s] = items;
+				this.setState(ns);
+			},
+		});
+	}
+
+	renderSelectFieldGroup({
+		msg,
+		items,
+		selectedItems,
+		onChange,
+		blocked,
+		errors,
+		touched,
+		field,
+		showSelectAll,
+		required,
+	}) {
+		const tProps = {
+			treeData:
+				items && items.length
+					? items.map(item => ({
+							id: item.id,
+							value: item.id,
+							key: item.id,
+							title: item.label || item.name || item.data.name,
+					  }))
+					: [],
+			className: 'treeSelect-wrapper',
+			dropdownClassName: 'treeSelect-wrapper__dropdown',
+			value: selectedItems,
+			onChange,
+			disabled: blocked,
+			treeCheckable: true,
+			showCheckedStrategy: SHOW_PARENT,
+			searchPlaceholder: (
+				<div>
+					<FormattedMessage {...messages.select} />
+					<span
+						style={{
+							textTransform: 'lowercase',
+						}}
+					>
+						{' '}
+						<FormattedMessage {...msg} />
+					</span>
+				</div>
+			),
+			style: {
+				width: '100%',
+			},
+			treeNodeFilterProp: 'title',
+		};
+		return (
+			<div>
+				{msg && (
+					<Label>
+						<FormattedMessage {...msg} />
+						{required && <span style={{ color: '#f00' }}> *</span>}
+					</Label>
+				)}
+				<br />
+				<div>
+					<TreeSelect {...tProps} />
+					{required && touched && errors[field] && (
+						/* eslint-disable react/jsx-boolean-value */
+						<FormFeedback invalid="true">{errors[field]}</FormFeedback>
+					)}
+				</div>
+			</div>
+		);
+	}
+
 	renderForm({ handleSubmit, values, change, errors }) {
 		return (
 			<form
 				onSubmit={args => {
-					this.categoryListTouched = true;
+					this.categoriesTouched = true;
 					return handleSubmit(args);
 				}}
 			>
-				{this.renderError()}
 				{this.renderLoading()}
 				<IntlFieldGroup name="name" label={messages.siteName} required />
 				<IntlFieldGroup
@@ -203,6 +309,7 @@ class CounterForm extends React.Component {
 					inputProps={{
 						type: 'checkbox',
 						values: true,
+						id: 'is_subdomain_accept',
 						[values.is_subdomain_accept ? 'checked' : false]: values.is_subdomain_accept,
 					}}
 					label={messages.agreement}
@@ -216,7 +323,7 @@ class CounterForm extends React.Component {
 					inputGroupAddonProps={{
 						addonType: 'append',
 					}}
-					validate={validateDomain}
+					validate={validateDomainWithoutHttp}
 					required
 				/>
 				<div className="form-group">
@@ -262,37 +369,13 @@ class CounterForm extends React.Component {
 					label={messages.region}
 					required
 				/>
-				<IntlFieldGroup
-					name="timezone"
-					inputProps={{ type: 'select', options: this.props.timezones }}
-					label={messages.timezone}
-					required
-				/>
-				<FormGroup>
-					<Label>
-						<FormattedMessage {...messages.categories} />
-						<span style={{ color: '#f00' }}>*</span>
-					</Label>
-					<MultiSelect
-						showSelectAll={false}
-						items={this.props.categories}
-						selectedItems={this.state.selectedCategories}
-						onChange={selectedCategories => {
-							this.categoryListTouched = true;
-							this.setState({ selectedCategories });
-						}}
-					/>
-					{this.categoryListTouched &&
-						errors.categories && (
-							/* eslint-disable react/jsx-boolean-value */
-							<FormFeedback invalid="true">{errors.categories}</FormFeedback>
-						)}
-				</FormGroup>
+				{this.renderSelectByName('categories', values, errors)}
 				<IntlFieldGroup
 					name="is_agreed_process_data"
 					inputProps={{
 						type: 'checkbox',
 						value: true,
+						id: 'is_agreed_process_data',
 						[values.is_agreed_process_data ? 'checked' : false]: values.is_agreed_process_data,
 					}}
 					label={messages.agreement2}
@@ -305,6 +388,7 @@ class CounterForm extends React.Component {
 					inputProps={{
 						type: 'checkbox',
 						value: true,
+						id: 'is_allowed_keep_customers_ip',
 						[values.is_allowed_keep_customers_ip ? 'checked' : 'c']: values.is_allowed_keep_customers_ip,
 					}}
 					label={messages.agreement3}
@@ -317,8 +401,10 @@ class CounterForm extends React.Component {
 				>
 					{this.props.activeCounter && this.props.activeCounter.loading ? (
 						<FormattedMessage id="app.common.loading" />
+					) : this.props.activeCounter ? (
+						<FormattedMessage id="app.common.save" />
 					) : (
-						<FormattedMessage id="app.common.submit" />
+						<FormattedMessage id="app.common.create" />
 					)}
 				</Button>
 			</form>
@@ -330,6 +416,7 @@ class CounterForm extends React.Component {
 		const initValues = {
 			timezone: findTimezone(timezones),
 		};
+		console.log(this.props.categories);
 		return (
 			<Row className="margin-0">
 				<Col md={12}>
@@ -341,7 +428,7 @@ class CounterForm extends React.Component {
 								) : (
 									<FormattedMessage {...messages.AddCounterHeader} />
 								)}
-								{activeCounter && <span> {activeCounter.id}</span>}
+								{activeCounter && <span> #{activeCounter.id}</span>}
 							</h1>
 						</div>
 					</header>
@@ -364,7 +451,7 @@ class CounterForm extends React.Component {
 								<h3 className="title">
 									<FormattedMessage {...messages.counterCode} />
 								</h3>
-								<p>
+								<p style={{ whiteSpace: 'pre-line' }}>
 									<FormattedHTMLMessage {...messages.counterDescription} />
 								</p>
 								<CodeCard
@@ -406,11 +493,13 @@ const mapStateToProps = createStructuredSelector({
 
 function mapDispatchToProps(dispatch) {
 	return {
-		addCounter: values => dispatch(addCounter(values)),
-		updateCounter: (id, values) => makePromiseAction(dispatch, updateCounter(id, values)),
+		addCounter: values => makePromiseAction(dispatch, countersCollectionActions.addEntry('api/counter', values)),
+		updateCounter: (id, values) =>
+			makePromiseAction(dispatch, countersCollectionActions.updateEntry('api/counter', id, values)),
 		setActiveCounter: id => dispatch(setActiveCounter(id)),
 		unsetActiveCounter: _ => dispatch(unsetActiveCounter()),
 		getCounter: id => dispatch(getCounter(id)),
+		getCountries: () => dispatch(getCountries()),
 	};
 }
 

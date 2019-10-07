@@ -1,6 +1,7 @@
 import CardAuthor from './CardElements/CardAuthor';
 import CardCategory from './CardElements/CardCategory';
 import CardSocials from './CardElements/CardSocials';
+import AppSafeframe from './AppSafeframe';
 
 import Button from './CustomButton/CustomButton';
 
@@ -49,6 +50,7 @@ import OrderPaymentForm from './Form/OrderPaymentForm';
 
 export {
 	// CardElements
+	AppSafeframe,
 	CardAuthor,
 	CardCategory,
 	CardSocials,

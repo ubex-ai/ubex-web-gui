@@ -32,7 +32,7 @@ export default defineMessages({
 	},
 	impressionsAndClicks: {
 		id: `${scope}.impressionsAndClicks`,
-		defaultMessage: 'Impressions & Clicks',
+		defaultMessage: 'Impressions / Clicks',
 	},
 	eCPM: {
 		id: `${scope}.eCPM`,
@@ -265,7 +265,8 @@ export default defineMessages({
 	},
 	CTRPopoverText: {
 		id: `${scope}.popover.CTRPopoverText`,
-		defaultMessage: 'Click-through rate is an indicator of the effectiveness of a media campaign. The percentage of clicks on an ad to\n' +
+		defaultMessage:
+			'Click-through rate is an indicator of the effectiveness of a media campaign. The percentage of clicks on an ad to\n' +
 			'their hits on the sites.',
 	},
 	eCPMPopover: {
@@ -522,7 +523,8 @@ export default defineMessages({
 	},
 	walletConnectorText: {
 		id: `${scope}.walletConnectorText`,
-		defaultMessage: 'Ubex supports the application of decentralized funds storage technologies in full and adheres to the principles of decentralization. UBEX does not have access to its users\' private keys or their funds. The personal account of every user displays the status of their personal wallet.',
+		defaultMessage:
+			"Ubex supports the application of decentralized funds storage technologies in full and adheres to the principles of decentralization. UBEX does not have access to its users' private keys or their funds. The personal account of every user displays the status of their personal wallet.",
 	},
 	addressError: {
 		id: `${scope}.addressError`,
@@ -579,5 +581,114 @@ export default defineMessages({
 	created: {
 		id: `${scope}.created`,
 		defaultMessage: 'Created',
+	},
+	creativeName: {
+		id: `${scope}.creativeName`,
+		defaultMessage: 'Creative name',
+	},
+	advertiser: {
+		id: `${scope}.ChannelSelect.advertiser`,
+		defaultMessage: 'Advertiser',
+	},
+	category: {
+		id: `${scope}.ChannelSelect.category`,
+		defaultMessage: 'Category',
+	},
+	brand: {
+		id: `${scope}.ChannelSelect.brand`,
+		defaultMessage: 'Brand',
+	},
+	geo: {
+		id: `${scope}.ChannelSelect.geo`,
+		defaultMessage: 'Geography',
+	},
+	legal: {
+		id: `${scope}.ChannelSelect.legal`,
+		defaultMessage: 'Legal information',
+	},
+	patchGroup: {
+		id: `${scope}.patchGroup`,
+		defaultMessage: 'Edit group',
+	},
+	backfill: {
+		id: `${scope}.backfill`,
+		defaultMessage: 'Backfill (options)',
+	},
+	toModeration: {
+		id: `${scope}.toModeration`,
+		defaultMessage: 'To moderation',
+	},
+	filterList: {
+		id: `${scope}.filterList`,
+		defaultMessage: 'Filter list',
+	},
+	createBlackList: {
+		id: `${scope}.createBlackList`,
+		defaultMessage: 'Create first filter',
+	},
+	addBlackList: {
+		id: `${scope}.addBlackList`,
+		defaultMessage: 'Add filter',
+	},
+	editBlackList: {
+		id: `${scope}.editBlackList`,
+		defaultMessage: 'Edit filter',
+	},
+	shareBlackList: {
+		id: `${scope}.shareBlackList`,
+		defaultMessage: 'Share filter',
+	},
+	removeBlackList: {
+		id: `${scope}.removeBlackList`,
+		defaultMessage: 'Remove filter',
+	},
+	filterName: {
+		id: `${scope}.filterName`,
+		defaultMessage: 'Filter name',
+	},
+	addFilter: {
+		id: `${scope}.addFilter`,
+		defaultMessage: 'Add filter',
+	},
+	editFilter: {
+		id: `${scope}.editFilter`,
+		defaultMessage: 'Edit filter',
+	},
+	shareFilter: {
+		id: `${scope}.shareFilter`,
+		defaultMessage: 'Share filter',
+	},
+	listingSemicolon: {
+		id: `${scope}.listingSemicolon`,
+		defaultMessage: 'For listing, specify a semicolon',
+	},
+	previewCreative: {
+		id: `${scope}.previewCreative`,
+		defaultMessage: 'Creative preview',
+	},
+	hasWalletText: {
+		id: `${scope}.hasWalletText`,
+		defaultMessage:
+			'Your wallet is attached, replenish the balance of the advertising group in the ',
+	},
+	listOfCampaigns: {
+		id: `${scope}.listOfCampaigns`,
+		defaultMessage: 'list of campaigns',
+	},
+	CPC: {
+		id: `${scope}.CPC`,
+		defaultMessage: 'CPC',
+	},
+	CPCPopover: {
+		id: `${scope}.CPCPopover`,
+		defaultMessage: 'CPC (cost per click)',
+	},
+	CPCPopoverText: {
+		id: `${scope}.CPCPopoverText`,
+		defaultMessage: 'CPC (cost per click) is the cost per click, the amount that the advertiser pays to the context system for a click on an ad made by the user.',
+	},
+	moderationTitle: {
+		id: `${scope}.moderationTitle`,
+		defaultMessage: 'Moderation status',
 	},
 });

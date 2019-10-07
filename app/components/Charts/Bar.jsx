@@ -4,6 +4,9 @@ import { Line, Bar, Doughnut, Chart } from 'react-chartjs-2';
 import 'chartjs-plugin-annotation';
 import { Button, ButtonDropdown, Col, DropdownItem, DropdownMenu, DropdownToggle, Row } from 'reactstrap';
 import { defdata } from 'containers/DataMiner/Variables/graphics';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+Chart.plugins.register(ChartDataLabels);
+const colors = ['#716aca', '#22b9ff', '#f4516c', '#34bfa3', '#03a9f4', 'rgb(255, 184, 34)', '#f44336'];
 
 class BarChart extends React.Component {
 	constructor(props) {
@@ -28,9 +31,8 @@ class BarChart extends React.Component {
 	}
 
 	render() {
-		const { arrayChart, arrayLabels } = this.props.data;
+		const { arrayChart, arrayLabels, arrayDimensions } = this.props.data;
 		const { settings, height, channel, legend } = this.props;
-
 		const data1 = canvas => {
 			const ctx = canvas.getContext('2d');
 
@@ -44,34 +46,25 @@ class BarChart extends React.Component {
 			}
 			return {
 				labels: arrayLabels,
-				datasets: [
-					{
-						label: 'Reward users',
-						data: arrayChart,
-						backgroundColor: gradientFill,
-						hoverBackgroundColor: gradientFill,
+				datasets: arrayChart.map((dimension, i) => ({
+					label: arrayDimensions[i],
+					data: dimension,
+					backgroundColor: colors[i],
+					hoverBackgroundColor: colors[i],
+					datalabels: {
+						display: false,
+						color: '#fff',
 					},
-				],
+				})),
 			};
 		};
 		const options1 = {
 			legend: {
 				display: legend || false,
 			},
-			plugins: {
-				datalabels: {
-					color: '#575962',
-					textShadowColor: '#000',
-					align: 'top',
-					padding: {
-						bottom: 10,
-					},
-					anchor: 'center',
-					font: {
-						family: 'Proxima Nova Rg',
-					},
-					offset: 5,
-				},
+			scales: {
+				xAxes: [{ stacked: true }],
+				yAxes: [{ stacked: true }]
 			},
 		};
 		return (

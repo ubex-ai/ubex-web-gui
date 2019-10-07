@@ -6,6 +6,7 @@ const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
+const pkg = require('../../package');
 
 module.exports = require('./webpack.base.babel')({
 	mode: 'development',
@@ -35,7 +36,7 @@ module.exports = require('./webpack.base.babel')({
 		new webpack.DefinePlugin({
 			PASSPORT_URL: JSON.stringify('https://passport.ubex.com'),
 			// TODO: remove API_URL
-			API_URL: JSON.stringify('https://stage.ubex.io:8012'),
+			API_URL: JSON.stringify('https://desk.st.ubex.io'),
 			MINING_API_URL: JSON.stringify('https://stage.ubex.io:8010'),
 			PUBLISHER_API_URL: JSON.stringify('https://stage.ubex.io:8011'),
 			TRADING_DESK_API_URL: JSON.stringify('https://stage.ubex.io:8012'),
@@ -46,6 +47,7 @@ module.exports = require('./webpack.base.babel')({
 			PUBLISHER_URL: JSON.stringify('http://localhost:3001'),
 			TRADING_DESK_URL: JSON.stringify('http://localhost:3000'),
 			CRYPTO_MODE: true,
+			VERSION: JSON.stringify(pkg.version),
 		}),
 		new webpack.HotModuleReplacementPlugin(), // Tell webpack we want hot reloading
 		new HtmlWebpackPlugin({

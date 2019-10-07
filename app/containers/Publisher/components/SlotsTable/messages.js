@@ -25,9 +25,13 @@ export default defineMessages({
 		id: `${scope}.size`,
 		defaultMessage: 'Size',
 	},
+	details: {
+		id: `${scope}.details`,
+		defaultMessage: 'Details',
+	},
 	status: {
 		id: `${scope}.status`,
-		defaultMessage: 'Status',
+		defaultMessage: 'Statius',
 	},
 	priceCPM: {
 		id: `${scope}.priceCPM`,

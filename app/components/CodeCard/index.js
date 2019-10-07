@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { FormattedMessage } from 'react-intl';
 import { Input, Button, FormGroup } from 'reactstrap';
+import CodeMirror from 'react-codemirror';
 
 class CodeCard extends React.Component {
 	state = {
@@ -25,7 +26,14 @@ class CodeCard extends React.Component {
 						</CopyToClipboard>
 					)}
 				</div>
-				<Input type="textarea" name="counterCode" rows={20} id="codeTextarea" disabled value={embeddedScript || 'The code will appear after submitting the form.'} />
+				{embeddedScript ? (
+					<CodeMirror
+						className="embeddedCode"
+						value={embeddedScript}
+						onChange={this.updateBackFillCode}
+						options={{ lineNumbers: false, mode: 'htmlembedded', readOnly: true }}
+					/>
+				) : null}
 			</FormGroup>
 		);
 	}

@@ -18,11 +18,12 @@ import {
 	PagingPanel,
 	TableGroupRow,
 	SearchPanel,
-	Toolbar,
+	Toolbar, GroupingPanel,
 } from '@devexpress/dx-react-grid-bootstrap4';
 import '@devexpress/dx-react-grid-bootstrap4/dist/dx-react-grid-bootstrap4.css';
 import moment from 'moment';
-import { Button } from 'reactstrap';
+import { Button, Modal, ModalHeader, ModalBody, Input, FormGroup, Label, ModalFooter } from 'reactstrap';
+import { FormattedMessage } from 'react-intl';
 
 const getRowId = row => row.id;
 
@@ -36,6 +37,7 @@ class AppTable extends React.Component {
 			pageSize: 50,
 			pageSizes: [5, 10, 15, 50, 100],
 			dateColumn: ['date'],
+			addUser: null,
 		};
 		this.changeSorting = sorting => this.setState({ sorting });
 		this.changeCurrentPage = currentPage => this.setState({ currentPage });
@@ -44,7 +46,7 @@ class AppTable extends React.Component {
 
 	render() {
 		const { sorting, currentPage, pageSize, pageSizes } = this.state;
-		const { data, columns, pagination, grouping, search, exportTable } = this.props;
+		const { data, columns, pagination, grouping, search, exportTable, addUser, pSize } = this.props;
 		const ToolbarRootBase = ({ classes, className, ...restProps }) => (
 			<Toolbar.Root {...restProps}>
 				<div style={{ marginLeft: 'auto' }}>
@@ -60,6 +62,15 @@ class AppTable extends React.Component {
 				</div>
 			</Toolbar.Root>
 		);
+		const ToolbarUserBase = ({ classes, className, ...restProps }) => (
+			<Toolbar.Root {...restProps}>
+				<div>
+					<Button color="success" onClick={() => this.props.addUser()}>
+						Add user
+					</Button>
+				</div>
+			</Toolbar.Root>
+		);
 		return (
 			<div className="table__card">
 				{data && (
@@ -67,7 +78,7 @@ class AppTable extends React.Component {
 						<PagingState
 							currentPage={currentPage}
 							onCurrentPageChange={this.changeCurrentPage}
-							pageSize={pageSize}
+							pageSize={pSize || pageSize}
 							onPageSizeChange={this.changePageSize}
 							getRowId={getRowId}
 						/>
@@ -78,14 +89,23 @@ class AppTable extends React.Component {
 						<IntegratedPaging />
 						{grouping && (
 							<GroupingState
-								grouping={[{ columnName: grouping !== 'date' && typeof grouping === 'string' ? grouping : 'date' }]}
+								grouping={[
+									{
+										columnName:
+											grouping !== 'date' && typeof grouping === 'string' ? grouping : 'date',
+									},
+								]}
 								defaultExpandedGroups={[moment().format('YYYY-MM-DD')]}
 							/>
 						)}
 						{grouping && <IntegratedGrouping />}
-						<Table />
+						<Table noData="213123" />
 						<TableHeaderRow showSortingControls />
-						<Toolbar {...exportTable && { rootComponent: ToolbarRootBase }} />
+						<Toolbar
+							{...(exportTable && { rootComponent: ToolbarRootBase }) ||
+								(addUser && { rootComponent: ToolbarUserBase })}
+						/>
+						{grouping && <GroupingPanel showSortingControls />}
 						{search && <SearchPanel />}
 						{grouping && <TableGroupRow />}
 						{pagination && <PagingPanel pageSizes={pageSizes} />}
@@ -109,6 +129,7 @@ AppTable.propTypes = {
 	pagination: PropTypes.bool.isRequired,
 	className: PropTypes.string,
 	export: PropTypes.bool,
+	addUser: PropTypes.func,
 };
 
 export default AppTable;

@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { Button, Col, Row } from 'reactstrap';
+import { Button, Col, Row, Spinner } from 'reactstrap';
 import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import Select from 'react-select';
 import PropTypes from 'prop-types';
@@ -22,7 +22,13 @@ import CampaignReportTable from 'containers/TradingDesk/components/CampaignRepor
 import LineChart from '../LineChartDynamic';
 import BarChart from '../BarChartDynamic';
 import messages from '../../messages';
-import { getCampaignReport, setChartsDates, getCampaignReportTable } from '../../actions';
+import {
+	getCampaignReport,
+	setChartsDates,
+	getCampaignReportTable,
+	getCampaignReportCards,
+	setActiveCampaignStats,
+} from '../../actions';
 import {
 	selectCampaignReport,
 	selectChartsDates,
@@ -30,7 +36,11 @@ import {
 	campaingGroupSelectors,
 	campaingsSelectors,
 	selectCampaignReportTable,
+	selectCampaignReportCards,
 	selectGroupsIds,
+	selectCampaignReportLoading,
+	selectCampaignReportTableLoading,
+	selectActiveCampaignStats,
 } from '../../selectors';
 import { makePromiseAction } from '../../../../utils/CollectionHelper/actions';
 import { selectAppInitLoading, selectDashboardLoading } from '../../../Dashboard/selectors';
@@ -48,6 +58,7 @@ class CampaignReport extends React.Component {
 				{ name: 'impressions', title: this.props.intl.formatMessage(messages.impressions) },
 				{ name: 'clicks', title: this.props.intl.formatMessage(messages.clicks) },
 				{ name: 'CTR', title: 'CTR' },
+				{ name: 'CPC', title: 'CPC' },
 				{ name: 'winrate', title: 'Win rate' },
 				{ name: 'spend', title: this.props.intl.formatMessage(messages.spend) },
 				{ name: 'eCPM', title: 'eCPM' },
@@ -84,9 +95,9 @@ class CampaignReport extends React.Component {
 				{
 					name: messages.clicks,
 					color: {
-						r: 244,
-						g: 81,
-						b: 108,
+						r: 255,
+						g: 184,
+						b: 34,
 					},
 					value: '500',
 					key: 'clicks',
@@ -94,29 +105,29 @@ class CampaignReport extends React.Component {
 				{
 					name: messages.CTR,
 					color: {
-						r: 52,
-						g: 191,
-						b: 163,
+						r: 113,
+						g: 106,
+						b: 202,
 					},
 					value: '5%',
 					key: 'CTR',
 				},
 				{
-					name: messages.winrate,
+					name: messages.CPC,
 					color: {
 						r: 34,
 						g: 185,
 						b: 255,
 					},
-					value: '10%',
-					key: 'winrate',
+					value: '$7',
+					key: 'CPC',
 				},
 				{
 					name: messages.spend,
 					color: {
-						r: 255,
-						g: 184,
-						b: 34,
+						r: 52,
+						g: 191,
+						b: 163,
 					},
 					value: '$300',
 					key: 'spend',
@@ -124,18 +135,28 @@ class CampaignReport extends React.Component {
 				{
 					name: messages.eCPM,
 					color: {
-						r: 113,
-						g: 106,
-						b: 202,
+						r: 244,
+						g: 81,
+						b: 108,
 					},
 					value: '$7',
 					key: 'eCPM',
 				},
+				{
+					name: messages.winrate,
+					color: {
+						r: 146,
+						g: 157,
+						b: 211,
+					},
+					value: '10%',
+					key: 'winrate',
+				},
 			],
 			activeAdditionalColor: {
-				r: 244,
-				g: 81,
-				b: 108,
+				r: 255,
+				g: 184,
+				b: 34,
 			},
 			selectedGroup: null,
 			activeAdditionalFilter: 'clicks',
@@ -150,23 +171,16 @@ class CampaignReport extends React.Component {
 				arrayChart: [],
 				arrayLabels: [],
 			},
+			groupName: '',
 		};
 		this.additionalFilter = false;
 		this.selectedCreatives = [];
 	}
 
 	selectAdditionFilter(color, filter) {
-		if (
-			(filter === 'spent' && !this.state.activeAdditionalFilter) ||
-			filter === this.state.activeAdditionalFilter
-		) {
-			this.setState({ activeAdditionalFilter: null });
-			this.dataToChartLines(this.state.activeFilter, null);
-		} else {
-			this.setState({ activeAdditionalColor: color, activeAdditionalFilter: filter });
-			this.additionalFilter = filter;
-			this.dataToChartLines(this.state.activeFilter, filter);
-		}
+		this.setState({ activeAdditionalColor: color, activeAdditionalFilter: filter });
+		this.additionalFilter = filter;
+		this.dataToChartLines(this.state.activeFilter, filter);
 	}
 
 	selectFilter(color, filter) {
@@ -186,7 +200,7 @@ class CampaignReport extends React.Component {
 					: this.props.campaignReport.filter(c => this.selectedCreatives.includes(c.id)).map(c => c[filter]),
 				arrayLabels: this.props.campaignReport[0].labels,
 				creativeLabels: !this.state.selectedChange
-					? this.props.campaignReport.map(c => this.getCampaignName(c.name))
+					? this.props.campaignReport.map(c => this.getCampaignName(parseInt(c.name, 10)))
 					: this.props.campaignReport
 							.filter(c => this.selectedCreatives.includes(c.id))
 							.map(c => this.getCampaignName(c.name)),
@@ -203,7 +217,8 @@ class CampaignReport extends React.Component {
 		const arrayChart = !this.state.selectedChange
 			? this.props.campaignReport.map(c => c[filter])
 			: this.props.campaignReport.filter(c => this.selectedCreatives.includes(c.id)).map(c => c[filter]);
-		const arrayLabels = this.props.campaignReport[0].labels;
+		const arrayLabels =
+			this.props.campaignReport && this.props.campaignReport.length ? this.props.campaignReport[0].labels : '';
 		const creativeLabels = !this.state.selectedChange
 			? this.props.campaignReport.map(c => c.name)
 			: this.props.campaignReport.filter(c => this.selectedCreatives.includes(c.id)).map(c => c.name);
@@ -214,7 +229,10 @@ class CampaignReport extends React.Component {
 				: this.props.campaignReport
 						.filter(c => this.selectedCreatives.includes(c.id))
 						.map(c => c[additionalFilter]);
-			const arrayBarLabels = this.props.campaignReport[0].labels;
+			const arrayBarLabels =
+				this.props.campaignReport && this.props.campaignReport.length
+					? this.props.campaignReport[0].labels
+					: '';
 			const creativeBarLabels = !this.state.selectedChange
 				? this.props.campaignReport.map(c => this.getCampaignName(c.name))
 				: this.props.campaignReport
@@ -256,7 +274,7 @@ class CampaignReport extends React.Component {
 		} else {
 			sum = [];
 		}
-		finalArray.push(sum.map(value => value.toFixed(2)));
+		finalArray.push(sum.map(value => parseFloat(value).toFixed(2)));
 		const dataChart = { arrayChart: finalArray, arrayLabels, creativeLabels };
 		return dataChart;
 	}
@@ -269,6 +287,7 @@ class CampaignReport extends React.Component {
 			match: {
 				params: { filter, groupId },
 			},
+			activeCampaignStats,
 		} = this.props;
 		const filterGroup = groupId;
 		const { startDate, endDate } = dates;
@@ -276,6 +295,12 @@ class CampaignReport extends React.Component {
 		const additionalColor = this.state.filter.filter(
 			f => f.key === (filter === 'winrate' ? 'eCPM' : 'impressions'),
 		);
+		if (filterGroup) {
+			const group = _.find(groups, ['id', parseInt(filterGroup, 10)]);
+			this.setState({
+				groupName: group ? group.name : '',
+			});
+		}
 		if (color.length) {
 			this.setState({
 				activeFilter: filter,
@@ -284,22 +309,37 @@ class CampaignReport extends React.Component {
 				activeAdditionalColor: additionalColor[0].color,
 			});
 		}
-		const firstGroup = groupsIds ? groupsIds[groupsIds.length-1] : 0;
+		const firstGroup = groupsIds ? groupsIds[groupsIds.length - 1] : 0;
 		this.setState({ selectedGroup: firstGroup });
-		this.props
-			.getCampaignReport({
+		if (firstGroup && !this.props.campaignReport.length) {
+			this.props
+				.getCampaignReport({
+					start_date: startDate,
+					end_date: endDate,
+					campaign_group: activeCampaignStats || filterGroup || firstGroup,
+				})
+				.then(() => {
+					this.dataToChartLines();
+				});
+			this.props.getCampaignReportTable({
 				start_date: startDate,
 				end_date: endDate,
-				campaign_group: filterGroup || firstGroup,
-			})
-			.then(() => {
-				this.dataToChartLines();
+				campaign_group: activeCampaignStats || filterGroup || firstGroup,
 			});
-		this.props.getCampaignReportTable({
-			start_date: startDate,
-			end_date: endDate,
-			campaign_group: filterGroup || firstGroup,
-		});
+		} else {
+			this.dataToChartLines();
+			this.selectedCreatives = this.props.campaignReport.map(c => c.id);
+			this.props.getCampaignReportTable({
+				start_date: startDate,
+				end_date: endDate,
+				campaign_group: activeCampaignStats || filterGroup || firstGroup,
+			});
+			this.props.getCampaignReportTable({
+				start_date: startDate,
+				end_date: endDate,
+				campaign_group: activeCampaignStats || filterGroup || firstGroup,
+			});
+		}
 	}
 
 	componentDidUpdate(prevProps, prevState, snapshot) {
@@ -324,6 +364,9 @@ class CampaignReport extends React.Component {
 			end_date: dates.endDate,
 			campaign_group: params.selectedOption.value,
 		});
+		if (params.selectedOption.value !== 'all') {
+			this.props.setActiveCampaignStats(params.selectedOption.value);
+		}
 	}
 
 	async selectCreative(creative) {
@@ -359,12 +402,15 @@ class CampaignReport extends React.Component {
 	}
 
 	getCampaignName(id) {
-		const campaign = _.find(this.props.campaigns, 'id', id);
-		return campaign ? campaign.name : 'Unknown';
+		const campaign = this.props.campaigns.filter(campaign => campaign.id === id);
+		return campaign && campaign.length ? campaign[0].name : 'Unknown';
 	}
 
 	getValue(key) {
-		if (this.props.campaignReport && this.selectedCreatives.length) {
+		/*const { campaignReportCards } = this.props;
+
+		return campaignReportCards && campaignReportCards[key] ? campaignReportCards[key] : 0;*/
+		if (this.props.campaignReport.length && this.selectedCreatives.length) {
 			Array.prototype.SumArray = function(arr) {
 				const sum = [];
 				if (arr != null && this.length == arr.length) {
@@ -383,7 +429,7 @@ class CampaignReport extends React.Component {
 				const reducer = (accumulator, currentValue) => accumulator.SumArray(currentValue);
 				const sum = keyValue.reduce(reducer);
 
-				const finalReducer = (accumulator, currentValue) => accumulator + currentValue;
+				const finalReducer = (accumulator, currentValue) => parseFloat(accumulator) + parseFloat(currentValue);
 				if (sum.reduce(finalReducer)) {
 					if (sum.reduce(finalReducer) - Math.floor(sum.reduce(finalReducer)) > 0) {
 						return sum.reduce(finalReducer).toFixed(2);
@@ -402,6 +448,9 @@ class CampaignReport extends React.Component {
 		const {
 			dates,
 			groups,
+			campaignReportLoading,
+			campaignReportTableLoading,
+			activeCampaignStats,
 			match: {
 				params: { filter, groupId },
 			},
@@ -412,12 +461,15 @@ class CampaignReport extends React.Component {
 				<Row className="margin-0">
 					<Col md={12} className="title_with_select">
 						<Row>
-							<Col md={12} sm={12} xl={5} lg={6}>
+							<Col md={12} sm={12} xl={4} lg={6}>
 								<div className="page-title">
 									<div className="float-left">
-										<h1 className="title">
+										<h1 className="title" style={{ display: 'inline-block' }}>
 											<FormattedMessage {...messages.campaignReports} />
 										</h1>
+										<h6 style={{ display: 'inline-block' }} className="ml-2">
+											{this.state.groupName ? `(${this.state.groupName})` : null}
+										</h6>
 									</div>
 								</div>
 							</Col>
@@ -427,7 +479,8 @@ class CampaignReport extends React.Component {
 								endDate={endDate}
 								period={period}
 								tradingDesk={groups}
-								tradingDeskSelected={groupId || this.state.selectedGroup}
+								tradingDeskSelected={activeCampaignStats || groupId || this.state.selectedGroup}
+								disableDefaultSelect
 							/>
 						</Row>
 					</Col>
@@ -439,7 +492,7 @@ class CampaignReport extends React.Component {
 								<Col xl={12}>
 									<Row className="padding-0">
 										<Col xl={10}>
-											<Row>
+											<Row className=" width-99">
 												<Col xl={9} lg={12} md={12}>
 													<h2 style={{ display: 'inline-block' }}>
 														<FormattedMessage
@@ -450,51 +503,68 @@ class CampaignReport extends React.Component {
 													</h2>
 													<h6
 														style={{
-															fontSize: '16px',
+															fontSize: '14px',
 															paddingTop: '14px',
 															display: 'inline-block',
 															marginLeft: '20px',
 														}}
 													>
 														<FormattedMessage {...messages.from} />{' '}
-														{moment(startDate).format('DD-MM-YYYY')}{' '}
+														{moment(startDate).format('DD.MM.YY')}{' '}
 														<FormattedMessage {...messages.to} />{' '}
-														{moment(endDate).format('DD-MM-YYYY')}
+														{moment(endDate).format('DD.MM.YY')}
 													</h6>
+													{campaignReportLoading || campaignReportTableLoading ? (
+														<Spinner
+															size="sm"
+															color="info"
+															className="ml-1"
+															style={{ position: 'relative', top: '-5px' }}
+														/>
+													) : null}
 												</Col>
 												<Col xl={3} className="report__export-block">
 													<div>
 														<Button
 															size="sm"
-															color={this.state.linesData ? 'purple' : 'secondary'}
-															className="button-margin-left-10"
+															color="transparent"
+															className="transparent button-margin-left-10"
+															style={{
+																color: this.state.linesData
+																	? 'rgba( 113,106,202,1 )'
+																	: '#6c757d',
+															}}
 															onClick={() => {
-																this.dataToChartLines(this.state.activeFilter);
 																this.selectAdditionFilter(
 																	this.state.activeAdditionalColor,
 																	this.state.activeAdditionalFilter,
 																);
 															}}
 														>
-															Line
+															<i className="fal fa-analytics" />
 														</Button>
 														<Button
 															size="sm"
-															color={this.state.allData ? 'purple' : 'secondary'}
-															className="button-margin-left-10"
+															color="transparent"
+															className="transparent button-margin-left-10"
+															style={{
+																color: this.state.allData
+																	? 'rgba( 113,106,202,1 )'
+																	: '#6c757d',
+															}}
 															onClick={() =>
 																this.dataToChartAreas(this.state.activeFilter)
 															}
 														>
-															Area
+															<i className="fal fa-chart-area" />
 														</Button>
 													</div>
 												</Col>
 											</Row>
 											<div className="report__chart">
 												<LineChart
-													data={this.state.dataChart ? this.state.dataChart : []}
-													databar={this.state.dataBarChart ? this.state.dataBarChart : []}
+													data={this.state.dataChart}
+													databar={this.state.dataBarChart}
 													height={window.innerWidth > 600 ? 90 : 300}
 													color={this.state.activeColor}
 													colorBar={this.state.activeAdditionalColor}
@@ -502,96 +572,98 @@ class CampaignReport extends React.Component {
 												/>
 											</div>
 											<Row className="report__blocks">
-												{this.props.campaignReport &&
-												Object.keys(this.props.campaignReport).length &&
-												this.selectedCreatives.length
-													? this.state.filter.map(filter => {
-															const Blocks = styled.div`
-																display: flex;
-																width: 100%;
-																align-items: center;
-																justify-content: center;
-																flex-direction: column;
-																border-radius: 5px;
+												<nav className="nav nav-pills nav-fill" style={{ width: '100%' }}>
+													{this.state.filter.map(filter => {
+														const Blocks = styled.div`
+															cursor: pointer;
+															border: 1px solid transparent;
+															@media (max-width: 768px) {
+																margin-bottom: 10px !important;
+															}
+															:hover {
 																background-color: rgba(
 																	${filter.color.r},
 																	${filter.color.g},
 																	${filter.color.b},
-																	0.6
+																	1
 																);
-
-																:hover {
-																	background-color: rgba(
-																		${filter.color.r},
-																		${filter.color.g},
-																		${filter.color.b},
-																		1
-																	);
+																span {
+																	color: #fff !important;
 																}
-																&.active {
-																	background-color: rgba(
-																		${filter.color.r},
-																		${filter.color.g},
-																		${filter.color.b},
-																		1
-																	);
-																	::after {
-																		content: '';
-																		position: absolute;
-																		top: -5px;
-																		border: 10px solid transparent;
-																		border-bottom: 10px solid
-																			rgba(
-																				${filter.color.r},
-																				${filter.color.g},
-																				${filter.color.b},
-																				1
-																			);
-																	}
+															}
+															&.active {
+																background-color: rgba(
+																	${filter.color.r},
+																	${filter.color.g},
+																	${filter.color.b},
+																	1
+																) !important;
+																span {
+																	color: #fff !important;
 																}
-															`;
-															return (
-																<Col xl={2} xs={4} md={4}>
-																	<AppCard
-																		onClick={() =>
-																			(this.state.activeAdditionalFilter !==
-																				filter.key ||
-																				!this.state.linesData) &&
-																			this.selectFilter(filter.color, filter.key)
-																		}
-																	>
-																		<Blocks
-																			className={
-																				JSON.stringify(
-																					this.state.activeColor,
-																				) === JSON.stringify(filter.color)
-																					? 'active'
-																					: null
-																			}
-																		>
-																			<span>
-																				<FormattedMessage {...filter.name} />
-																			</span>
-																			<strong>
-																				{filter.key === 'spend' ||
-																				filter.key === 'eCPM'
-																					? '$'
-																					: null}
-																				{this.getValue(filter.key)}
-																				{filter.key === 'CTR' ||
-																				filter.key === 'winrate'
-																					? '%'
-																					: null}
-																			</strong>
-																		</Blocks>
-																	</AppCard>
-																</Col>
-															);
-													  })
-													: null}
+															}
+															&.not {
+																border: 1px solid #e5e9eb;
+															}
+														`;
+														return (
+															<Blocks
+																className={`nav-item nav-link ${
+																	JSON.stringify(this.state.activeColor) ===
+																	JSON.stringify(filter.color)
+																		? 'active'
+																		: 'not'
+																}`}
+																onClick={() =>
+																	(this.state.activeAdditionalFilter !== filter.key ||
+																		!this.state.linesData) &&
+																	this.selectFilter(filter.color, filter.key)
+																}
+															>
+																<span>
+																	<FormattedMessage {...filter.name} />
+																</span>{' '}
+																<strong>
+																	<span style={{ display: 'inline-block' }}>
+																		{filter.key === 'spend' ||
+																		filter.key === 'eCPM' ||
+																		filter.key === 'CPC'
+																			? '$'
+																			: null}
+																	</span>
+																	{this.props.campaignReport &&
+																	Object.keys(this.props.campaignReport).length &&
+																	this.selectedCreatives.length ? (
+																		<span style={{ display: 'inline-block' }}>
+																			{filter.key === 'CTR'
+																				? (
+																						(this.getValue('clicks') /
+																							this.getValue(
+																								'impressions',
+																							)) *
+																						100
+																				  ).toFixed(2)
+																				: this.getValue(filter.key)}
+																		</span>
+																	) : (
+																		<span style={{ display: 'inline-block' }}>
+																			0
+																		</span>
+																	)}
+																	<span style={{ display: 'inline-block' }}>
+																		{filter.key === 'CTR' ||
+																		filter.key === 'winrate'
+																			? '%'
+																			: null}
+																	</span>
+																</strong>
+															</Blocks>
+														);
+													})}
+												</nav>
 											</Row>
 										</Col>
-										<Col xl={2}>
+										<Col xl={2} className="report__actions-block">
 											<Row style={{ height: '100%' }}>
 												<Col xl={12}>
 													<h2>
@@ -606,8 +678,8 @@ class CampaignReport extends React.Component {
 															)}
 														</Button>
 													</div>
-													<div className="report__filter-checkbox">
-														{this.selectedCreatives.length
+													<div className="report__filter-checkbox checkbox-wrapper ">
+														{this.props.campaignReport && this.props.campaignReport.length
 															? this.props.campaignReport.map((campaign, i) => (
 																	<div className="custom-control custom-checkbox">
 																		<input
@@ -626,15 +698,22 @@ class CampaignReport extends React.Component {
 																			className="custom-control-label"
 																			htmlFor={`checkboxCreative-${i}`}
 																		>
-																			{this.getCampaignName(campaign.id)}
+																			{this.getCampaignName(
+																				parseInt(campaign.id, 10),
+																			)}
 																		</label>
 																	</div>
 															  ))
 															: null}
+														{(campaignReportLoading || campaignReportTableLoading) &&
+														!this.props.campaignReport &&
+														!this.props.campaignReport.length ? (
+															<Spinner size="sm" color="info" />
+														) : null}
 													</div>
 												</Col>
 												{this.state.linesData && (
-													<Col xl={12}>
+													<Col xl={12} className="report__data-series checkbox-wrapper ">
 														<h2>
 															<FormattedMessage {...messages.dataSeries} />
 														</h2>
@@ -676,7 +755,8 @@ class CampaignReport extends React.Component {
 							<CampaignReportTable
 								columns={this.state.reportColumns}
 								data={this.props.campaignReportTable.length ? this.props.campaignReportTable : []}
-								getName={id => this.getCampaignName(id)}
+								getName={id => this.getCampaignName(parseInt(id, 10))}
+								getGroupId={id => this.getGroupId(parseInt(id, 10))}
 								pagination
 								exportTable
 								search
@@ -687,6 +767,11 @@ class CampaignReport extends React.Component {
 				</Row>
 			</div>
 		);
+	}
+
+	getGroupId(campaignId) {
+		const campaign = _.find(this.props.campaigns, ['id', campaignId]);
+		return campaign && campaign.campaign_group ? campaign.campaign_group : '';
 	}
 }
 
@@ -703,11 +788,15 @@ const mapStateToProps = createStructuredSelector({
 	dates: selectChartsDates(),
 	campaignReport: selectCampaignReport(),
 	campaignReportTable: selectCampaignReportTable(),
+	campaignReportCards: selectCampaignReportCards(),
+	campaignReportLoading: selectCampaignReportLoading(),
+	campaignReportTableLoading: selectCampaignReportTableLoading(),
 	campaignsIds: selectCampaignsIds(),
 	campaigns: campaingsSelectors.collectionList(),
 	groupsIds: selectGroupsIds(),
 	groups: campaingGroupSelectors.collectionList(),
 	appLoaing: selectDashboardLoading(),
+	activeCampaignStats: selectActiveCampaignStats(),
 });
 
 function mapDispatchToProps(dispatch) {
@@ -716,7 +805,9 @@ function mapDispatchToProps(dispatch) {
 		updateCharts: (params, dates) => dispatch(updateCharts(params, dates)),
 		getCampaignReport: dates => makePromiseAction(dispatch, getCampaignReport(dates)),
 		getCampaignReportTable: dates => makePromiseAction(dispatch, getCampaignReportTable(dates)),
+		getCampaignReportCards: dates => makePromiseAction(dispatch, getCampaignReportCards(dates)),
 		updateDates: dates => dispatch(setChartsDates(dates)),
+		setActiveCampaignStats: value => dispatch(setActiveCampaignStats(value)),
 	};
 }
 

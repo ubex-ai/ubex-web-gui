@@ -3,6 +3,12 @@
 	width: 100%;
 	overflow-x: unset;
 	overflow-y: unset;
+	&__header, &__content {
+		display: flex;
+		align-items: center;
+		flex-direction: row;
+		justify-content: space-between;
+	}
 	&__arrow {
 		&:hover {
 			cursor: pointer;
@@ -18,11 +24,19 @@
 			transition-property: transform;
 		}
 	}
+	&__column-wrapper {
+		display: inline-flex;
+		justify-content: left;
+		align-items: center;
+	}
 	&__cell {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		text-align: left;
-		font-size: 0.9rem;
+		font-size: 0.8rem;
+		.spinner-border {
+			margin-left: 5px;
+		}
 		&--running {
 			color: #34bfa3;
 			font-size: 14px;
@@ -39,9 +53,9 @@
 			display: flex;
 			flex-wrap: nowrap;
 			flex-direction: row;
-			align-items: center;
+			align-items: flex-start;
 			span {
-				min-width: 35px;
+				min-width: 17px;
 			}
 			.input-group-text {
 				font-size: inherit;
@@ -63,41 +77,82 @@
 			}
 		}
 		&--name {
-			min-width: 130px;
-			max-width: 130px;
+			min-width: 170px;
+			max-width: 170px;
 			display: block;
+			@media (max-width: 374px) {
+				min-width: 120px;
+				max-width: 120px;
+			}
+			.nameText {
+				white-space: nowrap;
+				overflow: hidden;
+				background: #fc0;
+				padding: 5px;
+				text-overflow: ellipsis;
+			}
 		}
 		&--details {
-			min-width: 80px;
+			min-width: 140px;
+			text-transform: capitalize;
 		}
 		&--status {
 			min-width: 80px;
 			cursor: pointer;
 		}
 		&--startEnd {
-			min-width: 210px;
+			min-width: 170px;
 		}
 		&--impressions {
-			min-width: 120px;
+			min-width: 60px;
 		}
 		&--clicks {
-			min-width: 100px;
+			min-width: 60px;
 		}
 		&--CTR {
-			min-width: 90px;
+			min-width: 60px;
+		}
+		&--CPC {
+			min-width: 60px;
 		}
 		&--budget {
-			min-width: 180px;
+			min-width: 140px;
+			flex-direction: column;
+		}
+		&--progress {
+			width: 80%;
+			height: 5px;
+			margin-top: 5px;
+			.progress-bar.bg-success {
+				padding: 0;
+				background-color: #34bfa3 !important;
+			}
+			.progress-bar.bg-danger {
+				padding: 0;
+				background-color: #f4516c !important;
+			}
 		}
 		&--daily_budget {
-			min-width: 180px;
+			min-width: 140px;
+			flex-direction: column;
 		}
 		&--creatives {
 			min-width: 80px;
+			.plus {
+				color: dodgerblue;
+				cursor: pointer;
+				&:hover {
+					text-decoration: underline;
+				}
+			}
 		}
 		&--controls {
-			min-width: 150px;
-			align-self: center;
+			min-width: 115px;
+			@include media-breakpoint-down(xs) {
+				min-width: 115px;
+				max-width: 115px;
+			}
+			justify-content: flex-end;
 			display: flex;
 			.btn:first-child {
 				margin-left: 0;
@@ -115,9 +170,14 @@
 	.m-btn--icon.m-btn--icon-only {
 		height: 1em;
 		line-height: 1em;
+		background-color: #fff;
+		color: #767676;
+		&:hover {
+			background-color: #f4f5f8 !important;
+		}
 	}
 	.dx-g-bs4-table {
-		min-width: 0 !important;
+		min-width: 1200px !important;
 	}
 	.table__card {
 		font-size: 0.9rem;
@@ -126,11 +186,7 @@
 		border-color: #34bfa3;
 		background-color: #34bfa3;
 	}
-	&__header, &__content {
-		display: flex;
-		align-items: center;
-		flex-direction: row;
-	}
+
 	&__header {
 		padding: 15px 15px;
 		.accordion-toggle {
@@ -153,7 +209,13 @@
 		}
 		.campaign-table__cell--status {
 			label {
-				padding-top: 3px;
+				padding-top: 5px;
+				&:before {
+					top: 5px;
+				}
+				&:after {
+					top: 7px;
+				}
 			}
 		}
 	}
@@ -167,5 +229,45 @@
 	}
 	.react-datepicker-wrapper input[type='text'] {
 		font: inherit;
+		min-width: 130px;
 	}
+}
+
+.creative_list {
+	.m-btn--icon.m-btn--icon-only {
+		height: 1em;
+		line-height: 1em;
+		background-color: #fff;
+		border: 1px solid #ebedf2;
+		color: #767676;
+		&:hover {
+			background-color: #f4f5f8 !important;
+		}
+	}
+}
+
+.counter_list {
+	.m-btn--icon.m-btn--icon-only {
+		height: 1em;
+		line-height: 1em;
+		background-color: #fff;
+		border: 1px solid #ebedf2;
+		color: #767676;
+		&:hover {
+			background-color: #f4f5f8 !important;
+		}
+	}
+}
+.sticky_wrapper {
+	position: relative;
+}
+.sticky-appcard {
+	position: sticky;
+	top: 0;
+	height:50px;
+}
+
+.sticky-appcard--content {
+	display: block;
+	min-height:1000px;
 }

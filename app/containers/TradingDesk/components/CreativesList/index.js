@@ -5,45 +5,48 @@
  */
 
 import React from 'react';
+import _ from 'lodash';
 // import PropTypes from 'prop-types';
 // import styled from 'styled-components';
 import { Link } from 'react-router-dom';
+import { connect } from 'react-redux';
+import { compose } from 'redux';
+import { createStructuredSelector } from 'reselect';
 import { Alert, Button, Col, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Input, Row } from 'reactstrap';
 import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
-import AppCard from 'components/AppCard';
-import LinkButton from 'components/LinkButton';
-import LinkDropdown from 'components/LinkDropdown';
+import moment from 'moment';
 import classNames from 'classnames';
+import createToast from 'utils/toastHelper';
+import { makePromiseAction } from 'utils/CollectionHelper/actions';
+import getPaginatedItems from 'utils/pagination';
 import { other, image, native, video, feed, template } from 'containers/TradingDesk/variables/creative-pics';
 import RemoveModal from 'components/RemoveModal';
 import PreviewModal from 'components/PreviewModal';
-import { connect } from 'react-redux';
-import { createStructuredSelector } from 'reselect';
-import { compose } from 'redux';
-import InlineEditField from 'components/InlineEditField';
-import validateStringAndNumber from 'utils/validateStringAndNumber';
-import createToast from 'utils/toastHelper';
-import { makePromiseAction } from 'utils/CollectionHelper/actions';
-import moment from 'moment';
-import getPaginatedItems from 'utils/pagination';
+import AppCard from 'components/AppCard';
+import LinkButton from 'components/LinkButton';
+import LinkDropdown from 'components/LinkDropdown';
 import Pagination from 'components/Pagination';
 import CreativeTypeModal from '../CreativeTypeModal';
 import CreativesTable from '../CreativesTable';
 import messages from '../../messages';
 import {
-	creativesSelectors,
 	filteringCreatives,
 	selectAdSize,
 	selectCreativeFilters,
+	selectFavoriteCreatives,
 	selectPaginationCounts,
 } from '../../selectors';
 import {
 	bannersCollectionActions,
 	creativeCollectionActions,
+	creativeSharingCollectionActions,
+	getAdSize,
 	setFilterCreatives,
 	setPaginationItemsCount,
+	setFavoriteCreative,
 } from '../../actions';
-import CreativeFileTable from '../CreativeForm';
+import ShareModal from '../ShareModal';
+import ModerationModal from 'components/ModerationModal';
 
 /* eslint-disable react/prefer-stateless-function */
 class CreativeList extends React.Component {
@@ -53,50 +56,53 @@ class CreativeList extends React.Component {
 			dropdownOpen: false,
 			creatives: [],
 			removeCreative: null,
-			openCard: null,
 			openCreativeModal: false,
 			createCreativeModal: false,
 			removeBanner: null,
 			previewModal: false,
 			previewType: null,
+			previewSize: null,
 			previewAdditionalType: null,
 			removeCreativeType: null,
 			typeInventory: 'all',
 			search: '',
 			page: 1,
 			items: props.paginationCounts.creativesCount,
+			shareCreative: null,
+			previewName: null,
+			moderationText: null,
 		};
 		this.editField = null;
 		this.clearSearch = this.clearSearch.bind(this);
+
 		this.typeCreative = this.typeCreative.bind(this);
 		this.searchEntries = this.searchEntries.bind(this);
 	}
 
 	componentDidMount() {
+		if (!(this.props.adSize && this.props.adSize.length)) {
+			this.props.getAdSize();
+		}
 		this.props.getCreatives();
 		const { creatives } = this.props;
-		this.setState({ openCard: Math.max(...creatives.filter(c => c.data).map(creative => creative.id)) });
+		const lastCreative = Math.max(...creatives.filter(c => c.data).map(creative => creative.id));
+		this.setState({ [lastCreative]: true });
+		if (this.props.match.params.add === 'add') {
+			this.setState({
+				openCreativeModal: true,
+			});
+		}
 	}
 
 	componentDidUpdate(prevProps, prevState, snapshot) {
-		const { creatives } = this.props;
-
 		if (prevProps.paginationCounts.creativesCount !== this.props.paginationCounts.creativesCount) {
 			this.setState({ items: this.props.paginationCounts.creativesCount });
 		}
-
-		if (!this.state.openCard && creatives) {
-			this.setState({ openCard: Math.max(...creatives.filter(c => c.data).map(creative => creative.id)) });
-		}
 	}
 
-	toggleCard(creativeId) {
-		if (this.editField !== creativeId) {
-			if (creativeId === this.state.cardIsOpen) {
-				this.setState({ cardIsOpen: null });
-			} else {
-				this.setState({ cardIsOpen: creativeId });
-			}
+	toggleCard(id) {
+		if (this.editField !== id) {
+			this.setState({ [id]: !this.state[id] });
 		}
 	}
 
@@ -125,10 +131,7 @@ class CreativeList extends React.Component {
 	}
 
 	searchEntries(e) {
-		const typeQuery = e.target.value
-			.toString()
-			.trim()
-			.toLowerCase();
+		const typeQuery = e.target.value.toString().toLowerCase();
 		this.setState({ search: typeQuery });
 		this.props.setFilter({ searchWord: typeQuery });
 	}
@@ -143,6 +146,8 @@ class CreativeList extends React.Component {
 
 	render() {
 		const { creatives, setPaginationItemsCount } = this.props;
+		// const sharedOwners = this.state.shareCreative ? _.find(creatives, ['id', this.state.shareCreative]) : [];
+
 		return (
 			<div>
 				{this.renderHeader()}
@@ -183,13 +188,13 @@ class CreativeList extends React.Component {
 					closeModal={() => this.setState({ createCreativeModal: false })}
 					links={[
 						{
-							link: '/app/creative/feed/create',
+							link: '/app/creative/create/feed',
 							pic: feed,
 							name: 'Feed',
 							span: '(XML,CSV,JSON)',
 						},
 						{
-							link: '/app/creative/template/create',
+							link: '/app/creative/create/template',
 							pic: template,
 							name: 'Сreate',
 							span: '(from template)',
@@ -204,126 +209,208 @@ class CreativeList extends React.Component {
 					msg={messages.remove}
 				/>
 				<PreviewModal
-					adSize={this.props.adSize}
 					type={this.state.previewType}
 					additionalType={this.state.previewAdditionalType}
 					title={messages.preview}
+					size={this.state.previewSize}
 					msg={this.state.previewModal}
+					bannerName={this.state.previewName}
 					isOpen={this.state.previewModal}
+					clickUrl={this.state.previewClickUrl}
 					onCancel={() => this.setState({ previewModal: '', previewType: null, previewAdditionalType: null })}
+				/>
+				<ModerationModal
+					isOpen={this.state.moderationText}
+					title={messages.moderationTitle}
+					onCancel={() => this.setState({ moderationText: null })}
 				/>
 			</div>
 		);
 	}
 
+	removeShareUser(id) {
+		this.props
+			.removeSharingUser(id)
+			.then(() => {
+				createToast('success', 'Share user successfully removed!');
+				this.props.getCreatives();
+			})
+			.catch(() => {
+				createToast('error', 'Share user remove error!');
+			});
+	}
+
+	addShareUser(groupId, values) {
+		this.props
+			.addSharingUser({
+				group: groupId,
+				...values,
+			})
+			.then(() => {
+				createToast('success', 'Share user successfully added!');
+				this.props.getCreatives();
+			})
+			.catch(() => {
+				createToast('error', 'Share user added error!');
+			});
+	}
+
 	renderCreativeHead(creative) {
-		const { patchCreative } = this.props;
 		if (!creative || !creative.data) {
 			return null;
 		}
 		const iconClass = classNames({
-			'creative-icons display icon-title fas fa-image': creative.data.type === 'image',
+			'creative-icons display icon-title fal fa-image': creative.data.type === 'image',
 			'creative-icons video icon-title fab fa-html5': creative.data.type === 'html5',
-			'creative-icons native icon-title fas fa-ad': creative.creative_type === 'native',
-			'creative-icons video icon-title fas fa-video': creative.creative_type === 'video',
-			'creative-icons other icon-title fas fa-code': creative.creative_type === 'other',
+			'creative-icons native icon-title fal fa-ad': creative.creative_type === 'native',
+			'creative-icons video icon-title fal fa-video': creative.creative_type === 'video',
+			'creative-icons other icon-title fal fa-code': creative.creative_type === 'other',
 		});
 		const bannerCount = creative && creative.banners ? creative.banners.length : '-';
-		return [
-			<Col md={9} xs={12}>
-				<h3 className="creative-title">
-					<i className={iconClass} />{' '}
-					<InlineEditField
-						inline
-						size="sm"
-						type="text"
-						value={creative && creative.data && creative.data.name.length ? creative.data.name : `Unnamed`}
-						forceHide={this.state.forceHide}
-						validation={val => validateStringAndNumber(val)}
-						onClick={() => (this.editField = creative.id)}
-						onSave={val => {
-							patchCreative(creative.id, { data: { name: val } }).then(() => {
-								createToast('success', 'Creative name successfully updated!');
-							});
-							this.editField = null;
-						}}
-						onCancel={() => {
-							this.editField = null;
-						}}
-					/>
-					{creative.status && (
-						<i className="icon-status fas fa-exclamation icon-xs icon-rounded icon-warning" />
-					)}
-				</h3>
-				<span>
-					ID: {` ${creative.code || creative.id}`} &nbsp; | &nbsp; Created:{' '}
-					{moment(creative && creative.data ? creative.data.created : null).format('DD-MM-YYYY HH:mm')} &nbsp;
-					| &nbsp; <FormattedMessage {...messages.banners} />: {bannerCount} &nbsp; | &nbsp;{' '}
-					<FormattedMessage {...messages.type} />:{' '}
-					<span style={{ textTransform: 'capitalize' }}>{creative.creative_type}</span> &nbsp; | &nbsp; CPM: $
-					{creative.data.cpm} &nbsp; | &nbsp;{' '}
-					{creative && creative.campaigns && creative.campaigns.length ? (
-						<Link to={`/app/campaigns/request/${creative.campaigns}`}>
-							<FormattedMessage {...messages.addedTo} />{' '}
-							{creative && creative.campaigns ? creative.campaigns.length : 0}{' '}
-							<FormattedMessage {...messages.toCampaigns} />
-						</Link>
-					) : (
-						<span>
-							<FormattedMessage {...messages.addedTo} />{' '}
-							{creative && creative.campaigns ? creative.campaigns.length : 0}{' '}
-							<FormattedMessage {...messages.toCampaigns} />
-						</span>
-					)}
-				</span>
-			</Col>,
-			<Col md={3} xs={12} className="top10 bottom10 buttons__creative">
-				<LinkButton
-					to={`/app/creative/${creative.creative_type}/${creative.id}/add`}
-					size="xs"
-					className="dots plus button-radius-5 float-right button-margin-left-10 background-transparent"
-					title="Add banner"
-				>
-					<i className="fas fa-plus-circle size-11" />
-				</LinkButton>
-				<LinkButton
-					to={`/app/creative-banners/${creative.id}`}
-					size="xs"
-					className="list button-radius-5 float-right button-margin-left-10 background-transparent"
-					title="Banners list"
-				>
-					<i className="fas fa-search" />
-				</LinkButton>
-				<Dropdown
-					isOpen={this.state.dropdownOpen === creative.id}
-					toggle={() => this.toggle(creative.id)}
-					size="xs"
-					title="Other actions"
-				>
-					<DropdownToggle className="dots background-transparent button-margin-left-10">
-						<i className="fas fa-ellipsis-h" />
-					</DropdownToggle>
-					<DropdownMenu className="normal-transform">
-						<LinkDropdown to={`/app/creative/${creative.creative_type}/${creative.id}/`}>
-							<FormattedMessage {...messages.editCreative} />
-						</LinkDropdown>
-						<DropdownItem>
-							<FormattedMessage {...messages.shareCreative} />
-						</DropdownItem>
-						<DropdownItem
-							onClick={() =>
-								this.setState({
-									removeCreative: creative.id,
-									removeCreativeType: creative.creative_type,
-								})
-							}
+		return {
+			header: (
+				<Col md={6} xs={12} style={{ height: '35px' }}>
+					<h3 className="creative-title">
+						<i className={iconClass} />{' '}
+						<p className="title-dots">
+							{creative && creative.data && creative.data.name.length ? creative.data.name : `Unnamed`}
+						</p>
+						{creative.status && (
+							<i className="icon-status fas fa-exclamation icon-xs icon-rounded icon-warning" />
+						)}
+					</h3>
+				</Col>
+			),
+			buttons: (
+				<Col md={12} className="top10 bottom10 buttons__creative">
+					{(creative.sharing && !creative.sharing.shared) ||
+					(creative.sharing && creative.sharing.shared && creative.sharing.perm === 'write') ? (
+						<LinkButton
+							to={`/app/creative/${creative.creative_type}/${creative.id}/add`}
+							size="xs"
+							className="dots plus button-radius-5 float-right ml-1 background-transparent"
+							title="Add banner"
 						>
-							<FormattedMessage {...messages.removeCreative} />
-						</DropdownItem>
-					</DropdownMenu>
-				</Dropdown>
-			</Col>,
-		];
+							<i className="fal fa-plus-circle" />
+						</LinkButton>
+					) : null}
+					<LinkButton
+						to={`/app/creative-banners/${creative.id}`}
+						size="xs"
+						className="dots button-radius-5 float-right ml-1 background-transparent"
+						title="Banners list"
+					>
+						<i className="fal fa-search-plus" />
+					</LinkButton>
+					{creative.sharing && creative.sharing.shared && creative.sharing.perm === 'read' ? (
+						<LinkButton
+							to={`/app/creative/${creative.creative_type}/${creative.id}/`}
+							size="xs"
+							className="dots button-radius-5 float-right ml-1 background-transparent"
+							title="See creative"
+						>
+							<i className="fal fa-eye" />
+						</LinkButton>
+					) : null}
+					{(creative.sharing && !creative.sharing.shared) ||
+					(creative.sharing && creative.sharing.shared && creative.sharing.perm === 'write') ? (
+						<Dropdown
+							isOpen={this.state.dropdownOpen === creative.id}
+							toggle={() => this.toggle(creative.id)}
+							size="xs"
+							title="Other actions"
+						>
+							<DropdownToggle className="dots background-transparent ml-1">
+								<i className="fal fa-ellipsis-h" />
+							</DropdownToggle>
+							<DropdownMenu className="normal-transform">
+								{(creative.sharing && !creative.sharing.shared) ||
+								(creative.sharing && creative.sharing.shared && creative.sharing.perm === 'write') ? (
+									<LinkDropdown to={`/app/creative/${creative.creative_type}/${creative.id}/`}>
+										<FormattedMessage {...messages.editCreative} />
+									</LinkDropdown>
+								) : null}
+								{creative.sharing && !creative.sharing.shared ? (
+									<DropdownItem onClick={() => this.setState({ shareCreative: creative.id })}>
+										<FormattedMessage {...messages.shareCreative} />
+									</DropdownItem>
+								) : null}
+								{creative.sharing && !creative.sharing.shared ? (
+									<DropdownItem
+										onClick={() =>
+											!creative.campaigns.length
+												? this.setState({
+														removeCreative: creative.id,
+														removeCreativeType: creative.creative_type,
+												  })
+												: createToast(
+														'error',
+														'Cannot delete if the creative is attached to the campaign!',
+												  )
+										}
+									>
+										<FormattedMessage {...messages.removeCreative} />
+									</DropdownItem>
+								) : null}
+							</DropdownMenu>
+						</Dropdown>
+					) : null}
+				</Col>
+			),
+			span: (
+				<span className="span-campaign">
+					{creative.sharing && creative.sharing.shared ? (
+						<div className="badge badge-info" style={{ borderRadius: '5px', minWidth: '65px' }}>
+							Share
+						</div>
+					) : null}
+					<div className="badge badge-success mr-2" style={{ borderRadius: '5px' }}>
+						CPM: ${creative.data.cpm}
+					</div>
+					<div
+						style={{
+							display: 'inline-block',
+						}}
+					>
+						<span>ID: {` ${creative.code || creative.id}`}</span>
+						<span> &nbsp; | &nbsp;</span>
+						<FormattedMessage {...messages.type} />
+						<span>: </span>
+						<span style={{ textTransform: 'capitalize' }}>{creative.creative_type}</span>{' '}
+						<span className="hidden-sm">
+							<span>&nbsp; | &nbsp;</span>
+							{creative.creative_type !== 'other' && creative.creative_type !== 'native' ? (
+								<span>
+									<FormattedMessage {...messages.banners} />
+									<span>: {bannerCount}</span>
+									<span> &nbsp; | &nbsp;</span>{' '}
+								</span>
+							) : null}
+							<span>
+								Created:{' '}
+								{moment(creative && creative.data ? creative.data.created : null).format(
+									'DD.MM.YY HH:mm',
+								)}
+							</span>{' '}
+							<span>&nbsp; | &nbsp;</span>
+							{creative && creative.campaigns && creative.campaigns.length ? (
+								<Link to={`/app/campaigns/request/${creative.campaigns}`} className="campaigns-link">
+									<FormattedMessage {...messages.addedTo} />{' '}
+									<span>{creative && creative.campaigns ? creative.campaigns.length : 0} </span>
+									<FormattedMessage {...messages.toCampaigns} />
+								</Link>
+							) : (
+								<span>
+									<FormattedMessage {...messages.addedTo} />{' '}
+									{creative && creative.campaigns ? creative.campaigns.length : 0}{' '}
+									<FormattedMessage {...messages.toCampaigns} />
+								</span>
+							)}
+						</span>
+					</div>
+				</span>
+			),
+		};
 	}
 
 	changeURL(bannerId, values, type) {
@@ -353,8 +440,16 @@ class CreativeList extends React.Component {
 		});
 	}
 
+	setFavoriteCreative(creativeId) {
+		if (this.props.favoriteCreatives.includes(creativeId)) {
+			this.props.setFavoriteCreative(this.props.favoriteCreatives.filter(creative => creative !== creativeId));
+		} else {
+			this.props.setFavoriteCreative([...this.props.favoriteCreatives, creativeId]);
+		}
+	}
+
 	renderCreative(creative) {
-		const { filter } = this.props;
+		const { filter, creatives } = this.props;
 		if (!creative || !creative.banners) {
 			return null;
 		}
@@ -363,14 +458,25 @@ class CreativeList extends React.Component {
 		if (creative.creative_type === 'other') {
 			otherData.push(creative.data);
 		}
+
+		const sharedOwners = this.state.shareCreative ? _.find(creatives, ['id', this.state.shareCreative]) : [];
+
+		// console.log(creative);
 		return (
 			<Row className="margin-0" key={creative.id}>
 				<Col>
 					<AppCard
 						arrow
-						arrowForceOpen={searchWord || request || this.state.openCard === creative.id}
+						arrowForceOpen={searchWord || request || this.state[creative.id]}
 						arrowHead={this.renderCreativeHead(creative)}
-						onToggle={() => this.setState({ openCard: creative.id })}
+						onToggle={() => this.toggleCard(creative.id)}
+						star={{
+							selectedList:
+								this.props.favoriteCreatives && this.props.favoriteCreatives.length
+									? this.props.favoriteCreatives.includes(creative.id)
+									: false,
+							select: () => this.setFavoriteCreative(creative.id),
+						}}
 					>
 						{!creative ? null : (
 							<CreativesTable
@@ -378,17 +484,20 @@ class CreativeList extends React.Component {
 									creative.creative_type === 'other'
 										? otherData
 										: creative.banners
-											? creative.banners
-											: []
+										? creative.banners.filter(banner => banner.aws_s3_location)
+										: []
 								}
 								inventoryType={creative.creative_type}
 								adSize={this.props.adSize}
 								adSizeChange={(id, value) => this.changeAdSize(id, value)}
 								keyField="site"
-								onClickGetCode={link =>
+								onClickGetCode={(linkOrFiles, size, clickUrl, bannerName) =>
 									this.setState({
-										previewModal: creative.creative_type === 'native' ? creative : link,
+										previewModal: creative.creative_type === 'native' ? creative : linkOrFiles,
 										previewType: creative.creative_type,
+										previewSize: size,
+										previewName: bannerName,
+										previewClickUrl: clickUrl,
 										previewAdditionalType:
 											creative.data && creative.data.type ? creative.data.type : null,
 									})
@@ -397,10 +506,26 @@ class CreativeList extends React.Component {
 								removeBanner={id => this.setState({ removeBanner: id })}
 								toggleEntryStatus={this.props.toggleSlotStatus}
 								creativeId={creative.id}
+								permissions={
+									(creative.sharing && !creative.sharing.shared) ||
+									(creative.sharing && creative.sharing.shared && creative.sharing.perm === 'write')
+								}
+								moderationError={moderationText => this.setState({ moderationText })}
 							/>
 						)}
 					</AppCard>
 				</Col>
+				{this.state.shareCreative === creative.id && (
+					<ShareModal
+						isOpen={this.state.shareCreative}
+						sharedOwners={sharedOwners ? sharedOwners.shared_owners : []}
+						title={messages.shareCreative}
+						removeSharedOwner={id => this.removeShareUser(id)}
+						onCancel={() => this.setState({ shareCreative: null })}
+						addShareUser={values => this.addShareUser(this.state.shareCreative, values)}
+						permissions={creative.sharing && !creative.sharing.shared}
+					/>
+				)}
 			</Row>
 		);
 	}
@@ -411,8 +536,8 @@ class CreativeList extends React.Component {
 		return (
 			<Row className="margin-0">
 				<Col md={12} className="title-with-select__other">
-					<Row>
-						<Col md={7}>
+					<Row style={{justifyContent: 'space-between'}}>
+						<Col md={5}>
 							<div className="page-title">
 								<div className="float-left">
 									<h1 className="title">
@@ -421,7 +546,7 @@ class CreativeList extends React.Component {
 								</div>
 							</div>
 						</Col>
-						<Col md={2} sm={5} xs={6} className="button">
+						<Col className="button" style={{ paddingRight: '4px', marginRight: '10px' }}>
 							<LinkButton
 								color="success"
 								className="button-radius-5 button-margin-left-10"
@@ -431,14 +556,15 @@ class CreativeList extends React.Component {
 								<FormattedMessage {...messages.addCreative} />
 							</LinkButton>
 							<LinkButton
-								onClick={() => this.setState({ createCreativeModal: true })}
-								color="primary"
+								color="success"
 								className="button-radius-5 button-margin-left-10"
-								title="Create creative"
+								onClick={() => this.setState({ createCreativeModal: true })}
+								title="Create new creative"
 							>
 								<FormattedMessage {...messages.createCreative} />
 							</LinkButton>
 						</Col>
+
 						<Col md={1} sm={5} xs={6} className="select">
 							<Input type="select" className="radius-5" onChange={this.typeCreative}>
 								<FormattedMessage {...messages.allTypes}>
@@ -468,7 +594,7 @@ class CreativeList extends React.Component {
 								</option>
 							</Input>
 						</Col>
-						<Col md={2}>
+						<Col md={2} className="creative_search">
 							<div className="search">
 								<Input
 									type="search"
@@ -506,6 +632,7 @@ const withConnect = connect(
 		filter: selectCreativeFilters(),
 		adSize: selectAdSize(),
 		paginationCounts: selectPaginationCounts(),
+		favoriteCreatives: selectFavoriteCreatives(),
 	}),
 	dispatch => ({
 		dispatch,
@@ -516,6 +643,10 @@ const withConnect = connect(
 		changeBannerURL: (id, values) => makePromiseAction(dispatch, bannersCollectionActions.patchEntry(id, values)),
 		removeBanner: id => makePromiseAction(dispatch, bannersCollectionActions.removeEntry(id)),
 		setPaginationItemsCount: values => dispatch(setPaginationItemsCount(values)),
+		addSharingUser: values => makePromiseAction(dispatch, creativeSharingCollectionActions.addEntry(values)),
+		removeSharingUser: values => makePromiseAction(dispatch, creativeSharingCollectionActions.removeEntry(values)),
+		getAdSize: () => dispatch(getAdSize()),
+		setFavoriteCreative: values => dispatch(setFavoriteCreative(values)),
 	}),
 );
 

@@ -14,7 +14,7 @@ import { FormattedHTMLMessage, FormattedMessage } from 'react-intl';
 import { DropzoneComponent } from 'react-dropzone-component';
 import 'react-dropzone-component/styles/filepicker.css';
 import 'dropzone/dist/min/dropzone.min.css';
-import { Alert, Button, Col, Row, FormGroup, Label, Input, Spinner } from 'reactstrap';
+import { Alert, Button, Col, Row, FormGroup, Label, Input, Spinner, InputGroupAddon, FormFeedback } from 'reactstrap';
 import { Form } from 'react-final-form';
 import AppCard from 'components/AppCard';
 import IntlFieldGroup from 'components/IntlFieldGroup';
@@ -30,17 +30,30 @@ import {
 	creativeIsUploading,
 	selectAdSize,
 	creativeStatusSelectors,
+	selectPublishersConfig,
 } from 'containers/TradingDesk/selectors';
 import { selectUserGUID } from 'containers/UserPage/selectors';
-import { bannersCollectionActions, creativeCollectionActions } from 'containers/TradingDesk/actions';
+import {
+	bannersCollectionActions,
+	creativeCollectionActions,
+	publisherConfig,
+	getAdSize,
+} from 'containers/TradingDesk/actions';
 import { makePromiseAction } from 'utils/CollectionHelper/actions';
 import createToast from 'utils/toastHelper';
 import validateDomain from 'utils/validateDomain';
 import validateStringAndNumber from 'utils/validateStringAndNumber';
 import _ from 'lodash';
+import moment from 'moment';
+import InputGroup from 'reactstrap/es/InputGroup';
+import CodeMirror from 'react-codemirror';
+import ModerationModal from 'components/ModerationModal';
+import CustomInput from 'reactstrap/es/CustomInput';
+import transliterate from 'utils/transliterate';
 import CreativeShape from '../../shapes/Creative';
 import CreativeFileTable from '../CreativeFileTable';
 import messages from './messages';
+import ChannelSelect from '../ChannelSelect';
 
 /* eslint-disable react/prefer-stateless-function */
 
@@ -49,7 +62,7 @@ class CreativeForm extends React.Component {
 		super(props);
 		this.state = {
 			previewModal: '',
-			codeOther: '',
+			codeOther: null,
 			iconImage: '',
 			mainImage: '',
 			forceEdit: false,
@@ -61,12 +74,20 @@ class CreativeForm extends React.Component {
 			totalFileCount: null,
 			uploadedFileCount: null,
 			uploadError: null,
+			codeMirror: false,
+			continueEditing: false,
+			optimalPrice: false,
+			moderationText: null,
+			generateUTM: false,
+			permissions: true,
+			previewName: null,
 		};
 
 		this.mainImage = 0;
 		this.iconImage = 0;
 		this.dropzone = null;
 		this.timer = null;
+		this.codeMirrorTouched = false;
 		this.imageObject = {
 			icon: null,
 			image: null,
@@ -76,6 +97,7 @@ class CreativeForm extends React.Component {
 		this.fileChange = this.fileChange.bind(this);
 		this.checkCode = this.checkCode.bind(this);
 		this.uploadImage = this.uploadImage.bind(this);
+		this.updateCodeOther = this.updateCodeOther.bind(this);
 	}
 
 	componentDidMount() {
@@ -90,17 +112,23 @@ class CreativeForm extends React.Component {
 
 		if (!id) {
 			// this.formRef.form.reset({});
+			this.setState({ codeMirror: true });
 			unsetActiveCreative();
 		} else if (!activeCreative || activeCreative.id !== parseInt(id, 10)) {
 			setActiveCreative(id);
 		}
 
-		if (id) {
+		if (id && !isNaN(parseInt(id, 10))) {
 			this.props.getCreative(id);
 		}
 
 		if (activeCreative) {
 			this.setInitialStateForEdit();
+		}
+
+		this.props.getPublishersConfig();
+		if (!(this.props.adSize && this.props.adSize.length) && typeof this.props.getAdSize === 'function') {
+			this.props.getAdSize();
 		}
 	}
 
@@ -137,10 +165,17 @@ class CreativeForm extends React.Component {
 			this.formRef.form.reset({});
 		}
 		window.clearTimeout(this.timer);
+		this.setState({ codeOther: '' });
+		this.props.unsetActiveCreative();
 	}
 
 	setInitialStateForEdit(prevProps = {}) {
-		const { activeCreative } = this.props;
+		const {
+			activeCreative,
+			match: {
+				params: { id },
+			},
+		} = this.props;
 		if (!activeCreative && prevProps.activeCreative) {
 			// this.formRef.form.reset({});
 		}
@@ -150,8 +185,23 @@ class CreativeForm extends React.Component {
 		}
 
 		if (this.getParamValue('type') === 'other') {
-			this.setState({ codeOther: this.props.activeCreative.data.code });
+			this.setState(
+				{
+					codeOther: this.props.activeCreative.data.code && id ? this.props.activeCreative.data.code : null,
+				},
+				() => {
+					this.setState({ codeMirror: true });
+				},
+			);
 		}
+
+		this.setState({
+			permissions: !(
+				this.props.activeCreative.sharing &&
+				this.props.activeCreative.sharing.shared &&
+				this.props.activeCreative.sharing.perm === 'read'
+			),
+		});
 	}
 
 	validate(formValues) {
@@ -160,7 +210,11 @@ class CreativeForm extends React.Component {
 		errors.name = validateEmpty(formValues.name);
 		errors.type = validateEmpty(formValues.type);
 		errors.cpm_type = validateEmpty(formValues.cpm_type);
-		errors.cpm = validateEmpty(formValues.cpm);
+		errors.cpm = !formValues.cpm_optimal_price ? validateEmpty(formValues.cpm) : undefined;
+
+		if (formValues.alt_text && formValues.alt_text.length > 100) {
+			errors.alt_text = 'Maximum length 100 characters';
+		}
 
 		if (type === 'native') {
 			errors.title = validateEmpty(formValues.title);
@@ -180,7 +234,7 @@ class CreativeForm extends React.Component {
 			} else {
 				errors.call_to_action = validateStringAndNumber(formValues.call_to_action);
 			}
-			errors.click_url = validateEmpty(formValues.click_url);
+			errors.click_url = validateDomain(formValues.click_url);
 			if (!validateEmpty(formValues.description)) {
 				if (!validateStringAndNumber(formValues.description)) {
 					if (formValues.description.length > 90) {
@@ -207,11 +261,20 @@ class CreativeForm extends React.Component {
 		const result = {
 			data: {
 				...values,
+				cpm: values.cpm_optimal_price ? 0 : values.cpm,
 				type: values.type || 'html5',
 				cpm_type: parseInt(values.cpm_type, 10),
+				alt_text: values.alt_text ? values.alt_text : null,
+				ssp: {
+					yandex: values.yandex,
+				},
 			},
 			creative_type: this.getParamValue('type'),
 		};
+		delete result.data.yandex;
+		if (this.getParamValue('type') !== 'display') {
+			delete result.data.cpm_optimal_price;
+		}
 		if (
 			this.getParamValue('type') === 'native' ||
 			this.getParamValue('type') === 'video' ||
@@ -225,16 +288,13 @@ class CreativeForm extends React.Component {
 		if (this.props.activeCreativeId) {
 			this.props.updateCreative(this.props.activeCreativeId, result).then(() => {
 				createToast('success', 'Creative successfully updated!');
-				if (this.getParamValue('type') === 'other') {
-					this.props.history.push({ pathname: `/app/creatives/list` });
+				if (!this.state.continueEditing) {
+					this.props.history.push({ pathname: `/app/creatives/list/full` });
 				}
 			});
 		} else {
 			this.props.addCreative(result).then(() => {
 				createToast('success', 'Creative successfully added!');
-				if (this.getParamValue('type') === 'other') {
-					this.props.history.push({ pathname: `/app/creatives/list` });
-				}
 			});
 		}
 	}
@@ -341,9 +401,9 @@ class CreativeForm extends React.Component {
 		const activeBannerType = this.getActiveBannerType();
 		const type = this.getParamValue('type');
 		const urls = {
-			html5: '/api/upload/html',
-			image: '/api/upload/img',
-			video: '/api/upload/video',
+			html5: '/api/upload/html/',
+			image: '/api/upload/img/',
+			video: '/api/upload/video/',
 		};
 		return `${API_URL}${urls[activeBannerType || type]}`;
 	}
@@ -399,16 +459,7 @@ class CreativeForm extends React.Component {
 	}
 
 	toggleForceEdit() {
-		if (this.state.forceEdit) {
-			try {
-				this.onSubmit(this.formRef.form.getState().values);
-			} catch (e) {
-				console.error(e);
-			}
-		}
-		this.setState({
-			forceEdit: !this.state.forceEdit,
-		});
+		this.onSubmit(this.formRef.form.getState().values);
 	}
 
 	getImageLink(image) {
@@ -418,7 +469,12 @@ class CreativeForm extends React.Component {
 				params: { id },
 			},
 		} = this.props;
-		if (activeCreative && !!activeCreative.banners.length && !!activeCreative.banners[0].files.length && this.getParamValue('type') === 'native') {
+		if (
+			activeCreative &&
+			!!activeCreative.banners.length &&
+			!!activeCreative.banners[0].files.length &&
+			this.getParamValue('type') === 'native'
+		) {
 			const link = _.find(activeCreative.banners[0].files, item => item.file_location.indexOf(image) !== -1);
 			return link.aws_s3_location;
 		}
@@ -465,7 +521,11 @@ class CreativeForm extends React.Component {
 		if (this.props.creativeIsUploading) {
 			return (
 				<TableProgress
-					value={this.props.creativeUploadingProgress * 100}
+					value={
+						this.props.creativeUploadingProgress * 100 < 30
+							? 30
+							: this.props.creativeUploadingProgress * 100
+					}
 					total={this.dropzone && this.dropzone.files ? this.dropzone.files.length : 0}
 					uploaded={this.props.activeCreative.banners.length}
 				/>
@@ -561,7 +621,7 @@ class CreativeForm extends React.Component {
 		formData.append('icon', this.imageObject.icon);
 		const vm = this;
 		this.props
-			.onUpload(formData, `${API_URL}/api/upload/native-img`)
+			.onUpload(formData, `${API_URL}/api/upload/native-img/`)
 			.then(() => {
 				this.setState({ filesImageDropped: false });
 				this.timer = setTimeout(() => {
@@ -585,7 +645,11 @@ class CreativeForm extends React.Component {
 		if (this.state.uploadedFileCount !== this.state.totalFileCount) {
 			return (
 				<TableProgress
-					value={(this.state.uploadedFileCount / this.state.totalFileCount) * 100}
+					value={
+						(this.state.uploadedFileCount / this.state.totalFileCount) * 100 < 30
+							? 30
+							: (this.state.uploadedFileCount / this.state.totalFileCount) * 100
+					}
 					total={this.state.totalFileCount}
 					uploaded={this.state.uploadedFileCount}
 				/>
@@ -593,19 +657,30 @@ class CreativeForm extends React.Component {
 		}
 		const { djsConfig, componentConfig, eventHandlers } = this.getUploadConfig();
 		return (
-			<FormGroup className="file_upload">
-				{this.state.uploadError && <Alert color="danger">{this.state.uploadError}</Alert>}
-				<Label for="exampleFile">
-					<FormattedMessage {...messages.file} />
-				</Label>
-				<br />
-				<div className="dropzone__area">
-					<DropzoneComponent config={componentConfig} eventHandlers={eventHandlers} djsConfig={djsConfig} />
-				</div>
-				<Button onClick={() => this.uploadBanner()} disabled={!this.state.filesDropped} color="info">
-					{!this.props.creativeIsUploading ? <FormattedMessage id="app.common.submit" /> : <Spinner size="sm"/>}
-				</Button>
-			</FormGroup>
+			<div>
+				<FormGroup className="file_upload">
+					{this.state.uploadError && <Alert color="danger">{this.state.uploadError}</Alert>}
+					<Label for="exampleFile">
+						<FormattedMessage {...messages.file} />
+					</Label>
+					<br />
+					<div className="dropzone__area">
+						<DropzoneComponent
+							config={componentConfig}
+							eventHandlers={eventHandlers}
+							djsConfig={djsConfig}
+						/>
+					</div>
+					<Button onClick={() => this.uploadBanner()} disabled={!this.state.filesDropped} color="info">
+						{!this.props.creativeIsUploading ? (
+							<FormattedMessage id="app.common.upload" />
+						) : (
+							<Spinner size="sm" />
+						)}
+					</Button>
+				</FormGroup>
+				<hr />
+			</div>
 		);
 	}
 
@@ -632,17 +707,7 @@ class CreativeForm extends React.Component {
 
 	renderSelectDisplayType() {
 		if (this.props.activeCreative && this.props.activeCreative.data) {
-			return (
-				<div>
-					<Row>
-						<Col md={12}>
-							<Label for="exampleFile">
-								<FormattedMessage {...messages.selectedType} />: {this.props.activeCreative.data.type}
-							</Label>
-						</Col>
-					</Row>
-				</div>
-			);
+			return;
 		}
 		const activeBannerType = this.getActiveBannerType();
 		return (
@@ -658,7 +723,9 @@ class CreativeForm extends React.Component {
 							inputProps={{
 								type: 'radio',
 								value: 'image',
+								id: 'image',
 								checked: activeBannerType === 'image' ? 'checked' : '',
+								disabled: !this.state.permissions,
 							}}
 							name="type"
 							label={messages.image}
@@ -669,6 +736,8 @@ class CreativeForm extends React.Component {
 							inputProps={{
 								type: 'radio',
 								value: 'html5',
+								id: 'html5',
+								disabled: !this.state.permissions,
 								checked: activeBannerType === 'html5' ? 'checked' : '',
 							}}
 							name="type"
@@ -690,22 +759,20 @@ class CreativeForm extends React.Component {
 					<Col md={6}>
 						<IntlFieldGroup
 							name="title"
+							inputProps={{
+								disabled: !this.state.permissions,
+							}}
 							label={messages.title}
 							required
-							inputProps={{
-								disabled:
-									!this.isEditMode() && this.props.activeCreative && this.props.activeCreative.data,
-							}}
 						/>
 					</Col>
 					<Col md={6}>
 						<IntlFieldGroup
 							name="description"
-							label={messages.description}
 							inputProps={{
-								disabled:
-									!this.isEditMode() && this.props.activeCreative && this.props.activeCreative.data,
+								disabled: !this.state.permissions,
 							}}
+							label={messages.description}
 							required
 						/>
 					</Col>
@@ -713,8 +780,7 @@ class CreativeForm extends React.Component {
 						<IntlFieldGroup
 							name="call_to_action"
 							inputProps={{
-								disabled:
-									!this.isEditMode() && this.props.activeCreative && this.props.activeCreative.data,
+								disabled: !this.state.permissions,
 							}}
 							label={messages.callToAction}
 						/>
@@ -723,8 +789,7 @@ class CreativeForm extends React.Component {
 						<IntlFieldGroup
 							name="additional_description"
 							inputProps={{
-								disabled:
-									!this.isEditMode() && this.props.activeCreative && this.props.activeCreative.data,
+								disabled: !this.state.permissions,
 							}}
 							label={messages.additionalDescription}
 						/>
@@ -732,22 +797,20 @@ class CreativeForm extends React.Component {
 					<Col md={6}>
 						<IntlFieldGroup
 							name="click_url"
-							inputProps={{
-								disabled:
-									!this.isEditMode() && this.props.activeCreative && this.props.activeCreative.data,
-							}}
 							label={messages.clickURL}
+							inputProps={{
+								disabled: !this.state.permissions,
+							}}
 							required
 						/>
 					</Col>
 					<Col md={6}>
 						<IntlFieldGroup
 							name="third_party_tracking"
-							inputProps={{
-								disabled:
-									!this.isEditMode() && this.props.activeCreative && this.props.activeCreative.data,
-							}}
 							label={messages.thirdPartyViewTracking}
+							inputProps={{
+								disabled: !this.state.permissions,
+							}}
 						/>
 					</Col>
 					<Col md={12}>
@@ -755,9 +818,9 @@ class CreativeForm extends React.Component {
 							name="allow_as_html5"
 							inputProps={{
 								type: 'checkbox',
+								id: 'allow_as_html5',
 								[values.allow_as_html5 ? 'checked' : false]: values.allow_as_html5,
-								disabled:
-									!this.isEditMode() && this.props.activeCreative && this.props.activeCreative.data,
+								disabled: !this.state.permissions,
 							}}
 							label={messages.allow_as_html}
 						/>
@@ -767,74 +830,103 @@ class CreativeForm extends React.Component {
 		);
 	}
 
-	renderCPMSelect() {
+	renderCPMSelect(values) {
 		return (
-			<div className="inline-select-prepend">
-				<IntlFieldGroup
-					name="cpm_type"
-					label={messages.cpm}
-					inputProps={{
-						type: 'select',
-						options: [{ value: 1, label: 'Fixed' }, { value: 2, label: 'Max' }],
-						disabled: !this.isEditMode() && this.props.activeCreative && this.props.activeCreative.data,
-					}}
-					disableDefault
-					required
-				/>
-				<IntlFieldGroup
-					name="cpm"
-					label={messages.cpm}
-					inputProps={{
-						placeholder: '$',
-						type: 'number',
-						disabled: !this.isEditMode() && this.props.activeCreative && this.props.activeCreative.data,
-					}}
-				/>
-			</div>
+			<Row>
+				<Col md="12">
+					<div className="inline-select-prepend table-input">
+						<InputGroup>
+							<IntlFieldGroup
+								name="cpm_type"
+								label={messages.cpm}
+								inputProps={{
+									type: 'select',
+									options: [{ value: 1, label: 'Fixed' }, { value: 2, label: 'Max' }],
+									disabled:
+										!this.state.permissions ||
+										values.cpm_optimal_price === 'undefined' ||
+										values.cpm_optimal_price,
+								}}
+								disableDefault
+								required
+							/>
+							<IntlFieldGroup
+								name="cpm"
+								label={messages.cpm}
+								inputProps={{
+									placeholder: '$',
+									type: 'number',
+									min: '0',
+									max: '1000000000',
+									step: '0.1',
+									disabled:
+										!this.state.permissions ||
+										values.cpm_optimal_price === 'undefined' ||
+										values.cpm_optimal_price,
+								}}
+							/>
+							<div className="cpm_optimal_price">
+								<IntlFieldGroup
+									name="cpm_optimal_price"
+									label={messages.optimal_price}
+									inputProps={{
+										type: 'checkbox',
+										id: 'cpm_optimal_price',
+										[values.cpm_optimal_price ? 'checked' : false]: values.cpm_optimal_price,
+										disabled: !this.state.permissions,
+									}}
+								/>
+							</div>
+						</InputGroup>
+					</div>
+				</Col>
+			</Row>
 		);
 	}
 
-	renderCustomCodeField() {
+	updateCodeOther(codeOther) {
+		this.setState({ codeOther });
+		this.codeMirrorTouched = true;
+	}
+
+	renderCustomCodeField(errors) {
 		return (
 			<div>
 				<IntlFieldGroup
 					inputProps={{
 						type: 'select',
 						options: this.props.adSize,
-						disabled: !this.isEditMode() && this.props.activeCreative && this.props.activeCreative.data,
 					}}
 					name="ad_size"
 					label={messages.adSize}
 					required
 				/>
 				<FormGroup className="file_upload">
-					<IntlFieldGroup
-						inputProps={{
-							type: 'textarea',
-							disabled: !this.isEditMode() && this.props.activeCreative && this.props.activeCreative.data,
-							rows: 15,
-							onChange: e => {
-								this.setState({ codeOther: e.target.value });
-							},
-							value: this.state.codeOther,
-						}}
-						name="code"
-						label={messages.code}
-						required
-					/>
+					<Label className="">
+						<FormattedMessage {...messages.code} />
+						<span style={{ color: '#f00' }}> *</span>
+					</Label>
+					{this.state.codeMirror && (
+						<CodeMirror
+							value={this.state.codeOther}
+							onChange={this.updateCodeOther}
+							options={{
+								lineNumbers: true,
+								mode: 'htmlembedded',
+							}}
+						/>
+					)}
+					{this.codeMirrorTouched && errors.code && (
+						/* eslint-disable react/jsx-boolean-value */
+						<FormFeedback invalid="true">{errors.code}</FormFeedback>
+					)}
 				</FormGroup>
-				<IntlFieldGroup
-					name="third_party_tracking"
-					label={messages.tracking}
-					inputProps={{
-						disabled: !this.isEditMode() && this.props.activeCreative && this.props.activeCreative.data,
-					}}
-				/>
+				<IntlFieldGroup name="third_party_tracking" label={messages.tracking} />
 			</div>
 		);
 	}
 
-	renderForm({ handleSubmit, values }) {
+	renderForm({ handleSubmit, values, errors }) {
 		// console.log(values);
 		const {
 			match: {
@@ -843,33 +935,77 @@ class CreativeForm extends React.Component {
 		} = this.props;
 		const type = this.getParamValue('type');
 		return (
-			<form onSubmit={args => handleSubmit(args)}>
-				{this.renderError()}
+			<form
+				onSubmit={args => {
+					handleSubmit(args);
+					this.codeMirrorTouched = true;
+				}}
+			>
 				{this.renderLoading()}
 				{this.renderNameField()}
 				{type === 'display' && this.renderSelectDisplayType()}
-				{this.renderCPMSelect()}
+				{this.renderCPMSelect(values)}
+				{type === 'display' && this.renderAltText()}
 				{type === 'native' && this.renderNativeFields(values)}
-				{type === 'other' && this.renderCustomCodeField()}
-				{this.renderEditBtn()}
-				{type === 'native' && this.props.activeCreative ? (
+				{type === 'other' && this.renderCustomCodeField(errors)}
+				{type === 'native' && this.props.activeCreative && this.state.permissions ? (
 					<div>
 						<hr />
 						{this.renderUploadPictureField()}
 						<hr />
 					</div>
 				) : null}
-				{(type === 'display' || type === 'video') && this.props.activeCreative ? (
+				{(type === 'display' || type === 'video') && this.props.activeCreative && this.state.permissions ? (
 					<div>
 						<hr />
 						{this.renderUploadField()}
-						<hr />
 					</div>
 				) : null}
-				{!this.props.activeCreative || (this.props.activeCreative && !this.props.activeCreative.data) ? (
-					<Button type="submit" color="success">
-						<FormattedMessage id="app.common.next" />
-					</Button>
+				{this.state.permissions ? (
+					<div>
+						{!this.props.activeCreative ||
+						(this.props.activeCreative && !this.props.activeCreative.data) ? (
+							<div className="submitFormBottom">
+								<Button type="submit" color="success">
+									{type !== 'other' ? (
+										<FormattedMessage id="app.common.next" />
+									) : (
+										<FormattedMessage id="app.common.save" />
+									)}
+								</Button>
+							</div>
+						) : (
+							<div className="submitFormBottom">
+								<Button
+									color="success"
+									style={{
+										maxHeight: '40px',
+										top: '31px',
+									}}
+									onClick={() => {
+										this.toggleForceEdit();
+										this.setState({ continueEditing: false });
+									}}
+								>
+									<FormattedMessage id="app.common.saveAndExit" />
+								</Button>
+								<Button
+									color="info"
+									style={{
+										maxHeight: '40px',
+										top: '31px',
+										marginLeft: '10px',
+									}}
+									onClick={() => {
+										this.setState({ continueEditing: true });
+										this.toggleForceEdit();
+									}}
+								>
+									<FormattedMessage id="app.common.save" />
+								</Button>
+							</div>
+						)}
+					</div>
 				) : null}
 			</form>
 		);
@@ -881,9 +1017,21 @@ class CreativeForm extends React.Component {
 				name="name"
 				label={messages.creativeName}
 				inputProps={{
-					disabled: !this.isEditMode() && this.props.activeCreative && this.props.activeCreative.data,
+					disabled: !this.state.permissions,
 				}}
 				required
+			/>
+		);
+	}
+
+	renderAltText() {
+		return (
+			<IntlFieldGroup
+				name="alt_text"
+				inputProps={{
+					disabled: !this.state.permissions,
+				}}
+				label={messages.altText}
 			/>
 		);
 	}
@@ -899,13 +1047,39 @@ class CreativeForm extends React.Component {
 		);
 	}
 
-	changeURL(bannerId, values, type) {
+	changeURL(bannerId, values, type, banners) {
+		console.log(values);
 		const {
 			match: {
 				params: { id },
 			},
 		} = this.props;
-		this.props.changeBannerURL(bannerId, values).then(() => {
+		const banner = _.find(banners, ['id', bannerId]);
+		let UTMString = `utm_source=ubex&utm_medium=cpm&utm_campaign=${id}&utm_content=${bannerId}&utm_term=${
+			this.props.activeCreative && this.props.activeCreative.data && this.props.activeCreative.data.name
+				? transliterate(this.props.activeCreative.data.name)
+				: ''
+		}&utmstat=us|ubex|cid|${id}|aid|${bannerId}|keyword|${
+			this.props.activeCreative && this.props.activeCreative.data && this.props.activeCreative.data.name
+				? transliterate(this.props.activeCreative.data.name)
+				: ''
+		}`;
+		const tempObject = values;
+		const pos = tempObject.callback_url.lastIndexOf('/');
+		let str = tempObject.callback_url;
+		UTMString = UTMString.replace(/ /g, '_');
+		if (pos > 9 && str.indexOf(UTMString) === -1) {
+			str = str.substring(0, pos);
+		}
+		if (this.state.generateUTM && str.indexOf(UTMString) === -1) {
+			if (str.indexOf('?') !== -1) {
+				str = `${str}&${UTMString}`;
+			} else {
+				str = `${str}/?${UTMString}`;
+			}
+		}
+
+		this.props.changeBannerURL(bannerId, { callback_url: str }).then(() => {
 			createToast('success', `${type} for Banner #${bannerId} successfully changed!`);
 			this.props.getCreative(id);
 		});
@@ -924,6 +1098,11 @@ class CreativeForm extends React.Component {
 	}
 
 	renderCreativeFilesTable() {
+		const {
+			match: {
+				params: { id },
+			},
+		} = this.props;
 		if (!this.props.activeCreative || !this.props.activeCreative.banners) {
 			return null;
 		}
@@ -932,29 +1111,87 @@ class CreativeForm extends React.Component {
 		const uploadedBanners = this.props.activeCreative.banners.filter(banner => banner.aws_s3_location);
 
 		return !this.isEditMode() && (type === 'display' || type === 'video') && uploadedBanners.length ? (
-			<div>
-				<h3>
-					<FormattedMessage {...messages.adDetails} />
-				</h3>
+			<div className="adDetailsTable">
+				{this.state.permissions ? (
+					<div className="adDetailsTable__header">
+						<h3>
+							<FormattedMessage {...messages.bannerDetails} />
+						</h3>
+						<div className="checkbox-wrapper">
+							<CustomInput
+								id={id}
+								type="checkbox"
+								label={<span>Generate UTM tags</span>}
+								checked={this.state.generateUTM}
+								onClick={() =>
+									this.setState({
+										generateUTM: !this.state.generateUTM,
+									})
+								}
+							/>
+						</div>
+					</div>
+				) : null}
 				<CreativeFileTable
-					type={this.getParamValue('type')}
 					data={uploadedBanners}
 					keyField="site"
+					type={this.getActiveBannerType()}
 					adSize={this.props.adSize}
 					adSizeChange={(id, value) => this.changeAdSize(id, value)}
-					onClickGetCode={link => this.setState({ previewModal: link })}
+					onClickGetCode={(link, size, name) =>
+						this.setState({ previewModal: link, previewSize: size, previewName: name })
+					}
 					onClickRemoveEntry={id => this.setState({ deletedSlot: id })}
 					toggleEntryStatus={this.props.toggleSlotStatus}
-					changeBannerURL={(id, values, typeAction) => this.changeURL(id, values, typeAction)}
+					changeBannerURL={(id, values, typeAction) =>
+						this.changeURL(id, values, typeAction, uploadedBanners)
+					}
 					removeBanner={id => this.removeBanner(id)}
+					selectedImage={(id, image) => this.selectedBannerImage(id, image)}
+					moderationError={moderationText => this.setState({ moderationText })}
+					permissions={this.state.permissions}
 				/>
 			</div>
 		) : null;
 	}
 
+	selectedBannerImage(id, image) {
+		this.uploadBannerImage(id, image.target.files[0]);
+	}
+
+	uploadBannerImage(bannerId, image) {
+		const {
+			match: {
+				params: { id },
+			},
+		} = this.props;
+		this.setState({
+			uploadError: null,
+		});
+		const formData = new FormData();
+		formData.append('banner_id', bannerId);
+		formData.append('creative_id', id);
+		formData.append('user_id', this.props.userId);
+		formData.append(`file0`, image);
+
+		this.props
+			.onUpload(formData, `${API_URL}/api/upload/stub-img/`)
+			.then(result => {
+				this.props.getCreative(id);
+				this.setState({
+					fallBack: result.data && result.data.fallback ? result.data.fallback.upload_name : '',
+				});
+			})
+			.catch(e => {
+				if (e && e.error) {
+					createToast('error', e.error);
+				}
+			});
+	}
+
 	render() {
 		const type = this.getParamValue('type');
-		const initValues = { cpm_type: 2, type: 'html5' };
+		const initValues = { cpm_type: 2, type: 'html5', cpm_optimal_price: false };
 		const activeCounterCode =
 			this.props.activeCreative &&
 			(this.props.activeCreative !== null || this.props.activeCreative !== 'undefined') &&
@@ -962,14 +1199,36 @@ class CreativeForm extends React.Component {
 			!!Object.keys(this.props.activeCreative.data).length
 				? this.props.activeCreative.data.code
 				: null;
+		const uploadedBanners =
+			this.props.activeCreative && this.props.activeCreative.banners
+				? this.props.activeCreative.banners.filter(banner => banner.aws_s3_location)
+				: [];
 		return (
 			<Row className="margin-0">
 				<Col md={12}>
 					<header className="page-title">
 						<div className="float-left">
 							<h1 className="title">
-								<FormattedMessage {...messages.addCreative} /> {type}
+								{!this.props.activeCreativeId ? (
+									<FormattedMessage {...messages.addCreative} />
+								) : (
+									<FormattedMessage {...messages.editCreative} />
+								)}
+								{this.props.activeCreativeId && !isNaN(parseInt(this.props.activeCreativeId, 10)) ? (
+									<span>{` #${this.props.activeCreativeId}`}</span>
+								) : null}
 							</h1>
+							{this.props.activeCreative &&
+								this.props.activeCreative.data &&
+								this.props.activeCreative.data.created && (
+									<span className="createdCampaign">
+										Type: <span style={{ textTransform: 'capitalize' }}>{type}</span>
+										{', '}
+										{`Created at: ${moment(this.props.activeCreative.data.created).format(
+											'DD-MM-YY HH:mm',
+										)}`}
+									</span>
+								)}
 						</div>
 					</header>
 					<Row>
@@ -992,6 +1251,27 @@ class CreativeForm extends React.Component {
 											render={this.renderForm}
 										/>
 										{this.renderCreativeFilesTable()}
+										{this.props.activeCreative &&
+										this.props.activeCreative.banners.length &&
+										uploadedBanners.length &&
+										this.props.publisherConfig &&
+										this.props.publisherConfig.length ? (
+											<div>
+												<hr />
+												<h3>
+													<FormattedMessage {...messages.moderationChannel} />
+												</h3>
+												<ChannelSelect
+													data={this.props.publisherConfig}
+													creative={this.props.activeCreative}
+													patchCreative={values =>
+														this.props.patchCreative(this.props.activeCreative.id, values)
+													}
+													getCreatives={() => this.props.getCreatives()}
+													permissions={this.state.permissions}
+												/>
+											</div>
+										) : null}
 									</Col>
 									<Col lg={4}>
 										{type === 'display' && (
@@ -1026,9 +1306,16 @@ class CreativeForm extends React.Component {
 					title={messages.preview}
 					type={this.getParamValue('type')}
 					additionalType={this.getActiveBannerType()}
+					bannerName={this.state.previewName}
+					size={this.state.previewSize}
 					msg={this.state.previewModal}
 					isOpen={this.state.previewModal}
-					onCancel={() => this.setState({ previewModal: '' })}
+					onCancel={() => this.setState({ previewModal: '', previewSize: null })}
+				/>
+				<ModerationModal
+					isOpen={this.state.moderationText}
+					title={messages.moderationTitle}
+					onCancel={() => this.setState({ moderationText: null })}
 				/>
 			</Row>
 		);
@@ -1055,6 +1342,7 @@ const mapStateToProps = createStructuredSelector({
 	addCreativeLoading: creativesSelectors.addEntryLoading(),
 	addCreativeError: creativesSelectors.addEntryError(),
 	adSize: selectAdSize(),
+	publisherConfig: selectPublishersConfig(),
 });
 
 function mapDispatchToProps(dispatch) {
@@ -1062,11 +1350,15 @@ function mapDispatchToProps(dispatch) {
 		onUpload: (file, path) => makePromiseAction(dispatch, uploadRequest(file, path)),
 		addCreative: values => makePromiseAction(dispatch, creativeCollectionActions.addEntry(values)),
 		updateCreative: (id, values) => makePromiseAction(dispatch, creativeCollectionActions.updateEntry(id, values)),
+		patchCreative: (id, values) => makePromiseAction(dispatch, creativeCollectionActions.patchEntry(id, values)),
 		setActiveCreative: id => makePromiseAction(dispatch, creativeCollectionActions.setActiveEntry(id)),
 		unsetActiveCreative: _ => dispatch(creativeCollectionActions.unsetActiveEntry()),
 		getCreative: id => dispatch(creativeCollectionActions.getEntry(id)),
+		getCreatives: () => dispatch(creativeCollectionActions.getCollection()),
 		changeBannerURL: (id, values) => makePromiseAction(dispatch, bannersCollectionActions.patchEntry(id, values)),
 		removeBanner: id => makePromiseAction(dispatch, bannersCollectionActions.removeEntry(id)),
+		getPublishersConfig: () => dispatch(publisherConfig()),
+		getAdSize: () => dispatch(getAdSize()),
 	};
 }
 

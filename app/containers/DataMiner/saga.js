@@ -57,9 +57,9 @@ export function* getMetrics(action) {
 		action.meta.propName === 'topChannel' ||
 		action.meta.propName === 'topRegions'
 	) {
-		requestURL = `${API_URL}/stats/table`;
+		requestURL = `${STATISTIC_URL}/table`;
 	} else {
-		requestURL = `${API_URL}/stats/bydate`;
+		requestURL = `${STATISTIC_URL}/bydate`;
 	}
 	yield put(setDashboardLoading(true));
 	try {
@@ -68,6 +68,7 @@ export function* getMetrics(action) {
 			mode: 'no-cors',
 			headers: {
 				'Content-Type': 'application/json',
+				Authorization: 'Server-Token 76ddc1c68e1e36bcc8a29bdc286d228d8833b3be',
 			},
 			params: {
 				...action.payload,

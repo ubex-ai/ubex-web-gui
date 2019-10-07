@@ -21,6 +21,10 @@ export default defineMessages({
 		id: `${scope}.addCreative`,
 		defaultMessage: 'Add creative',
 	},
+	editCreative: {
+		id: `${scope}.editCreative`,
+		defaultMessage: 'Edit creative',
+	},
 	instructionsTextDisplay: {
 		id: `${scope}.help.instructionsTextDisplay`,
 		defaultMessage:
@@ -98,7 +102,7 @@ export default defineMessages({
 	},
 	cpm: {
 		id: `${scope}.cpm`,
-		defaultMessage: 'CPM',
+		defaultMessage: 'CPM ($)',
 	},
 	instructionsTextVideo: {
 		id: `${scope}.help.instructionsTextVideo`,
@@ -164,9 +168,9 @@ export default defineMessages({
 		id: `${scope}.file`,
 		defaultMessage: 'Upload file',
 	},
-	adDetails: {
-		id: `${scope}.adDetails`,
-		defaultMessage: 'Ad details',
+	bannerDetails: {
+		id: `${scope}.bannerDetails`,
+		defaultMessage: 'Banner details',
 	},
 	cpmType1: {
 		id: `${scope}.cpmType1`,
@@ -179,5 +183,21 @@ export default defineMessages({
 	allow_as_html: {
 		id: `${scope}.allow_as_html`,
 		defaultMessage: 'Allow as HTML5 Banner',
-	}
+	},
+	moderationChannel: {
+		id: `${scope}.moderationChannel`,
+		defaultMessage: 'Moderation channel',
+	},
+	optimal_price: {
+		id: `${scope}.optimal_price`,
+		defaultMessage: '<i class="fal fa-robot" title="Machine Learning Optimization"></i> Optimal Price',
+	},
+	altText: {
+		id: `${scope}.altText`,
+		defaultMessage: 'Additional description (optional)',
+	},
+	moderationTitle: {
+		id: `${scope}.moderationTitle`,
+		defaultMessage: 'Moderation status',
+	},
 });

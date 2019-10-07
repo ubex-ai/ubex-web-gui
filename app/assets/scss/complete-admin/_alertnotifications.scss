@@ -3,14 +3,16 @@
 ----------------------------------------------*/
 
 .alert {
-	border-radius: 0px;
-	-o-border-radius: 0px;
-	-ms-border-radius: 0px;
-	-moz-border-radius: 0px;
-	-webkit-border-radius: 0px;
+	border-radius: 5px;
+	-o-border-radius: 5px;
+	-ms-border-radius: 5px;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
 	text-shadow: none;
 	background: $light-gray;
 	width: 100%;
+	font-family: $fontFamily;
+	margin-top: 10px;
 }
 .alert-warning {
 	border: 1px solid $warning-color;

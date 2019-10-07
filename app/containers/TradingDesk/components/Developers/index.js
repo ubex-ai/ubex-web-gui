@@ -32,6 +32,8 @@ class Developers extends React.Component {
 		super(props);
 		this.state = {
 			value: null,
+			sent: false,
+			error: false,
 		};
 		this.formRef = null;
 		this.renderForm = this.renderForm.bind(this);
@@ -55,7 +57,15 @@ class Developers extends React.Component {
 	}
 
 	onSubmit(values) {
-		this.props.sendForm(values);
+		this.props
+			.sendForm(values)
+			.then(() => {
+				this.setState({ sent: 'Form successfully sent!', error: false });
+				this.formRef.form.reset({});
+			})
+			.catch(e => {
+				this.setState({ error: 'Error submitting form', sent: false });
+			});
 	}
 
 	renderForm({ handleSubmit, change, errors }) {
@@ -67,7 +77,11 @@ class Developers extends React.Component {
 					name="region"
 					inputProps={{
 						type: 'select',
-						options: countries.map(country => ({ id: country.id, label: country.label, value: country.label })),
+						options: countries.map(country => ({
+							id: country.id,
+							label: country.label,
+							value: country.label,
+						})),
 					}}
 					label={messages.region}
 					required
@@ -97,21 +111,21 @@ class Developers extends React.Component {
 								</div>
 							</Col>
 						</Row>
-						<AppCard>
+						<AppCard className="developer_wrapper">
 							<Row className="developers-container">
-								<Col md={4} className="mt-5">
+								<Col md={4} className="mt-2">
 									<img src={worldwide} className="developers-container__image" />
 									<span>
 										<FormattedMessage {...messages.openPlatform} />
 									</span>
 								</Col>
-								<Col md={4} className="mt-5">
+								<Col md={4} className="mt-2">
 									<img src={target} className="developers-container__image" />
 									<span>
 										<FormattedMessage {...messages.targeting} />
 									</span>
 								</Col>
-								<Col md={4} className="mt-5">
+								<Col md={4} className="mt-2">
 									<img src={moneybag} className="developers-container__image" />
 									<span>
 										<FormattedMessage {...messages.makeMoney} />
@@ -127,6 +141,11 @@ class Developers extends React.Component {
 							<h2 className="title" style={{ textAlign: 'center' }}>
 								<FormattedMessage {...messages.contactUs} />
 							</h2>
+							{this.state.error || this.state.sent ? (
+								<Alert color={this.state.error ? 'danger' : 'success'}>
+									{this.state.error ? this.state.error : this.state.sent}
+								</Alert>
+							) : null}
 							<Form
 								validate={formValues => this.validate(formValues)}
 								onSubmit={values => this.onSubmit(values)}

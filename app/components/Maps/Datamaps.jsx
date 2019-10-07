@@ -7,7 +7,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import RenderDatamap from 'components/Maps/RenderDatamaps';
-const colors = ['#f00', '#9467bd', '#ff7f0e', '#2ca02c', 'rgb(230,25,75)', 'rgba(70,240,24)', 'rgb(245,130,49)'];
+const colors = ['#716aca', '#22b9ff', '#f4516c', '#34bfa3', '#03a9f4', 'rgb(255, 184, 34)', '#f44336'];
 /* eslint-disable react/prefer-stateless-function */
 /* eslint-disable prettier/prettier */
 class Datamap extends React.Component {
@@ -24,23 +24,27 @@ class Datamap extends React.Component {
 				<div
 					className={
 						countriesColors
-							? 'col-xs-12 col-md-12 col-lg-12 col-xl-9'
+							? 'col-xs-12 col-md-12 col-lg-12 col-xl-11'
 							: 'col-xs-12 col-md-12 col-lg-12 col-xl-12'
 					}
 				>
 					<RenderDatamap
 						data={countriesColors}
+						geographyConfig={{
+							highlightOnHover: true,
+							highlightFillColor: 'rgb(255, 184, 34)',
+						}}
 						fills={{
-							defaultFill: 'rgba(171, 221, 164, 0.5)',
+							defaultFill: 'rgba(52, 191, 163, 0.3)',
 							authorHasTraveledTo: '#fa0fa0',
 						}}
-						height={329}
+						height={500}
 						projection="mercator"
 						className="datamap"
 						updateChoroplethOptions={{ reset: false }}
 					/>
 				</div>
-				<div className="map_progress col-12 col-md-12 col-lg-12 col-xl-3">
+				<div className="map_progress col-12 col-md-12 col-lg-12 col-xl-1">
 					{countriesCounts
 						? Object.keys(countriesCounts).map((item, i) => (
 								<div key={i}>
@@ -49,7 +53,7 @@ class Datamap extends React.Component {
 											{item}: {countriesCounts[item]}
 										</small>
 									</span>
-									<div className="progress">
+									<div className="progress" style={{ height: '10px'}}>
 										<div
 											className="progress-bar progress-bar-primary"
 											role="progressbar"

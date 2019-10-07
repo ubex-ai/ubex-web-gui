@@ -8,7 +8,6 @@ import Devices from 'containers/DataMiner/components/Reports/Devices';
 import Regions from 'containers/DataMiner/components/Reports/Regions';
 import ProfitabilityWorkers from 'containers/DataMiner/components/Reports/ProfitabilityWorkers';
 import Channel from 'containers/DataMiner/components/Reports/Channel';
-import Pay from 'components/Payments/Pay';
 import History from 'components/Payments/History';
 
 const dashRoutes = [
@@ -75,11 +74,6 @@ const dashRoutes = [
 		icon: 'credit-card',
 		type: 'dropdown',
 		child: [
-			{
-				path: '/app/payments/accountbalance',
-				name: 'pay',
-				component: Pay,
-			},
 			{
 				path: '/app/payments/history',
 				name: 'history',

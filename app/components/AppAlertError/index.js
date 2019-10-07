@@ -34,7 +34,7 @@ function AppAlertError({ message }) {
 }
 
 AppAlertError.defaultProps = {
-	message: 'Unknown error. Try in 5 minutes.',
+	message: 'Unknown error. Try again in 5 minutes.',
 };
 
 AppAlertError.propTypes = {

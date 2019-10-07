@@ -13,7 +13,9 @@ export default {
 		INVENTORY_STATUSES.moderation,
 		INVENTORY_STATUSES.declined,
 	]),
+	updated: PropTypes.string,
+	language: PropTypes.number,
 	code: PropTypes.string,
-	category_blacklist: [],
-	dsp_blacklist: [],
+	category_blacklist: PropTypes.array,
+	dsp_blacklist: PropTypes.array,
 };

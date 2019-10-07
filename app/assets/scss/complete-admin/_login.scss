@@ -3,7 +3,7 @@
 ------------------------------------------------------------------*/
 a {
 	text-decoration: none;
-	color: #565bca;
+	color: $info-color;
 	outline: none;
 }
 input,
@@ -281,8 +281,9 @@ a {
 			margin: 8px 0 0 0;
 		}
 		@media (max-width: 600px) {
-			margin-left: 12%;
-			margin-right: 12%;
+			margin-left: 0;
+			margin-right: 0;
+			margin-bottom: 10px;
 		}
 		li {
 			border-radius: 8px;
@@ -309,8 +310,8 @@ a {
 				margin-top: 20px;
 			}
 			@media (max-width: 600px) {
-				padding: 51px 10px 19px 10px;
-				min-height: 200px;
+				padding: 5px 10px 5px 10px;
+				min-height: 100px;
 				max-width: 100%;
 				min-width: 100%;
 				margin-left: 0;
@@ -336,6 +337,9 @@ a {
 	}
 	&__list_name {
 		padding-top: 6px;
+		@media (max-width: 600px) {
+			display: none;
+		}
 	}
 	&__list_link {
 		a {

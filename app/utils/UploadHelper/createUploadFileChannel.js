@@ -35,6 +35,9 @@ export default function createUploadFileChannel(formData, endpoint) {
 		};
 		xhr.open('POST', endpoint, true);
 		xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken'));
+		if (NODE_ENV !== 'production') {
+			xhr.setRequestHeader('Test-user', getCookie('test@test.test'));
+		}
 		xhr.send(formData);
 		return () => {
 			xhr.upload.removeEventListener('progress', onProgress);

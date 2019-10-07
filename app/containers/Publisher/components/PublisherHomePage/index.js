@@ -16,8 +16,6 @@ import 'chartjs-plugin-annotation';
 import originalMoment from 'moment';
 import { extendMoment } from 'moment-range';
 import randomColor from 'randomcolor';
-import 'react-dates/initialize';
-import 'react-dates/lib/css/_datepicker.css';
 import { Line, Bar, HorizontalBar, Chart } from 'react-chartjs-2';
 import LinkButton from 'components/LinkButton';
 import AppCard from 'components/AppCard';
@@ -145,7 +143,7 @@ export class PublisherHomePage extends React.Component {
 							<Row>
 								<Col md={12} className="title_with_select">
 									<Row>
-										<Col md={12} sm={6} xl={5} lg={6}>
+										<Col md={12} sm={6} xl={4} lg={6}>
 											<div className="page-title">
 												<div className="float-left">
 													<h1 className="title">

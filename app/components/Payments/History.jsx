@@ -21,6 +21,9 @@ import { selectUserData } from 'containers/UserPage/selectors';
 import { getPaymentHistory, updateHistory } from 'containers/TradingDesk/actions';
 import { selectBalance, selectChartsDates, selectPaymentHistory } from 'containers/TradingDesk/selectors';
 import OrderPaymentForm from 'containers/DataMiner/components/DashboardCards/NextPayoutDashboardCard';
+import { setPaymentModal } from '../../containers/Dashboard/actions';
+import { selectPaymentModal } from '../../containers/Dashboard/selectors';
+import Button from 'reactstrap/es/Button';
 
 class History extends React.Component {
 	constructor(props) {
@@ -32,6 +35,7 @@ class History extends React.Component {
 			ubexBalance: 0,
 		};
 		this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
+		this.openPaymentModal = this.openPaymentModal.bind(this);
 	}
 
 	componentDidMount() {
@@ -48,6 +52,10 @@ class History extends React.Component {
 		this.props.getHistory({ start_date: startDate, end_date: endDate });
 	}
 
+	componentWillUnmount() {
+		window.removeEventListener('resize', this.updateWindowDimensions);
+	}
+
 	updateWindowDimensions() {
 		this.setState({ width: window.innerWidth, height: window.innerHeight });
 	}
@@ -61,8 +69,16 @@ class History extends React.Component {
 		}
 	}
 
+	openPaymentModal() {
+		const {
+			paymentModal: { display },
+		} = this.props;
+		this.props.setPaymentModal({ display: !display });
+	}
+
 	render() {
-		const { dates, paymentHistory } = this.props;
+		const { dates, paymentHistory, selectUbexHash } = this.props;
+		const { wallet } = selectUbexHash;
 		const { startDate, endDate, period } = dates;
 		const { amount } = this.props.selectAmount && this.props.selectAmount.length ? this.props.selectAmount[0] : '0';
 		return (
@@ -71,7 +87,7 @@ class History extends React.Component {
 					<Row className="margin-0">
 						<Col md={12} className="title_with_select">
 							<Row>
-								<Col md={5}>
+								<Col md={4}>
 									<div className="page-title">
 										<div className="float-left">
 											<h1 className="title">
@@ -91,12 +107,12 @@ class History extends React.Component {
 					</Row>
 					{CRYPTO_MODE && (
 						<div className="row margin-0">
-							<div className="col-xl-3 col-md-12 col-12">
+							<div className="col-xl-4 col-md-12 col-12">
 								{document.location.origin !== MINING_URL &&
 								document.location.origin !== 'http://10.100.0.232:3000' ? (
 									<CardPopover
-										popoverHeader={messages.paymentsHistory}
-										popoverBody={messages.paymentsHistory}
+										popoverHeader={messages.paymentsHistoryBalance}
+										popoverBody={messages.paymentsHistoryBalanceText}
 									>
 										<i className="float-left fas fa-dollar-sign icon-md icon-rounded icon-success" />
 										<div className="stats dashboardCard__container">
@@ -104,12 +120,26 @@ class History extends React.Component {
 												<h4 className="dashboardCard__title">
 													<strong className="green">{amount || '0'}</strong>
 												</h4>
-												<span className="dashboardCard__description">Balance Dollar USA</span>
+												<span className="dashboardCard__description">
+													<FormattedMessage {...messages.balanceUSD} />
+												</span>
+											</div>
+											<div className="dashboardCard__button">
+												<Button
+													color="success"
+													onClick={this.openPaymentModal}
+													className="paymentModal"
+												>
+													<i className="fal fa-plus-circle" />
+												</Button>
 											</div>
 										</div>
 									</CardPopover>
 								) : (
-									<CardPopover>
+									<CardPopover
+										popoverHeader={messages.paymentsHistoryNextPayout}
+										popoverBody={messages.paymentsHistoryNextPayoutText}
+									>
 										<i className="float-left fas fa-dollar-sign icon-md icon-rounded icon-success" />
 										<div className="stats dashboardCard__container">
 											<div className="dashboardCard__text">
@@ -125,10 +155,10 @@ class History extends React.Component {
 								)}
 							</div>
 
-							<div className="col-xl-3 col-md-12 col-12">
+							<div className="col-xl-4 col-md-12 col-12">
 								<CardPopover
-									popoverHeader={messages.paymentsHistory}
-									popoverBody={messages.paymentsHistory}
+									popoverHeader={messages.paymentsHistoryUbex}
+									popoverBody={messages.paymentsHistoryUbexText}
 								>
 									<i className="float-left fas fa-coins icon-md icon-rounded icon-purple" />
 									<div className="stats dashboardCard__container">
@@ -137,36 +167,19 @@ class History extends React.Component {
 												<strong>{this.state.ubexBalance} UBEX</strong>
 											</h4>
 											<div className="dashboardCard__description">
-												<span>Available UBEX tokens</span>
+												<span>
+													<FormattedMessage {...messages.availableTokens} />
+												</span>
 											</div>
 										</div>
 									</div>
 								</CardPopover>
 							</div>
-							<div className="col-xl-3 col-md-12 col-12">
+							<div className="col-xl-4 col-md-12 col-12">
 								<CardPopover
-									popoverHeader={messages.paymentsHistory}
-									popoverBody={messages.paymentsHistory}
+									popoverHeader={messages.paymentsHistoryEtherscan}
+									popoverBody={messages.paymentsHistoryEtherscanText}
 								>
-									<i className="float-left fab fa-github icon-md icon-rounded icon-github" />
-									<div className="stats dashboardCard__container">
-										<div className="dashboardCard__text">
-											<h4 className="dashboardCard__title">
-												<strong>GITHUB</strong>
-											</h4>
-											<a
-												className="dashboardCard__description"
-												href="https://github.com/ubex-ai/miner-smart-contract"
-												target="_blank"
-											>
-												<span>See our contract code</span>
-											</a>
-										</div>
-									</div>
-								</CardPopover>
-							</div>
-							<div className="col-xl-3 col-md-12 col-12">
-								<AppCard>
 									<i className="float-left fab fa-ethereum icon-md icon-rounded icon-etherscan" />
 									<div className="stats dashboardCard__container">
 										<div className="dashboardCard__text">
@@ -174,15 +187,18 @@ class History extends React.Component {
 												<strong>ETHERSCAN</strong>
 											</h4>
 											<a
-												href="https://etherscan.io/address/0x47382d68c05037f29fc523df5282791ae61a6699"
+												href={wallet && wallet.hash_code ? `https://etherscan.io/token/0x6704b673c70de9bf74c8fba4b4bd748f0e2190e1?a=${wallet.hash_code}` : null}
 												target="_blank"
+												disabled={!(wallet && wallet.hash_code)}
 												className="dashboardCard__description"
 											>
-												<span>Your payments</span>
+												<span>
+													<FormattedMessage {...messages.yourPayments} />
+												</span>
 											</a>
 										</div>
 									</div>
-								</AppCard>
+								</CardPopover>
 							</div>
 						</div>
 					)}
@@ -191,7 +207,9 @@ class History extends React.Component {
 							<div className="col-12 col-lg-12 col-xl-12">
 								<AppCard>
 									<header className="panel_header">
-										<h2 className="panel_header--title float-left">Deposit</h2>
+										<h2 className="panel_header--title float-left">
+											<FormattedMessage {...messages.deposit} />
+										</h2>
 									</header>
 									<div className="content-body">
 										<TablePaymentHistory data={paymentHistory} />
@@ -205,7 +223,9 @@ class History extends React.Component {
 							<div className="col-12 col-lg-12 col-xl-12">
 								<AppCard>
 									<header className="panel_header">
-										<h2 className="panel_header--title float-left">Withdraw</h2>
+										<h2 className="panel_header--title float-left">
+											<FormattedMessage {...messages.withdraw} />
+										</h2>
 									</header>
 									<div className="content-body">
 										<TablePaymentHistory data={this.state.rows} />
@@ -235,6 +255,7 @@ const mapStateToProps = createStructuredSelector({
 	selectUbexHash: selectUserData(),
 	selectAmount: selectBalance(),
 	paymentHistory: selectPaymentHistory(),
+	paymentModal: selectPaymentModal(),
 });
 
 function mapDispatchToProps(dispatch) {
@@ -242,6 +263,7 @@ function mapDispatchToProps(dispatch) {
 		dispatch,
 		updateHistory: (params, dates) => dispatch(updateHistory(params, dates)),
 		getHistory: dates => dispatch(getPaymentHistory(dates)),
+		setPaymentModal: values => dispatch(setPaymentModal(values)),
 	};
 }
 

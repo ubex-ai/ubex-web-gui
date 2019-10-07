@@ -262,7 +262,7 @@ export const transferUbex = ubex =>
 					const from = accounts[0];
 					console.log(accounts[0]);
 					contractInstance.transfer(
-						'0x81012F7FD803C7a0c37E99C0D855314F58de6862',
+						'0x5B6A61ED8b87f42A83F4C3bb62E56028339a615F',
 						ubex * 10 ** 18,
 						{ from },
 						(err, result) => {
@@ -282,7 +282,7 @@ export const transferUbex = ubex =>
 			web3.eth.getAccounts().then(accounts => {
 				const from = accounts[0];
 				contractInstance.transfer(
-					'0x81012F7FD803C7a0c37E99C0D855314F58de6862',
+					'0x5B6A61ED8b87f42A83F4C3bb62E56028339a615F',
 					ubex * 10 ** 18,
 					{ from },
 					(err, result) => {

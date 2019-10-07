@@ -5,16 +5,14 @@
  */
 
 import React from 'react';
-import ReactDOM from 'react-dom';
-import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Alert, Col } from 'reactstrap';
+import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Alert } from 'reactstrap';
 import PropTypes from 'prop-types';
 import { FormattedMessage } from 'react-intl';
-import CodeCard from 'components/CodeCard';
 import { Zoom } from 'react-slideshow-image';
 import AdBlockDetect from 'react-ad-block-detect';
+import _ from 'lodash';
 import messages from '../../containers/TradingDesk/messages';
 import RenderNativeBanner from '../../containers/TradingDesk/components/RenderNativeBanner';
-import _ from 'lodash';
 
 const zoomOutProperties = {
 	duration: 5000,
@@ -25,6 +23,21 @@ const zoomOutProperties = {
 	arrows: true,
 };
 
+const clickerStyle = {
+	position: 'absolute',
+	top: 0,
+	left: 0,
+
+	right: 0,
+	bottom: 0,
+	padding: 0,
+	margin: 0,
+	border: 0,
+	overflow: 'hidden',
+	width: '100%',
+	height: '100%',
+	cursor: 'pointer',
+};
 /* eslint-disable react/prefer-stateless-function */
 class PreviewModal extends React.Component {
 	constructor(props) {
@@ -52,12 +65,11 @@ class PreviewModal extends React.Component {
 	}
 
 	render() {
-		const { isOpen, onCancel, msg, title, type, additionalType } = this.props;
-		console.log(this.props)
+		const { isOpen, onCancel, msg, title, type, additionalType, bannerName } = this.props;
 		return (
-			<Modal isOpen={!!isOpen}>
+			<Modal isOpen={!!isOpen} className="w-800">
 				<ModalHeader toggle={onCancel}>
-					<FormattedMessage {...title} />
+					<FormattedMessage {...messages.previewCreative} /> {bannerName ? `(${bannerName})` : null}
 				</ModalHeader>
 				<ModalBody>
 					<AdBlockDetect>
@@ -67,35 +79,36 @@ class PreviewModal extends React.Component {
 							</p>
 						</Alert>
 					</AdBlockDetect>
-					{isOpen &&
-						typeof msg === 'string' &&
-						type === 'display' &&
-						additionalType === 'image' && <img src={msg} alt="preview" />}
-					{isOpen &&
-						typeof msg === 'string' &&
-						type === 'display' &&
-						additionalType === 'html5' && (
-							<iframe
-								style={{
-									maxWidth: 728,
-									width: '100%',
-									maxHeight: 600,
-									height: '-webkit-fill-available',
-									overflow: 'visible',
-								}}
-								className="banners-flex__frame--iframe"
-								frameBorder="0"
-								scrolling="yes"
-								src={msg}
-							/>
-						)}
-					{isOpen &&
-						typeof msg === 'string' &&
-						type === 'video' && (
-							<video controls="controls" style={{ width: '100%' }} autoPlay>
-								<source src={msg} type="video/mp4" />
-							</video>
-						)}
+					<div style={{ textAlign: 'center' }}>
+						{this.props.size && this.props.size.width && this.props.size.height
+							? `Banner size: ${this.props.size.width}x${this.props.size.height}`
+							: null}
+					</div>
+					{isOpen && typeof msg === 'string' && type === 'display' && additionalType === 'image' && (
+						<img style={{ display: 'block', margin: '0 auto' }} src={msg} alt="preview" />
+					)}
+					{isOpen && typeof msg === 'string' && type === 'display' && additionalType === 'html5' && (
+						<iframe
+							style={{
+								maxWidth: 728,
+								maxHeight: 600,
+								height: this.props.size ? this.props.size.height : 'auto',
+								width: this.props.size ? this.props.size.width : 'auto',
+								overflow: 'hidden',
+								margin: '0 auto',
+								display: 'block',
+							}}
+							className="banners-flex__frame--iframe"
+							frameBorder="0"
+							scrolling="yes"
+							src={msg}
+						/>
+					)}
+					{isOpen && typeof msg === 'string' && type === 'video' && (
+						<video controls="controls" style={{ width: '100%' }} autoPlay>
+							<source src={msg} type="video/mp4" />
+						</video>
+					)}
 					{isOpen && typeof msg === 'object' && type === 'native' ? (
 						<RenderNativeBanner
 							icon={this.getImageLink(msg, 'icon')}
@@ -107,24 +120,30 @@ class PreviewModal extends React.Component {
 							callToAction={msg && msg.data ? msg.data.call_to_action : null}
 						/>
 					) : null}
-					{isOpen &&
-						typeof msg === 'object' &&
-						type === 'display' && (
-							<Zoom {...zoomOutProperties}>
-								{msg.map((each, index) => (
-									<div
-										style={{
-											background: `url(${each}) 0% 0% / contain no-repeat`,
-											height: '100%',
-											width: '100%',
-										}}
-									/>
-								))}
-							</Zoom>
-						)}
+					{isOpen && typeof msg === 'object' && type === 'display' && (
+						<Zoom {...zoomOutProperties}>
+							{msg.map((each, index) => (
+								<div
+									style={{
+										background: `url(${each}) 0% 0% / contain no-repeat`,
+										height: '100%',
+										width: '100%',
+									}}
+								/>
+							))}
+						</Zoom>
+					)}
+
+					{!this.props.clickUrl ? null : (
+						<div
+							style={clickerStyle}
+							className="ddd"
+							onClick={e => window.open(this.props.clickUrl, '_blank')}
+						/>
+					)}
 				</ModalBody>
 				<ModalFooter>
-					<Button color="secondary" onClick={onCancel}>
+					<Button color="info" onClick={onCancel}>
 						<FormattedMessage id="app.common.close" />
 					</Button>
 				</ModalFooter>
@@ -133,6 +152,21 @@ class PreviewModal extends React.Component {
 	}
 }
 
-PreviewModal.propTypes = {};
+PreviewModal.propTypes = {
+	type: PropTypes.string.isRequired,
+	additionalType: PropTypes.string.isRequired,
+	title: PropTypes.shape({
+		id: PropTypes.string,
+		defaultMessage: PropTypes.string,
+	}).isRequired,
+	msg: PropTypes.string.isRequired,
+	isOpen: PropTypes.bool,
+	onCancel: PropTypes.bool,
+	clickUrl: PropTypes.string,
+};
+
+PreviewModal.defaultProps = {
+	isOpen: false,
+};
 
 export default PreviewModal;

@@ -5,23 +5,40 @@
  */
 
 import React from 'react';
-import { Alert, Col, Row } from 'reactstrap';
-import { FormattedMessage, injectIntl } from 'react-intl';
-import AdBlockDetect from 'react-ad-block-detect';
-import messages from '../../messages';
-import AppCard from 'components/AppCard';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
+import { Alert, Col, Row } from 'reactstrap';
+import { FormattedMessage, injectIntl } from 'react-intl';
+import _ from 'lodash';
 import { createStructuredSelector } from 'reselect';
+import DOMPurify from 'dompurify';
+import AdBlockDetect from 'react-ad-block-detect';
+import AppCard from 'components/AppCard';
+import AppSafeframe from 'components/AppSafeframe';
+import RenderNativeBanner from 'containers/TradingDesk/components/RenderNativeBanner';
+import getGeneratedPageURL from 'utils/getBlob';
+import messages from '../../messages';
 import { creativesSelectors, selectAdSize } from '../../selectors';
 import { creativeCollectionActions } from '../../actions';
-import _ from 'lodash';
-import RenderNativeBanner from 'containers/TradingDesk/components/RenderNativeBanner';
-import getGeneratedPageURL from '../../../../utils/getBlob';
-import DOMPurify from 'dompurify';
+
 // import PropTypes from 'prop-types';
 // import styled from 'styled-components';
 
+const clickerStyle = {
+	position: 'absolute',
+	top: 0,
+	left: 0,
+
+	right: 0,
+	bottom: 0,
+	padding: 0,
+	margin: 0,
+	border: 0,
+	overflow: 'hidden',
+	width: '100%',
+	height: '100%',
+	cursor: 'pointer',
+};
 /* eslint-disable react/prefer-stateless-function */
 class CreativeBannerList extends React.Component {
 	constructor(props) {
@@ -53,7 +70,6 @@ class CreativeBannerList extends React.Component {
 				params: { idCreative },
 			},
 		} = this.props;
-
 		const creative = creatives.filter(c => c.id === parseInt(idCreative, 10));
 		const { banners } = creative && creative.length ? creative[0] : [];
 		let type;
@@ -75,7 +91,7 @@ class CreativeBannerList extends React.Component {
 							<div className="page-title">
 								<div className="float-left">
 									<h1 className="title">
-										<FormattedMessage {...messages.listCreativeBanners} />
+										<FormattedMessage {...messages.listCreativeBanners} /> ({creative[0].data.name})
 									</h1>
 								</div>
 							</div>
@@ -94,7 +110,8 @@ class CreativeBannerList extends React.Component {
 				<Col>
 					<AppCard>
 						<div className="banners-flex">
-							{banners && banners.length && type !== 'native' && type !== 'other'
+							{type === 'display' ? banners.map(b => <AppSafeframe html={b.src} size={b.size} />) : null}
+							{banners && banners.length && type !== 'native' && type !== 'other' && type !== 'display'
 								? banners
 										.sort((a, b) => {
 											const aWidth = a.width;
@@ -106,24 +123,33 @@ class CreativeBannerList extends React.Component {
 											if (aWidth > aHeight && aWidth > bWidth) return -1;
 											return 0;
 										})
-										.map((item, i) => (
-											<div className="banners-flex__frame">
-												<label className="banners-flex__frame--label">
-													Banner size: {item.width}x{item.height}
-												</label>
-												<iframe
-													className="banners-flex__frame--iframe"
-													title={i}
-													width={this.getAdSize(item.ad_size).width}
-													height={this.getAdSize(item.ad_size).height}
-													id={i}
-													frameBorder="0"
-													scrolling="yes"
-													style={{ border: '0 none transparent' }}
-													src={item.aws_s3_location}
-												/>
-											</div>
-										))
+										.map((item, i) => {
+											return (
+												<div className="banners-flex__frame">
+													<label className="banners-flex__frame--label">
+														Banner size:{' '}
+														{item.width ? item.width : this.getAdSize(item.ad_size).width}x
+														{item.height
+															? item.height
+															: this.getAdSize(item.ad_size).height}
+													</label>
+													<div className="iframe-container">
+														<iframe
+															className="banners-flex__frame--iframe"
+															title={i}
+															id={i}
+															frameBorder="0"
+															scrolling="yes"
+															style={{ border: '0 none transparent' }}
+															src={item.aws_s3_location}
+														/>
+													</div>
+													{!item.callback_url ? null : (
+														<div style={clickerStyle} onClick={e => window.open(item.callback_url, '_blank')} />
+													)}
+												</div>
+											);
+										})
 								: null}
 							{banners && banners.length && type === 'native' ? (
 								<RenderNativeBanner
@@ -157,9 +183,7 @@ class CreativeBannerList extends React.Component {
 										frameBorder="0"
 										scrolling="yes"
 										style={{ border: '0 none transparent' }}
-										src={getGeneratedPageURL(
-											DOMPurify.sanitize(otherCreative.data.code),
-										)}
+										src={getGeneratedPageURL(DOMPurify.sanitize(otherCreative.data.code))}
 									/>
 								</div>
 							) : null}

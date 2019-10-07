@@ -21,13 +21,33 @@ import { SLOT_STATUS_PAUSE } from 'containers/Publisher/constants';
 import moment from 'moment';
 import messages from './messages';
 import { injectIntl, intlShape } from 'react-intl';
+import createToast from '../../../../utils/toastHelper';
 
 const DateFormatter = ({ value }) =>
 	moment(value)
 		.local()
 		.format('DD-MM-YYYY hh:mm:ss');
 
-const StatusFormatter = ({ value, row }, props) => {
+const StatusFormatter = ({ value, row }, props) => (
+	<div className="custom-control custom-switch slots-table">
+		<input
+			type="checkbox"
+			className="custom-control-input"
+			id={`customSwitch_${row.id}`}
+			defaultChecked={!!((row && row.status === 'active') || row.status === 'moderation')}
+			onClick={() =>
+				(row && row.status === 'active') || row.status === 'moderation'
+					? props.patchSlot(row.id, { status: 'pause' })
+					: props.patchSlot(row.id, { status: 'active' })
+			}
+		/>
+		<label className="custom-control-label" htmlFor={`customSwitch_${row.id}`}>
+			{row.status ? 'On' : 'Off'}
+		</label>
+	</div>
+);
+
+const DetailsFormatter = ({ value, row }, props) => {
 	const data = props.data.find(c => c.id === row.id);
 	const btn = data.loading ? null : (
 		<Button
@@ -39,13 +59,25 @@ const StatusFormatter = ({ value, row }, props) => {
 		</Button>
 	);
 	if (value === 'moderation') {
-		return <span className="badge badge-warning">Moderation</span>;
+		return (
+			<span style={{ borderRadius: '5px' }} className="badge badge-warning">
+				Moderation
+			</span>
+		);
 	}
 	if (value === 'active') {
-		return [<span className="badge badge-success">Online</span>];
+		return [
+			<span style={{ borderRadius: '5px' }} className="badge badge-success">
+				Active
+			</span>,
+		];
 	}
-	if (value === 'danger') {
-		return [<span className="badge badge-danger">Offline</span>];
+	if (value === 'pause') {
+		return [
+			<span style={{ borderRadius: '5px' }} className="badge badge-danger">
+				Pause
+			</span>,
+		];
 	}
 	return null;
 };
@@ -86,6 +118,9 @@ const SettingsFormatter = ({ value, row }, props) => {
 
 const getRowId = row => row.id;
 const DateTypeProvider = props => <DataTypeProvider formatterComponent={DateFormatter} {...props} />;
+const DetailsProvider = props => (
+	<DataTypeProvider formatterComponent={fCProps => DetailsFormatter(fCProps, props)} {...props} />
+);
 const StatusProvider = props => (
 	<DataTypeProvider formatterComponent={fCProps => StatusFormatter(fCProps, props)} {...props} />
 );
@@ -99,8 +134,9 @@ class SlotsTable extends React.Component {
 			rows: null,
 			columns: [
 				{ name: 'name', title: this.props.intl.formatMessage(messages.name) },
+				{ name: 'status', title: this.props.intl.formatMessage(messages.details) },
+				{ name: 'select', title: this.props.intl.formatMessage(messages.status) },
 				{ name: 'ubx', title: 'ID' },
-				{ name: 'status', title: this.props.intl.formatMessage(messages.status) },
 				{ name: 'summary', title: this.props.intl.formatMessage(messages.size) },
 				{ name: 'floor_price_cpm', title: this.props.intl.formatMessage(messages.priceCPM) },
 				{ name: 'updated', title: this.props.intl.formatMessage(messages.dateOfChange) },
@@ -111,7 +147,8 @@ class SlotsTable extends React.Component {
 			pageSize: 10,
 			pageSizes: [5, 10, 15],
 			dateColumn: ['updated'],
-			statusColumn: ['status'],
+			detailsColumn: ['status'],
+			statusColumn: ['select'],
 			settingsColumn: ['id'],
 		};
 		this.changeSorting = sorting => this.setState({ sorting });
@@ -127,6 +164,7 @@ class SlotsTable extends React.Component {
 			pageSize,
 			pageSizes,
 			dateColumn,
+			detailsColumn,
 			statusColumn,
 			settingsColumn,
 		} = this.state;
@@ -146,6 +184,7 @@ class SlotsTable extends React.Component {
 						<IntegratedSorting />
 						<IntegratedPaging />
 						<DateTypeProvider for={dateColumn} />
+						<DetailsProvider for={detailsColumn} {...this.props} />
 						<StatusProvider for={statusColumn} {...this.props} />
 						<SettingsProvider for={settingsColumn} {...this.props} />
 						<Table />

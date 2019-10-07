@@ -1,4 +1,4 @@
-import makeCollectionActions, { makeListActions } from './constants';
+import makeCollectionActions, { makeListActions, makeListByParamsActions } from './constants';
 
 /**
  * Return action creator to dispatch request for collection list
@@ -23,6 +23,15 @@ export const listByDateActionCreator = (url, collection, payload = {}) => {
 			payload,
 			meta: { url },
 		});
+	};
+};
+
+export const listByParamsActionCreator = (url, collection, payload = {}) => {
+	const { request } = makeListByParamsActions(collection);
+	return {
+		type: request,
+		payload,
+		meta: { url },
 	};
 };
 
@@ -75,7 +84,6 @@ export const collectionActionCreator = collection => {
 };
 
 export function makePromiseAction(dispatch, action) {
-	console.log(dispatch, action)
 	return new Promise((resolve, reject) => {
 		dispatch({
 			...action,

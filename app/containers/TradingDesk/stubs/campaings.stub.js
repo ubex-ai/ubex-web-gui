@@ -5,10 +5,10 @@ export default [
 		ctr: '1.34',
 		name: 'Campaign 1',
 		details: 'running',
-		start: moment().format('DD-MM-YYYY'),
+		start: moment().format('DD.MM.YY'),
 		end: moment()
 			.add(7, 'days')
-			.format('DD-MM-YYYY'),
+			.format('DD.MM.YY'),
 		groupId: 1,
 		impressions: 10000,
 		clicks: 5000,
@@ -23,7 +23,7 @@ export default [
 		ctr: '1.24',
 		name: 'Campaign 2',
 		details: 'stopped',
-		start: moment().format('DD-MM-YYYY'),
+		start: moment().format('DD.MM.YY'),
 		end: 'unlimited',
 		impressions: 10000,
 		clicks: 5000,
@@ -42,10 +42,10 @@ export default [
 		impressions: 10000,
 		clicks: 5000,
 		CTR: '1.34',
-		start: moment().format('DD-MM-YYYY'),
+		start: moment().format('DD.MM.YY'),
 		end: moment()
 			.add(7, 'days')
-			.format('DD-MM-YYYY'),
+			.format('DD.MM.YY'),
 		groupId: 1,
 		budget: '1000000',
 		daily_budget: '1000',

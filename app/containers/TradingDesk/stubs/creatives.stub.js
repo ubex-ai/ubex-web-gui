@@ -9,10 +9,10 @@ export default [
 		cpm: '100',
 		eCPM: '200',
 		winrate: '50%',
-		start: moment().format('DD-MM-YYYY'),
+		start: moment().format('DD.MM.YY'),
 		end: moment()
 			.add(7, 'days')
-			.format('DD-MM-YYYY'),
+			.format('DD.MM.YY'),
 		spend: '$1000',
 		impressions: 500,
 		clicks: 200,
@@ -28,10 +28,10 @@ export default [
 		type: 'Display',
 		eCPM: '200',
 		winrate: '50%',
-		start: moment().format('DD-MM-YYYY'),
+		start: moment().format('DD.MM.YY'),
 		end: moment()
 			.add(7, 'days')
-			.format('DD-MM-YYYY'),
+			.format('DD.MM.YY'),
 		spend: '$1000',
 		impressions: 500,
 		clicks: 200,
@@ -47,10 +47,10 @@ export default [
 		cpm: '100',
 		eCPM: '200',
 		winrate: '50%',
-		start: moment().format('DD-MM-YYYY'),
+		start: moment().format('DD.MM.YY'),
 		end: moment()
 			.add(7, 'days')
-			.format('DD-MM-YYYY'),
+			.format('DD.MM.YY'),
 		spend: '$1000',
 		impressions: 500,
 		clicks: 200,

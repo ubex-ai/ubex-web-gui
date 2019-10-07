@@ -3,14 +3,14 @@ import request from 'utils/request';
 import * as actions from './constants';
 import { selectToken } from '../Passport/selectors';
 import getCookie from '../../utils/getCookie';
-
+import { changeLocale } from 'containers/LanguageProvider/actions';
+import { setLanguageLoading } from 'containers/Dashboard/actions';
 const requestHeaders = {
 	'Content-Type': 'application/json',
 	'X-CSRFToken': getCookie('csrftoken'),
 };
 
-
-if(NODE_ENV !== 'production') {
+if (NODE_ENV !== 'production' && NODE_ENV !== 'stage') {
 	requestHeaders['Test-User'] = 'test@test.test';
 }
 
@@ -43,7 +43,26 @@ export function* setWalletHash(action) {
 	}
 }
 
+export function* updateProfile(action) {
+	// eslint-disable-next-line no-undef
+	const requestURL = `${API_URL}/api/userinfo/ `;
+	try {
+		yield put(setLanguageLoading(true));
+		const response = yield call(request, requestURL, {
+			method: 'PATCH',
+			headers: requestHeaders,
+			data: action.payload,
+		});
+		yield put({ type: actions.UPDATE_USER_SUCCESS, payload: response.data });
+		yield put(setLanguageLoading(false));
+		yield fetchData();
+	} catch (error) {
+		yield put(setLanguageLoading(false));
+		yield put({ type: actions.UPDATE_USER_REJECT, error });
+	}
+}
+
 export default function* userPageSaga() {
 	yield takeLatest(actions.FETCH_USER_REQUEST, fetchData);
-	yield takeLatest(actions.UPDATE_USER_REQUEST, setWalletHash);
+	yield takeLatest(actions.UPDATE_USER_REQUEST, updateProfile);
 }

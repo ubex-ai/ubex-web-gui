@@ -47,6 +47,13 @@ export const COUNTER_DEVICES_COLLECTION_NAME = 'counter-devices';
 export const COUNTER_DEVICES_TABLE_COLLECTION_NAME = 'counter-devices-table';
 export const COUNTER_CHANNEL_COLLECTION_NAME = 'counter-channel';
 export const COUNTER_CHANNEL_TABLE_COLLECTION_NAME = 'counter-channel-table';
+export const REGIONS_COLLECTION_NAME = 'regions';
+export const CITIES_COLLECTION_NAME = 'cities';
+export const ONLINE_COUNTERS_COLLECTION_NAME = 'onlineCounters';
+export const PUBLISHERS_CONFIG_COLLECTION_NAME = 'publishersConfig';
+export const GROUPSTATS_COLLECTION_NAME = 'groupStats';
+export const CAMPAIGNREPORT_CARDS_COLLECTION_NAME = 'campaign-report-cards';
+export const FILTERS_COLLECTION_NAME = 'filters';
 
 /** Others * */
 export const SET_CAMPAIGN_FILTER = 'campaignGroupFilters';
@@ -54,7 +61,22 @@ export const SET_ADBLOCK = 'adBlock';
 export const SET_CREATIVE_FILTER = 'creativeFilters';
 export const SET_FAQ_FILTER = 'FAQFilter';
 export const PAY_LINK = 'payLink';
+export const PAYMENT_VARIANTS = 'paymentVariants';
 export const CONTACT_FORM = 'contact-form';
+export const SET_OPENED_GROUP = 'openedGroup';
+export const SET_OPENED_FORMCARD = 'openedFormCards';
+export const SET_ACTIVE_COUNTER_STATS = 'activeCounterStats';
+export const SET_ACTIVE_CAMPAIGN_STATS = 'activeCampaignStats';
+export const SET_FAVORITE_GROUP = 'favoriteGroups';
+export const SET_FAVORITE_CREATIVE = 'favoriteCreatives';
+export const SET_FAVORITE_FILTER = 'favoriteFilters';
+
+/** Sharing * */
+
+export const GROUPSHARING_COLLECTION_NAME = 'groupSharing';
+export const CREATIVESHARING_COLLECTION_NAME = 'creativeSharing';
+export const COUNTERSHARING_COLLECTION_NAME = 'counterSharing';
+export const FILTERSHARING_COLLECTION_NAME = 'filterSharing';
 
 /** List generated constants * */
 export const countersActions = makeListActions(COUNTERS_COLLECTION_NAME);
@@ -73,3 +95,10 @@ export const adSizeActions = makeListActions(ADSIZE_COLLECTION_NAME);
 export const languageActions = makeListActions(LANGUAGE_COLLECTION_NAME);
 export const campaingsActions = makeListActions(CAMPAINGS_COLLECTION_NAME);
 export const groupsActions = makeListActions(CAMPAING_GROUPS_COLLECTION_NAME);
+export const filterActions = makeListActions(FILTERS_COLLECTION_NAME);
+
+export const GET_ONLINE_COUNTERS_REQUEST = 'app/TradingDesk/GET_ONLINE_COUNTERS_REQUEST';
+export const GET_ONLINE_COUNTERS_ERROR = 'app/TradingDesk/GET_ONLINE_COUNTERS_ERROR';
+export const GET_ONLINE_COUNTERS_SUCCESS = 'app/TradingDesk/GET_ONLINE_COUNTERS_SUCCESS';
+
+export const CAMPAING_FORM_LOADING_START = 'app/TradingDesk/CAMPAING_FORM_LOADING_START';

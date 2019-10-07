@@ -5,12 +5,17 @@
  */
 
 import React from 'react';
-import { Alert, Collapse, Button } from 'reactstrap';
+import { connect } from 'react-redux';
+import { createStructuredSelector } from 'reselect';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import LinkButton from 'components/LinkButton';
+import { compose } from 'redux';
+import { Alert, Collapse, Button, Spinner } from 'reactstrap';
 import classNames from 'classnames';
+import _ from 'lodash';
+import Progress from 'reactstrap/es/Progress';
 import { FormattedMessage, injectIntl } from 'react-intl';
+import LinkButton from 'components/LinkButton';
 import RemoveModal from 'components/RemoveModal';
 import InlineEditField from 'components/InlineEditField';
 import messages from 'containers/TradingDesk/messages';
@@ -19,22 +24,19 @@ import CreativesStub from 'containers/TradingDesk/stubs/creatives.stub';
 import TablesawControls from 'components/UbxTablesawControls';
 import { campaingCollectionActions, creativeCollectionActions } from 'containers/TradingDesk/actions';
 import { creativesSelectors, filteringGroups, selectGroupFilters } from 'containers/TradingDesk/selectors';
-import { connect } from 'react-redux';
-import { createStructuredSelector } from 'reselect';
-import { compose } from 'redux';
-import moment from 'moment';
 import formatDateToUTC from 'utils/formatDateToUTC';
 import createToast from 'utils/toastHelper';
 import validateInteger from 'utils/validateInteger';
 import { makePromiseAction } from 'utils/CollectionHelper/actions';
-import CreativeTypeModal from 'containers/TradingDesk/components/CreativeTypeModal';
-import _ from 'lodash';
 import AddCreativeToCampaignModal from '../AddCreativeToCampaignModal';
-import { image, native, other, video } from '../../variables/creative-pics';
 
 const CamppaignWrapper = styled.div`
 	display: flex;
 	margin-top: -1rem !important;
+	.alert {
+		margin-top: 10px;
+		border-radius: 5px;
+	}
 `;
 let locked = false;
 let lastCall = false;
@@ -45,6 +47,7 @@ class CampaingsList extends React.Component {
 
 		this.state = {
 			collapse: [],
+			activeInlineEditField: null,
 			nextDisabled: false,
 			prevDisabled: true,
 			maxActiveColumns: 12,
@@ -57,16 +60,32 @@ class CampaingsList extends React.Component {
 				{ key: 'name', label: messages.name, preventHidden: true },
 				{ key: 'details', label: messages.details },
 				{ key: 'status', label: messages.status },
+				{ key: 'creatives', label: messages.creatives },
 				{ key: 'startEnd', label: messages.dateStartEnd },
 				{ key: 'impressions', label: messages.impressions },
 				{ key: 'clicks', label: messages.clicks },
 				{ key: 'CTR', label: messages.CTR },
+				{ key: 'CPC', label: messages.CPC },
 				{ key: 'budget', label: messages.spentBudget },
-				{ key: 'daily_budget', label: messages.spentDailyCap },
-				{ key: 'creatives', label: messages.creatives },
-				{ key: 'date', label: messages.created, preventHidden: false },
+				/* { key: 'daily_budget', label: messages.spentDailyCap }, */
 				{ key: 'controls', preventHidden: true },
 			],
+			statuses: {
+				draft: 'Draft',
+				moderation: 'Moderation',
+				moderation_error: 'Moderation error',
+				ready: 'Ready',
+				paused: 'Paused',
+				activating: 'Activating',
+				delayed: 'Delayed',
+				running: 'Running',
+				deactivating: 'Deactivating',
+				stopped: 'Stopped',
+				archive: 'Archive',
+				insufficient_funds: 'Insufficient funds',
+				no_creatives: 'No creatives',
+				no_banners: 'No banners',
+			},
 		};
 
 		this.state.activeColumns = this.state.columns
@@ -97,35 +116,33 @@ class CampaingsList extends React.Component {
 	}
 
 	setMaxColumnsDependOnWindowWidth() {
-		if (window.innerWidth >= 1900) {
-			this.setMaxActiveColumns(12);
-		} else if (window.innerWidth >= 1800) {
-			this.setMaxActiveColumns(11);
-		} else if (window.innerWidth >= 1700) {
-			this.setMaxActiveColumns(10);
-		} else if (window.innerWidth >= 1500) {
-			this.setMaxActiveColumns(9);
-		} else if (window.innerWidth >= 1280) {
-			this.setMaxActiveColumns(8);
-		} else if (window.innerWidth >= 1180) {
-			this.setMaxActiveColumns(7);
-		} else if (window.innerWidth >= 1060) {
-			this.setMaxActiveColumns(6);
-		} else if (window.innerWidth >= 990) {
-			this.setMaxActiveColumns(5);
-		} else if (window.innerWidth >= 950) {
-			this.setMaxActiveColumns(8);
-		} else if (window.innerWidth >= 880) {
-			this.setMaxActiveColumns(7);
-		} else if (window.innerWidth >= 760) {
-			this.setMaxActiveColumns(6);
-		} else if (window.innerWidth >= 560) {
-			this.setMaxActiveColumns(4);
-		} else if (window.innerWidth >= 460) {
-			this.setMaxActiveColumns(3);
+		let width;
+		if (window.outerWidth - window.innerWidth > 100) {
+			width = window.innerWidth;
 		} else {
-			this.setMaxActiveColumns(2);
+			width = window.outerWidth;
 		}
+
+		const resolutions = {
+			1900: 11,
+			1600: 10,
+			1500: 9,
+			1440: 8,
+			1366: 7,
+			1280: 6,
+			1180: 5,
+			990: 7,
+			950: 6,
+			905: 5,
+			800: 4,
+			560: 3,
+			460: 2,
+		};
+		let colsNumber = 12;
+		Object.keys(resolutions)
+			.reverse()
+			.forEach(key => (parseInt(key) > width ? (colsNumber = resolutions[key]) : null));
+		this.setMaxActiveColumns(colsNumber);
 	}
 
 	runOnScroll(evt) {
@@ -247,8 +264,10 @@ class CampaingsList extends React.Component {
 						marginBottom: 0,
 						background: selected ? '#e4e407' : 'transparent',
 					}}
+					className="nameText"
 				>
 					{campaign.name}
+					<br />
 					<span> ID: {campaign.id}</span>
 				</p>
 			</div>
@@ -256,178 +275,334 @@ class CampaingsList extends React.Component {
 	}
 
 	renderCampaingsColumns(campaign) {
-		const { filter, filterSelector, patchCampaign } = this.props;
+		const { filter, filterSelector, patchCampaign, permissions, campaignStats, campaignStatsLoading } = this.props;
+		const spent = 0;
 		const { campaigns } = filter;
 		const { searchWord, request } = filterSelector;
+		const warningStates = [
+			'moderation',
+			'pause',
+			'activating',
+			'stopped',
+			'insufficient_funds',
+			'no_creatives',
+			'no_banners',
+		];
+		const successStates = ['ready', 'running'];
+		const dangerStates = ['moderation_error', 'delayed'];
+		const infoStates = ['draft'];
+		const secondaryStates = ['deactivating', 'archive'];
 		const colorClass = classNames({
-			running: campaign.details === 'running',
-			stopped: campaign.details === 'stopped',
-			waiting: campaign.details === 'waiting',
+			warning: warningStates.includes(campaign.state),
+			danger: dangerStates.includes(campaign.state),
+			success: successStates.includes(campaign.state),
+			info: infoStates.includes(campaign.state),
+			secondary: secondaryStates.includes(campaign.state),
 		});
-		return this.state.columns.filter(c => this.isColumnVisible(c.key)).map(({ key }) => {
-			if (key === 'date') {
-				return (
-					<div
-						key={key}
-						onClick={e => {
-							e.preventDefault();
-							this.toggle(campaign.id);
-						}}
-						className={`campaign-table__cell campaign-table__cell--date campaign-table__cell--${colorClass}`}
-					>
-						{moment(campaign.created).format('DD-MM-YYYY HH:mm')}
-					</div>
-				);
-			}
-			// Name column layout
-			// #e4e407
-			if (key === 'name') {
-				const isSelect = campaigns.some(camp => camp.id === campaign.id) && (searchWord || request);
-				return this.renderNameColumn(campaign, isSelect);
-			}
-			// details column layout
-			if (key === 'details') {
-				return (
-					<div
-						key={key}
-						className={`campaign-table__cell campaign-table__cell--details campaign-table__cell--${colorClass}`}
-					>
-						{/* <FormattedMessage {...messages[campaign.details]} /> */}
-					</div>
-				);
-			}
-			// status column layout
-			if (key === 'status') {
-				return (
-					<div key={key} className="campaign-table__cell campaign-table__cell--status">
-						<div className="custom-control custom-switch">
-							<input
-								type="checkbox"
-								className="custom-control-input"
-								id={`customSwitch_${campaign.id}`}
-								checked={!!(campaign && campaign.status === 'active')}
-								onClick={() =>
-									campaign && campaign.status === 'active'
-										? patchCampaign(campaign.id, { status: 'disabled' }).then(() => {
-												createToast('success', 'Campaign status successfully changed!');
-										  })
-										: patchCampaign(campaign.id, { status: 'active' }).then(() => {
-												createToast('success', 'Campaign status successfully changed!');
-										  })
-								}
-							/>
-							<label className="custom-control-label" htmlFor={`customSwitch_${campaign.id}`}>
-								{campaign.status ? 'On' : 'Off'}
-							</label>
+		const stats = _.find(campaignStats, ['id', campaign.id]);
+		return this.state.columns
+			.filter(c => this.isColumnVisible(c.key))
+			.map(({ key }) => {
+				// Name column layout
+				// #e4e407
+				if (key === 'name') {
+					const isSelect = campaigns.some(camp => camp.id === campaign.id) && (searchWord || request);
+					return this.renderNameColumn(campaign, isSelect);
+				}
+				// details column layout
+				if (key === 'details') {
+					return (
+						<div key={key} className="campaign-table__cell campaign-table__cell--details">
+							<div className={`badge badge-${colorClass}`} style={{ borderRadius: '5px' }}>
+								{this.state.statuses[campaign.state]}
+							</div>
 						</div>
-					</div>
-				);
-			}
-			// Name column layout
-			if (key === 'startEnd') {
-				return (
-					<div key={key} className="campaign-table__cell campaign-table__cell--startEnd">
-						<InlineEditField
-							size="xs"
-							type="date-range"
-							forceHide={this.state.forceHide}
-							value={{
-								startDate: campaign && campaign.start_date ? campaign.start_date : '2019-01-01',
-								endDate: campaign && campaign.end_date ? campaign.end_date : 'unlimited',
-							}}
-							onSave={val => {
-								patchCampaign(campaign.id, {
-									start_date: formatDateToUTC(val.startDate).format('YYYY-MM-DDTHH:mm'),
-									end_date: formatDateToUTC(val.endDate).format('YYYY-MM-DDTHH:mm'),
-								}).then(() => {
-									createToast('success', 'Campaign dates successfully changed!');
-								});
-							}}
-						/>
-					</div>
-				);
-			}
-			if (key === 'daily_budget') {
-				return (
-					<div
-						key={key}
-						className="campaign-table__cell campaign-table__cell--editable campaign-table__cell--daily_budget"
-					>
-						<span>$0 /</span>{' '}
-						<InlineEditField
-							size="xs"
-							type="price"
-							value={campaign && campaign.daily_budget ? campaign.daily_budget : 0}
-							forceHide={this.state.forceHide}
-							validation={val => validateInteger(val)}
-							onSave={val => {
-								patchCampaign(campaign.id, { daily_budget: val }).then(() => {
-									createToast('success', 'Campaign daily budget successfully changed!');
-								});
-							}}
-						/>
-					</div>
-				);
-			}
-			if (key === 'budget') {
-				return (
-					<div
-						key={key}
-						className="campaign-table__cell campaign-table__cell--editable campaign-table__cell--budget"
-					>
-						<span>$0 /</span>{' '}
-						<InlineEditField
-							size="xs"
-							type="price"
-							value={campaign && campaign.budget ? campaign.budget : 0}
-							forceHide={this.state.forceHide}
-							validation={val => validateInteger(val)}
-							onSave={val => {
-								patchCampaign(campaign.id, { budget: val }).then(() => {
-									createToast('success', 'Campaign budget successfully changed!');
-								});
-							}}
-						/>
-					</div>
-				);
-			}
-			if (key === 'controls') {
-				return (
-					<div key={key} className="campaign-table__cell campaign-table__cell--controls">
-						<LinkButton
-							to={`/app/campaign/${campaign.id}/edit`}
-							className="dots pull-right ml-2 background-transparent add_button"
-							size="xs"
-							title="Edit campaign"
+					);
+				}
+				if (key === 'impressions') {
+					return (
+						<div key={key} className={`campaign-table__cell campaign-table__cell--${key}`}>
+							{stats ? `${stats.impressions}` : 0}{' '}
+							{campaignStatsLoading && this.props.groupLoading ? (
+								<Spinner size="sm" color="info" />
+							) : null}
+						</div>
+					);
+				}
+				if (key === 'clicks') {
+					return (
+						<div key={key} className={`campaign-table__cell campaign-table__cell--${key}`}>
+							{stats ? `${stats.clicks}` : 0}{' '}
+							{campaignStatsLoading && this.props.groupLoading ? (
+								<Spinner size="sm" color="info" />
+							) : null}
+						</div>
+					);
+				}
+				if (key === 'CTR') {
+					return (
+						<div key={key} className={`campaign-table__cell campaign-table__cell--${key}`}>
+							{stats ? `${stats.CTR}%` : 0}{' '}
+							{campaignStatsLoading && this.props.groupLoading ? (
+								<Spinner size="sm" color="info" />
+							) : null}
+						</div>
+					);
+				}
+
+				if (key === 'CPC') {
+					return (
+						<div key={key} className={`campaign-table__cell campaign-table__cell--${key}`}>
+							{stats ? `$${stats.CPC}` : 0}{' '}
+							{campaignStatsLoading && this.props.groupLoading ? (
+								<Spinner size="sm" color="info" />
+							) : null}
+						</div>
+					);
+				}
+				// status column layout
+				if (key === 'status') {
+					return (
+						<div key={key} className="campaign-table__cell campaign-table__cell--status">
+							<div className="custom-control custom-switch">
+								<input
+									type="checkbox"
+									className="custom-control-input"
+									id={`customSwitch_${campaign.id}`}
+									defaultChecked={!!(campaign && campaign.status === 'active')}
+									onClick={() =>
+										campaign && campaign.status === 'active'
+											? patchCampaign(campaign.id, { status: 'disabled' }).then(() => {
+													createToast('success', 'Campaign status successfully changed!');
+											  })
+											: patchCampaign(campaign.id, { status: 'active' }).then(() => {
+													createToast('success', 'Campaign status successfully changed!');
+											  })
+									}
+								/>
+								<label className="custom-control-label" htmlFor={`customSwitch_${campaign.id}`} />
+							</div>
+						</div>
+					);
+				}
+				// Name column layout
+				if (key === 'startEnd') {
+					return (
+						<div key={key} className="campaign-table__cell campaign-table__cell--startEnd">
+							<InlineEditField
+								key={campaign.start_date + campaign.id}
+								size="xs"
+								type="date-range"
+								forceHide={this.state.forceHide}
+								value={{
+									startDate: campaign && campaign.start_date ? campaign.start_date : '2019-01-01',
+									endDate: campaign && campaign.end_date ? campaign.end_date : 'unlimited',
+								}}
+								onSave={val => {
+									patchCampaign(campaign.id, {
+										start_date: val.startDate
+											? formatDateToUTC(val.startDate).format('YYYY-MM-DDTHH:mm')
+											: null,
+										end_date: val.endDate
+											? formatDateToUTC(val.endDate).format('YYYY-MM-DDTHH:mm')
+											: null,
+									}).then(() => {
+										createToast('success', 'Campaign dates successfully changed!');
+									});
+								}}
+								permissions={permissions}
+							/>
+						</div>
+					);
+				}
+				if (key === 'daily_budget') {
+					return (
+						<div
+							key={key}
+							className="campaign-table__cell campaign-table__cell--editable campaign-table__cell--daily_budget"
 						>
-							<i className="fas fa-edit size-11" />
-						</LinkButton>
-						<Button
-							onClick={() => this.setState({ addCreativeToCampaign: campaign.id })}
-							className="dots plus pull-right ml-1 background-transparent add_button"
-							size="xs"
-							title="Add creatives to group"
+							<div className="campaign-table__column-wrapper">
+								<span
+									style={
+										campaign.daily_budget > 0 && (spent * 100) / campaign.daily_budget >= 90
+											? { color: '#f4516c' }
+											: null
+									}
+								>
+									${spent}
+								</span>
+								/{' '}
+								<InlineEditField
+									key={campaign.daily_budget + campaign.id}
+									size="xs"
+									type="price"
+									value={campaign && campaign.daily_budget ? campaign.daily_budget : 0}
+									forceHide={this.state.forceHide}
+									validation={val => validateInteger(val)}
+									onSave={val => {
+										patchCampaign(campaign.id, { daily_budget: val }).then(() => {
+											createToast('success', 'Campaign daily budget successfully changed!');
+										});
+									}}
+									permissions={permissions}
+								/>
+							</div>
+							<Progress
+								color={spent === campaign.daily_budget ? 'danger' : 'success'}
+								className="campaign-table__cell--progress"
+								value={campaign.daily_budget !== 0 ? (spent * 100) / campaign.daily_budget : 0}
+							/>
+						</div>
+					);
+				}
+				if (key === 'budget') {
+					return (
+						<div
+							key={key}
+							className="campaign-table__cell campaign-table__cell--editable campaign-table__cell--budget"
 						>
-							<i className="fas fa-plus-circle size-11" />
-						</Button>
-						<Button
-							onClick={() => this.setState({ removeCampaign: campaign.id })}
-							className="dots pull-right ml-1 background-transparent add_button"
-							size="xs"
-							title="Remove campaign"
+							<div className="campaign-table__column-wrapper">
+								<span
+									style={
+										campaign.budget > 0 && (spent * 100) / campaign.budget >= 90
+											? { color: '#f4516c' }
+											: null
+									}
+								>
+									{stats ? `$${stats.spent}` : 0}{' '}
+									{campaignStatsLoading && this.props.groupLoading ? (
+										<Spinner size="sm" color="info" />
+									) : null}{' '}
+									/
+								</span>{' '}
+								<InlineEditField
+									key={campaign.budget + campaign.id}
+									size="xs"
+									type="price"
+									value={campaign && campaign.budget ? campaign.budget : 0}
+									forceHide={this.state.forceHide}
+									validation={val => validateInteger(val)}
+									onSave={val => {
+										patchCampaign(campaign.id, { budget: val }).then(() => {
+											createToast('success', 'Campaign budget successfully changed!');
+										});
+									}}
+									permissions={permissions}
+								/>
+							</div>
+							<Progress
+								color={stats && stats.spent >= campaign.budget ? 'danger' : 'success'}
+								className="campaign-table__cell--progress"
+								value={((stats ? stats.spent : 0) * 100) / campaign.budget}
+							/>
+						</div>
+					);
+				}
+				if (key === 'controls' && permissions) {
+					return (
+						<div key={key} className="campaign-table__cell campaign-table__cell--controls">
+							{window.innerWidth < 576 ? (
+								<div
+									className="custom-control custom-switch"
+									style={{
+										position: 'relative',
+										top: '3px',
+									}}
+								>
+									<input
+										type="checkbox"
+										className="custom-control-input"
+										id={`customSwitch_${campaign.id}`}
+										defaultChecked={!!(campaign && campaign.status === 'active')}
+										onClick={() =>
+											campaign && campaign.status === 'active'
+												? patchCampaign(campaign.id, { status: 'disabled' }).then(() => {
+														createToast('success', 'Campaign status successfully changed!');
+												  })
+												: patchCampaign(campaign.id, { status: 'active' }).then(() => {
+														createToast('success', 'Campaign status successfully changed!');
+												  })
+										}
+									/>
+									<label className="custom-control-label" htmlFor={`customSwitch_${campaign.id}`} />
+								</div>
+							) : null}
+
+							{window.innerWidth > 576 ? (
+								<LinkButton
+									to={`/app/creatives/reportByCampaign/${campaign.id}`}
+									size="xs"
+									className="dots plus button-radius-5 float-right ml-1 background-transparent"
+									title="Statistics"
+								>
+									<i className="fal fa-chart-bar" />
+								</LinkButton>
+							) : null}
+							<LinkButton
+								to={`/app/campaign/${campaign.id}/edit`}
+								className="dots pull-right ml-1 background-transparent add_button"
+								size="xs"
+								title="Edit campaign"
+							>
+								<i className="fal fa-edit" />
+							</LinkButton>
+							{window.innerWidth > 576 ? (
+								<Button
+									onClick={() => this.setState({ removeCampaign: campaign.id })}
+									className="dots pull-right ml-1 background-transparent add_button"
+									size="xs"
+									title="Remove campaign"
+								>
+									<i className="fal fa-trash" />
+								</Button>
+							) : null}
+						</div>
+					);
+				}
+				if (key === 'controls' && !permissions) {
+					return (
+						<div key={key} className="campaign-table__cell campaign-table__cell--controls">
+							<LinkButton
+								to={`/app/campaign/${campaign.id}/see`}
+								className="dots pull-right ml-2 background-transparent add_button"
+								size="xs"
+								title="See campaign"
+							>
+								<i className="fal fa-eye" />
+							</LinkButton>
+						</div>
+					);
+				}
+				if (key === 'creatives') {
+					return (
+						<div
+							key={key}
+							className="campaign-table__cell campaign-table__cell--editable campaign-table__cell--creatives"
 						>
-							<i className="fas fa-remove size-11" />
-						</Button>
+							<div className="d-inline-block">{campaign.creatives.length}</div>
+							&nbsp;
+							<div className="d-inline-block">
+								<div className="d-inline-block">[</div>
+								<div
+									className="d-inline-block plus"
+									onClick={() =>
+										permissions ? this.setState({ addCreativeToCampaign: campaign.id }) : null
+									}
+								>
+									+
+								</div>
+								<div className="d-inline-block">]</div>
+							</div>
+						</div>
+					);
+				}
+				return (
+					<div key={key} className={`campaign-table__cell campaign-table__cell--${key}`}>
+						{this.getCampaingCellValue(campaign, key)}
+						{key === 'CTR' ? '%' : ''}
 					</div>
 				);
-			}
-			return (
-				<div key={key} className={`campaign-table__cell campaign-table__cell--${key}`}>
-					{this.getCampaingCellValue(campaign, key)}
-					{key === 'CTR' ? '%' : ''}
-				</div>
-			);
-		});
+			});
 	}
 
 	getCampaingCellValue(campaign, key) {
@@ -452,71 +627,131 @@ class CampaingsList extends React.Component {
 		});
 	}
 
+	patchCampaignCreative({ campaignId, creativeId, data, callback, msg }) {
+		const { campaigns, patchCampaign, getCreatives, patchCreative } = this.props;
+		const campaign = _.find(campaigns, ['id', campaignId]);
+		const creatives = campaign.creatives.map(c => (c.value !== creativeId ? c : { ...c, ...data }));
+		patchCampaign(campaignId, { creatives })
+			.then(() => {
+				createToast('success', msg);
+				callback();
+			})
+			.catch(e => console.error(e));
+	}
+
 	changeCreativeStartDate(campaignId, creativeId, date) {
-		const { campaigns } = this.props;
-		const campaign = campaigns.filter(c => c.id === campaignId);
-		const campaignCreatives = campaign[0].creatives;
-		const creatives = campaignCreatives.filter(c => c.value !== creativeId);
-		const selectedCreative = _.find(campaignCreatives, { value: creativeId });
-		creatives.push({
-			value: creativeId,
-			start_date: formatDateToUTC(date).format('YYYY-MM-DDTHH:mm'),
-			end_date: selectedCreative.end_date,
+		this.patchCampaignCreative({
+			campaignId,
+			creativeId,
+			callback: this.props.getCampaigns,
+			msg: 'Creative Start Date succefully changed!',
+			data: {
+				start_date: date ? formatDateToUTC(date).format('YYYY-MM-DDTHH:mm') : null,
+			},
 		});
-		this.props.patchCampaign(campaignId, { creatives }).then(() => {
-			createToast('success', 'Creative Start Date succefully changed!');
+	}
+
+	changeCreativeStatus(campaignId, creativeId, status) {
+		this.patchCampaignCreative({
+			campaignId,
+			creativeId,
+			callback: this.props.getCreatives,
+			msg: 'Creative status succefully changed!',
+			data: {
+				status,
+			},
 		});
 	}
 
 	changeCreativeEndDate(campaignId, creativeId, date) {
-		const { campaigns } = this.props;
-		const campaign = campaigns.filter(c => c.id === campaignId);
-		const campaignCreatives = campaign[0].creatives;
-		const creatives = campaignCreatives.filter(c => c.value !== creativeId);
-		const selectedCreative = _.find(campaignCreatives, { value: creativeId });
-		creatives.push({
-			value: creativeId,
-			start_date: selectedCreative.start_date,
-			end_date: formatDateToUTC(date).format('YYYY-MM-DDTHH:mm'),
-		});
-		this.props.patchCampaign(campaignId, { creatives }).then(() => {
-			createToast('success', 'Creative Start Date succefully changed!');
+		this.patchCampaignCreative({
+			campaignId,
+			creativeId,
+			callback: this.props.getCreatives,
+			msg: 'Creative End Date succefully changed!',
+			data: {
+				end_date: date ? formatDateToUTC(date).format('YYYY-MM-DDTHH:mm') : null,
+			},
 		});
 	}
 
 	removeCreativeFromCampaign(campaignId, id) {
-		const { campaigns } = this.props;
-		const campaign = campaigns.filter(c => c.id === campaignId);
-		const campaignCreatives = campaign[0].creatives;
-		const creatives = campaignCreatives.filter(c => c.value !== id);
-		this.props.patchCampaign(campaignId, { creatives }).then(() => {
-			createToast('success', 'Creative succefully removed from campaign!');
+		const { campaigns, patchCampaign } = this.props;
+		const campaign = _.find(campaigns, ['id', campaignId]);
+		const creatives = campaign.creatives.filter(c => c.value !== id);
+		patchCampaign(campaignId, { creatives }).then(() => {
+			createToast('success', 'Creative successfully removed from campaign!');
+			this.props.getCampaigns();
+			this.props.getCreatives();
 		});
 	}
 
 	renderCampaigns(campaign) {
-		const { creatives } = this.props;
-		const creativesArray = creatives.filter(s => campaign.creatives.some(camp => camp.value === s.id));
+		const { creatives, permissions, campaignStats } = this.props;
+		const stats = _.find(campaignStats, ['id', campaign.id]);
+		const creativesArray = creatives.filter(s => s.campaigns.includes(campaign.id));
 		return (
 			<div className="panel panel-default" key={campaign.id}>
-				<div className="panel-heading">
-					<h4 className="panel-title">
+				<div className="panel-heading" key={campaign.id + campaign.id}>
+					<h4 className="panel-title" key={campaign.id}>
 						<a
 							className={`accordion-toggle${this.state.collapse === campaign.id ? ' collapsed' : ''}`}
 							id={`accordion_${campaign.id + 1}`}
+							key={`accordion_${campaign.id + 1}`}
 						>
-							<div className="campaign-table__content">{this.renderCampaingsColumns(campaign)}</div>
+							<div className="campaign-table__content" key={campaign.id}>
+								{this.renderCampaingsColumns(campaign)}
+							</div>
 						</a>
 					</h4>
 				</div>
-				<Collapse isOpen={this.state.collapse === campaign.id}>
-					<div className="panel-body">
+				<Collapse isOpen={this.state.collapse === campaign.id} key={campaign.id}>
+					<div className="panel-body" key={campaign.id}>
+						<nav className="nav nav-pills nav-fill campaign-pills" style={{ width: '100%' }}>
+							<div className="nav-item nav-link campaign-stats-pills">
+								<span>
+									<span>Impress.: </span>
+								</span>{' '}
+								<strong>
+									<span>{stats && stats.impressions ? stats.impressions : 0}</span>
+								</strong>
+							</div>
+							<div className="nav-item nav-link campaign-stats-pills">
+								<span>
+									<span>Clicks: </span>
+								</span>{' '}
+								<strong>
+									<span>{stats && stats.clicks ? stats.clicks : 0}</span>
+								</strong>
+							</div>
+							<div className="nav-item nav-link campaign-stats-pills">
+								<span>
+									<span>CTR: </span>
+								</span>{' '}
+								<strong>
+									<span>{stats && stats.CTR ? stats.CTR : 0}</span>
+								</strong>
+							</div>
+							<div className="nav-item nav-link campaign-stats-pills">
+								<span>
+									<span>Spent: </span>
+								</span>{' '}
+								<strong>
+									<span>{stats && stats.spent ? stats.spent : 0}</span>
+								</strong>
+							</div>
+						</nav>
 						{creativesArray && creativesArray.length ? (
 							<CampaignCreativeTable
+								key={campaign.id}
+								campaignId={campaign.id}
 								data={creativesArray}
 								creativesWithDates={campaign.creatives}
 								changeCreativeName={(id, name) => this.changeCreativeName(id, name)}
 								changeCreativeCPM={(id, cpm) => this.changeCreativeCPM(id, cpm)}
+								changeCreativeStatus={(id, status) => {
+									this.changeCreativeStatus(campaign.id, id, status);
+								}}
 								onClickRemoveEntry={id => this.removeCreativeFromCampaign(campaign.id, id)}
 								changeCreativeStartDate={(id, dates) =>
 									this.changeCreativeStartDate(campaign.id, id, dates)
@@ -524,15 +759,17 @@ class CampaingsList extends React.Component {
 								changeCreativeEndDate={(id, dates) =>
 									this.changeCreativeEndDate(campaign.id, id, dates)
 								}
+								permissions={permissions}
 							/>
 						) : (
-							<div>
+							<div key={campaign.id}>
 								<FormattedMessage {...messages.noCreatives} />
 								<Button
 									onClick={() => this.setState({ addCreativeToCampaign: campaign.id })}
 									size="xs"
 									color="info"
 									className="ml-2"
+									key={campaign.id}
 								>
 									Add
 								</Button>
@@ -547,11 +784,13 @@ class CampaingsList extends React.Component {
 	renderHeader() {
 		return (
 			<div className="campaign-table__header">
-				{this.state.columns.filter(c => this.isColumnVisible(c.key)).map(c => (
-					<div key={c.key} className={`campaign-table__cell campaign-table__cell--${c.key}`}>
-						{c.label && <FormattedMessage {...c.label} />}
-					</div>
-				))}
+				{this.state.columns
+					.filter(c => this.isColumnVisible(c.key))
+					.map(c => (
+						<div key={c.key} className={`campaign-table__cell campaign-table__cell--${c.key}`}>
+							{c.label && <FormattedMessage {...c.label} />}
+						</div>
+					))}
 			</div>
 		);
 	}
@@ -563,18 +802,22 @@ class CampaingsList extends React.Component {
 			})
 			.then(() => {
 				createToast('success', 'Creatives succefully added to campaign');
+				this.props.getCampaigns();
+				this.props.getCreatives();
 				this.setState({ addCreativeToCampaign: null });
 			});
 	}
 
 	render() {
-		const { campaigns, creatives } = this.props;
+		const { campaigns, creatives, groupKey } = this.props;
 		return [
-			<CamppaignWrapper>
+			<CamppaignWrapper key={groupKey}>
 				{campaigns && campaigns.length ? (
-					<div className="campaign-table">
+					<div className="campaign-table" key={groupKey}>
 						{this.renderHeader()}
-						{campaigns.map((key, i) => this.renderCampaigns(key))}
+						<div className="campaign-table__campaigns">
+							{campaigns.map((key, i) => this.renderCampaigns(key))}
+						</div>
 					</div>
 				) : (
 					<Alert color="primary">
@@ -588,7 +831,7 @@ class CampaingsList extends React.Component {
 					title={messages.remove}
 					msg={messages.remove}
 				/>
-				{this.props.creatives && this.state.addCreativeToCampaign ? (
+				{creatives && this.state.addCreativeToCampaign ? (
 					<AddCreativeToCampaignModal
 						isOpen={this.state.addCreativeToCampaign}
 						campaigns={campaigns}
@@ -598,9 +841,7 @@ class CampaingsList extends React.Component {
 						onCancel={() => this.setState({ addCreativeToCampaign: null })}
 						title={messages.addCreativeToCampaign}
 						bodyText={messages.selectCreatives}
-						creatives={
-							this.props.creatives ? this.props.creatives.filter(filter => filter.banners.length > 0) : []
-						}
+						creatives={creatives ? creatives.filter(filter => filter.banners.length > 0) : []}
 					/>
 				) : null}
 			</CamppaignWrapper>,
@@ -619,12 +860,13 @@ class CampaingsList extends React.Component {
 
 CampaingsList.propTypes = {
 	creatives: PropTypes.array,
-	filter: PropTypes.array,
-	filterSelector: PropTypes.array,
+	filter: PropTypes.object,
+	filterSelector: PropTypes.object,
 	getCreatives: PropTypes.func,
 	removeCampaign: PropTypes.func,
 	patchCampaign: PropTypes.func,
 	patchCreative: PropTypes.func,
+	permissions: PropTypes.bool,
 };
 const withConnect = connect(
 	createStructuredSelector({
@@ -635,6 +877,7 @@ const withConnect = connect(
 	dispatch => ({
 		dispatch,
 		getCreatives: () => dispatch(creativeCollectionActions.getCollection()),
+		getCampaigns: () => makePromiseAction(dispatch, campaingCollectionActions.getCollection()),
 		removeCampaign: id => makePromiseAction(dispatch, campaingCollectionActions.removeEntry(id)),
 		patchCampaign: (id, values) => makePromiseAction(dispatch, campaingCollectionActions.patchEntry(id, values)),
 		patchCreative: (id, values) => makePromiseAction(dispatch, creativeCollectionActions.patchEntry(id, values)),

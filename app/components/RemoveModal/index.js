@@ -11,14 +11,30 @@ import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import messages from 'containers/TradingDesk/messages';
 
 import { FormattedMessage } from 'react-intl';
+import Spinner from 'reactstrap/es/Spinner';
 /* eslint-disable react/prefer-stateless-function */
 class RemoveModal extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
 			open: false,
+			loading: false,
 		};
 		this.toggle = this.toggle.bind(this);
+	}
+
+	componentDidMount() {
+		this.setState({
+			loading: false,
+		});
+	}
+
+	componentDidUpdate(prevProps, prevState, snapshot) {
+		if (prevProps.isOpen && !this.props.isOpen) {
+			this.setState({
+				loading: false,
+			});
+		}
 	}
 
 	toggle() {
@@ -28,7 +44,7 @@ class RemoveModal extends React.Component {
 	}
 
 	render() {
-		const { isOpen, onSuccess, onCancel, msg, title } = this.props;
+		const { isOpen, onSuccess, onCancel, msg, title, loading } = this.props;
 		return (
 			<Modal isOpen={!!isOpen}>
 				<ModalHeader toggle={onCancel}>
@@ -38,8 +54,14 @@ class RemoveModal extends React.Component {
 					<FormattedMessage {...messages.remove} />
 				</ModalBody>
 				<ModalFooter>
-					<Button color="danger" onClick={() => onSuccess(isOpen)}>
-						<FormattedMessage id="app.common.confirm" />
+					<Button
+						color="danger"
+						onClick={() => {
+							this.setState({ loading: true });
+							onSuccess(isOpen);
+						}}
+					>
+						{!this.state.loading ? <FormattedMessage id="app.common.confirm" /> : <Spinner size="sm" />}
 					</Button>
 					<Button color="secondary" onClick={onCancel}>
 						<FormattedMessage id="app.common.cancel" />

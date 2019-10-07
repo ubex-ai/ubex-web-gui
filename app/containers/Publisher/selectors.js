@@ -12,6 +12,7 @@ import {
 	DSP_COLLECTION_NAME,
 	FAQ_COLLECTION_NAME,
 } from './constants';
+import { campaingsSelectors } from '../TradingDesk/selectors';
 
 /**
  * Direct selector to the publisher state domain
@@ -100,6 +101,24 @@ export const selectSlotsTableFormat = () =>
 	createSelector(
 		slotsSelectors.collectionList(),
 		slotsToTableFormat,
+	);
+
+export const selectHomePageStats = () =>
+	createSelector(
+		selectPublisherDomain,
+		state => state.get('homepage-stats').toJS(),
+	);
+
+export const selectTableHomePageStats = () =>
+	createSelector(
+		selectPublisherDomain,
+		state => state.get('table-homepage-stats').toJS(),
+	);
+
+export const selectInventoryIds = () =>
+	createSelector(
+		inventoriesSelectors.collectionList(),
+		inventories => inventories.map(inv => inv.guid).sort((a, b) => a - b)
 	);
 
 export const selectInventoriesByType = () => {};

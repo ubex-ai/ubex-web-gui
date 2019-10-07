@@ -37,6 +37,17 @@ export const makeAsyncActionsPack = ({ request, error, success }, collection) =>
 	success: makeSpecificActionNameForCollection(success, collection),
 });
 
+
+export const makeListByParamsActions = collection =>
+	makeAsyncActionsPack(
+		{
+			request: GET_COLLECTION_REQUEST,
+			error: GET_COLLECTION_ERROR,
+			success: GET_COLLECTION_SUCCESS,
+		},
+		collection,
+	);
+
 export const makeListActions = collection =>
 	makeAsyncActionsPack(
 		{

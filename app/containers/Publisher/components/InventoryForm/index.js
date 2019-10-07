@@ -40,6 +40,7 @@ class InventoryForm extends React.Component {
 			aliases: [],
 			selectedBlockedCategories: [],
 			selectedBlockedDSP: [],
+			selectedCategories: [],
 			types: [{ id: 1, value: 'ios', label: 'iOS' }, { id: 2, value: 'android', label: 'Android' }],
 			activeInventory: props.activeInventory ? props.activeInventory : {},
 		};
@@ -47,6 +48,7 @@ class InventoryForm extends React.Component {
 		this.formRef = null;
 		this.blockedCategoryListTouched = false;
 		this.blockedDSPTouched = false;
+		this.categoryListTouched = false;
 		this.validate = this.validate.bind(this);
 	}
 
@@ -115,6 +117,9 @@ class InventoryForm extends React.Component {
 					activeInventory.category_blacklist.indexOf(category.id) >= 0 ||
 					userCategoriesBlackList.indexOf(category.id) >= 0,
 			),
+			selectedCategories: activeInventory.categories
+				? categories.filter(category => activeInventory.categories.indexOf(category.id) >= 0)
+				: [],
 			aliases: activeInventory.aliases,
 			selectedBlockedDSP: dsp
 				.map(d => ({ id: d.id, label: d.name, value: d.id }))
@@ -146,6 +151,9 @@ class InventoryForm extends React.Component {
 		if (this.state.aliases && this.state.aliases.length) {
 			errors.aliases = validateAliases(formValues.aliases);
 		}
+		if (!this.state.selectedCategories.length) {
+			errors.categories = 'Required';
+		}
 		return errors;
 	}
 
@@ -156,6 +164,7 @@ class InventoryForm extends React.Component {
 			type: values.type ? values.type : INVENTORY_TYPES.web,
 			aliases: values.aliases ? values.aliases.filter(a => !!a) : [],
 			category_blacklist: this.state.selectedBlockedCategories.map(c => c.id),
+			categories: this.state.selectedCategories.map(c => c.id),
 			dsp_blacklist: this.state.selectedBlockedDSP.map(c => c.id),
 		};
 
@@ -191,7 +200,7 @@ class InventoryForm extends React.Component {
 		return null;
 	}
 
-	renderForm({ handleSubmit, change, errors }) {
+	renderForm({ handleSubmit, values, change, errors }) {
 		const {
 			languages,
 			categories,
@@ -207,6 +216,7 @@ class InventoryForm extends React.Component {
 				onSubmit={args => {
 					this.blockedCategoryListTouched = true;
 					this.blockedDSPTouched = true;
+					this.categoryListTouched = true;
 					return handleSubmit(args);
 				}}
 			>
@@ -236,6 +246,17 @@ class InventoryForm extends React.Component {
 						label={type === 'web' ? messages.domain : messages.bundleId}
 						required={type !== 'web'}
 					/>
+					{type === 'web' && (
+						<IntlFieldGroup
+							name="is_subdomain_accept"
+							inputProps={{
+								type: 'checkbox',
+								values: true,
+								[values.is_subdomain_accept ? 'checked' : false]: values.is_subdomain_accept,
+							}}
+							label={messages.agreement}
+						/>
+					)}
 					{type === 'web' && (
 						<div className="form-group">
 							<Button
@@ -283,6 +304,24 @@ class InventoryForm extends React.Component {
 						label={messages.language}
 						required
 					/>
+					<FormGroup>
+						<Label>
+							<FormattedMessage {...messages.categories} />
+						</Label>
+						<MultiSelect
+							showSelectAll
+							items={categories}
+							selectedItems={this.state.selectedCategories}
+							onChange={selectedCategories => {
+								this.setState({ selectedCategories });
+							}}
+						/>
+						{this.categoryListTouched &&
+							errors.categories && (
+								/* eslint-disable react/jsx-boolean-value */
+								<FormFeedback invalid="true">{errors.categories}</FormFeedback>
+							)}
+					</FormGroup>
 				</AppCard>
 				<AppCard>
 					<h2>Black List</h2>
@@ -405,7 +444,8 @@ const mapStateToProps = createStructuredSelector({
 function mapDispatchToProps(dispatch) {
 	return {
 		addInventory: values => makePromiseAction(dispatch, inventoryCollectionActions.addEntry(values)),
-		updateInventory: (id, values) => makePromiseAction(dispatch, inventoryCollectionActions.updateEntry(id, values)),
+		updateInventory: (id, values) =>
+			makePromiseAction(dispatch, inventoryCollectionActions.updateEntry(id, values)),
 		setActiveInventory: id => dispatch(inventoryCollectionActions.setActiveEntry(id)),
 		unsetActiveInventory: _ => dispatch(inventoryCollectionActions.unsetActiveEntry()),
 		getInventory: id => dispatch(inventoryCollectionActions.getInventory(id)),

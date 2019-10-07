@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { FormGroup, Label, Input, InputGroup, InputGroupAddon, FormFeedback, FormText } from 'reactstrap';
+import { FormGroup, Label, Input, InputGroup, InputGroupAddon, FormFeedback, FormText, CustomInput } from 'reactstrap';
 import { Field } from 'react-final-form';
 import PropTypes from 'prop-types';
 import messages from '../../containers/TradingDesk/components/CampaignForm/messages';
@@ -19,26 +19,49 @@ export class FieldGroup extends React.Component {
 
 	renderRadio() {
 		const { label, labelProps, inputProps, required } = this.props;
-		return <Field {...inputProps}>
-				{({ input, meta }) => <div className="checkbox-wrapper">
-						<Label {...labelProps}>
-							<div>
-								<Input {...inputProps} onChange={e => input.onChange(inputProps.type === 'radio' ? e.target.value : e.target.checked)} invalid={meta.invalid && meta.touched} />
-							</div>
-							<span className="form-check-sign" />
-							<span dangerouslySetInnerHTML={{ __html: label }} />
-							{required && <span style={{ color: '#f00' }}>*</span>}
-						</Label>
+		return (
+			<Field {...inputProps}>
+				{({ input, meta }) => (
+					<div className="checkbox-wrapper">
+						<div>
+							<CustomInput
+								{...inputProps}
+								onChange={e => {
+									input.onChange(inputProps.type === 'radio' ? e.target.value : e.target.checked);
+									inputProps.onChange && typeof inputProps.onChange === 'function'
+										? inputProps.onChange(
+												inputProps.type === 'radio' ? e.target.value : e.target.checked,
+										  )
+										: null;
+								}}
+								invalid={meta.invalid && meta.touched}
+								label={
+									<span>
+										<span dangerouslySetInnerHTML={{ __html: label }} />
+										{required && <span style={{ color: '#f00' }}>*</span>}
+									</span>
+								}
+							/>
+						</div>
+						<span className="form-check-sign" />
 						{this.renderError(meta)}
-					</div>}
-			</Field>;
+					</div>
+				)}
+			</Field>
+		);
 	}
 
 	renderSelect() {
 		const { label, labelProps, inputProps, required, disableDefault } = this.props;
 		return (
 			<div>
-				{label ? <Label {...labelProps}>{label} {required && <span style={{color: '#f00'}}>*</span>}</Label> : ''}
+				{label ? (
+					<Label {...labelProps}>
+						{label} {required && <span style={{ color: '#f00' }}>*</span>}
+					</Label>
+				) : (
+					''
+				)}
 				<Field {...inputProps}>
 					{({ input, meta }) => (
 						<div>
@@ -73,7 +96,13 @@ export class FieldGroup extends React.Component {
 		const { label, labelProps, prepend, inputProps, formText, required } = this.props;
 		return (
 			<div>
-				{label ? <Label {...labelProps}>{label} {required && <span style={{color: '#f00'}}>*</span>}</Label> : ''}
+				{label ? (
+					<Label {...labelProps}>
+						{label} {required && <span style={{ color: '#f00' }}>*</span>}
+					</Label>
+				) : (
+					''
+				)}
 				<Field {...inputProps}>
 					{({ input, meta }) => (
 						<div>
@@ -86,7 +115,11 @@ export class FieldGroup extends React.Component {
 									innerRef={input => (this.projectNameRef = input)}
 								/>
 							</InputGroup>
-							{formText && <FormText color="muted"><FormattedMessage {...formText} /></FormText>}
+							{formText && (
+								<FormText color="muted">
+									<FormattedMessage {...formText} />
+								</FormText>
+							)}
 							{this.renderError(meta)}
 						</div>
 					)}

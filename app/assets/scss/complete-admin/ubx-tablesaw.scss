@@ -2,6 +2,9 @@
 	&__wrapper {
 		display: flex;
 		justify-content: center;
+		@include media-breakpoint-down(sm) {
+			display: none;
+		}
 	}
 	&__navs {
 		display: flex;
@@ -32,6 +35,9 @@
 		}
 	}
 	&__controls {
+		.btn.btn-secondary {
+			border: none;
+		}
 	}
 	&__dots {
 		display: flex;

@@ -65,4 +65,20 @@ export default defineMessages({
 		id: `${scope}.payannotation3`,
 		defaultMessage: 'Follow the system prompts for payment',
 	},
+	selectPayment: {
+		id: `${scope}.selectPayment`,
+		defaultMessage: 'Select payment',
+	},
+	cards: {
+		id: `${scope}.cards`,
+		defaultMessage: 'Credit card',
+	},
+	crypto: {
+		id: `${scope}.crypto`,
+		defaultMessage: 'Cryptocurrency',
+	},
+	bankTransfer: {
+		id: `${scope}.bankTransfer`,
+		defaultMessage: 'Bank transfer',
+	},
 });

@@ -190,7 +190,7 @@ Set the code as close to the top of the page as possible so that it gets loaded 
 	},
 	payattention: {
 		id: `${scope}.payattention`,
-		defaultMessage: 'Attention! The minimum amount of replenishment is $ 500.',
+		defaultMessage: 'Attention! The minimum amount of replenishment is $ 10.',
 	},
 	payannotation: {
 		id: `${scope}.payannotation`,
@@ -306,7 +306,8 @@ Set the code as close to the top of the page as possible so that it gets loaded 
 	},
 	onlineCountersPopoverText: {
 		id: `${scope}.popover.onlineCountersPopoverText`,
-		defaultMessage: 'Shows how many sites have been added to the system and from how many counters we have received data over the last 3 hours',
+		defaultMessage:
+			'Shows how many sites have been added to the system and from how many counters we have received data over the last 3 hours',
 	},
 	makeFirstCounter: {
 		id: `${scope}.makeFirstCounter`,
@@ -392,7 +393,7 @@ Set the code as close to the top of the page as possible so that it gets loaded 
 	},
 	balanceDollar: {
 		id: `${scope}.balanceDollar`,
-		defaultMessage: 'Balance Dollar USA',
+		defaultMessage: 'Balance USD',
 	},
 	availableToken: {
 		id: `${scope}.availableToken`,
@@ -414,8 +415,92 @@ Set the code as close to the top of the page as possible so that it gets loaded 
 		id: `${scope}.TablePayment.method`,
 		defaultMessage: 'Method',
 	},
+	operationType: {
+		id: `${scope}.TablePayment.operationType`,
+		defaultMessage: 'Operation type',
+	},
+	comment: {
+		id: `${scope}.TablePayment.comment`,
+		defaultMessage: 'Comment',
+	},
 	amountTablePayment: {
 		id: `${scope}.TablePayment.amountTablePayment`,
 		defaultMessage: 'Amount',
+	},
+	newVisitors: {
+		id: `${scope}.Table.newVisitors`,
+		defaultMessage: 'New visitors',
+	},
+	paymentsHistoryBalance: {
+		id: `${scope}.paymentsHistory.Balance`,
+		defaultMessage: 'Balance USD',
+	},
+	paymentsHistoryBalanceText: {
+		id: `${scope}.paymentsHistory.BalanceText`,
+		defaultMessage: "Available Balance USD for launching advertising campaigns in the advertiser's office.",
+	},
+	paymentsHistoryUbex: {
+		id: `${scope}.paymentsHistory.Ubex`,
+		defaultMessage: 'Available UBEX tokens',
+	},
+	paymentsHistoryUbexText: {
+		id: `${scope}.paymentsHistory.UbexText`,
+		defaultMessage: "Available Ubex tokens for launching advertising campaigns in the advertiser's office.",
+	},
+	paymentsHistoryGithub: {
+		id: `${scope}.paymentsHistory.Github`,
+		defaultMessage: 'GITHUB',
+	},
+	paymentsHistoryGithubText: {
+		id: `${scope}.paymentsHistory.GithubText`,
+		defaultMessage: 'Check out the source code for our system at GITHUB.',
+	},
+	paymentsHistoryEtherscan: {
+		id: `${scope}.paymentsHistory.Etherscan`,
+		defaultMessage: 'ETHERSCAN',
+	},
+	paymentsHistoryEtherscanText: {
+		id: `${scope}.paymentsHistory.EtherscanText`,
+		defaultMessage: 'You can see the payments in our system in the Ethereum blockchain via ETHERSCAN.',
+	},
+	paymentsHistoryNextPayout: {
+		id: `${scope}.paymentsHistory.NextPayout`,
+		defaultMessage: 'Next Payout',
+	},
+	paymentsHistoryNextPayoutText: {
+		id: `${scope}.paymentsHistory.NextPayoutText`,
+		defaultMessage: 'The date of the next payment of funds accumulated on the balance of the data miner.',
+	},
+	shareCounter: {
+		id: `${scope}.shareCounter`,
+		defaultMessage: 'Share counter',
+	},
+	country: {
+		id: `${scope}.country`,
+		defaultMessage: 'Country',
+	},
+	balanceUSD: {
+		id: `${scope}.paymentsHistory.balanceUSD`,
+		defaultMessage: 'Balance USD',
+	},
+	availableTokens: {
+		id: `${scope}.paymentsHistory.availableTokens`,
+		defaultMessage: 'Available tokens',
+	},
+	yourPayments: {
+		id: `${scope}.paymentsHistory.yourPayments`,
+		defaultMessage: 'Your payments',
+	},
+	deposit: {
+		id: `${scope}.paymentsHistory.deposit`,
+		defaultMessage: 'Deposit',
+	},
+	withdraw: {
+		id: `${scope}.paymentsHistory.withdraw`,
+		defaultMessage: 'Withdraw',
+	},
+	select: {
+		id: `${scope}.select`,
+		defaultMessage: 'Select',
 	},
 });

@@ -28,6 +28,7 @@ import DatePicker from 'react-datepicker';
 import moment from 'moment';
 import CreativeShape from '../../shapes/Creative';
 import messages from '../../messages';
+import LinkButton from 'components/LinkButton';
 
 /* eslint-disable react/prefer-stateless-function */
 class AddCreativeToCampaignModal extends React.Component {
@@ -35,7 +36,13 @@ class AddCreativeToCampaignModal extends React.Component {
 		super(props);
 		this.state = {};
 		props.creatives.map(v => {
-			this.state[v.id] = { value: v.id, start_date: null, end_date: null, selected: false, selectedDates: false };
+			this.state[v.id] = {
+				value: v.id,
+				start_date: moment().toDate(),
+				end_date: null,
+				selected: false,
+				selectedDates: false,
+			};
 		});
 		if (props.isOpen) {
 			const selectedCampaign = props.campaigns.filter(camp => camp.id === props.isOpen);
@@ -43,8 +50,8 @@ class AddCreativeToCampaignModal extends React.Component {
 				selectedCampaign[0].creatives.forEach(c => {
 					this.state[c.value] = {
 						value: c.value,
-						start_date: c.start_date ? moment(c.start_date) : moment(),
-						end_date: c.end_date ? moment(c.end_date) : moment(),
+						start_date: c.start_date ? moment(c.start_date).toDate() : null,
+						end_date: c.end_date ? moment(c.end_date).toDate() : null,
 						selected: true,
 						selectedDates: false,
 					};
@@ -74,9 +81,11 @@ class AddCreativeToCampaignModal extends React.Component {
 		return _.keys(this.state)
 			.filter(v => this.state[v].selected)
 			.map(v => ({
+				id: this.state[v].value,
 				value: this.state[v].value,
 				start_date: this.state[v].start_date,
 				end_date: this.state[v].end_date,
+				status: 'active',
 			}));
 	}
 
@@ -84,7 +93,7 @@ class AddCreativeToCampaignModal extends React.Component {
 		const creative = {
 			value: id,
 			start_date: date,
-			end_date: date,
+			end_date: null,
 			selected: this.state[id].selected,
 			selectedDates: this.state[id].selectedDates,
 		};
@@ -116,7 +125,7 @@ class AddCreativeToCampaignModal extends React.Component {
 	renderEntry(params) {
 		const { id, data, banners } = params;
 
-		if (!data || !banners) {
+		if (!data) {
 			return null;
 		}
 		return (
@@ -136,79 +145,83 @@ class AddCreativeToCampaignModal extends React.Component {
 						Change dates
 					</a>
 				)}
-				{this.state[id].selected &&
-					this.state[id].selectedDates && (
-						<Row className="creative-to-campaign__select-dates mt-2 mb-3">
-							<Col md={6}>
-								<Label className="mb-0">
-									<FormattedMessage {...messages.startDate} />
-								</Label>
-								<DatePicker
-									selected={this.state[id].start_date}
-									selectsStart
-									startDate={this.state[id].start_date}
-									endDate={this.state[id].end_date}
-									onChange={e => this.handleChangeStart(id, e)}
-									showTimeSelect
-									timeFormat="HH:mm"
-									timeIntervals={15}
-									dateFormat="DD.MM.YYYY HH:mm"
-									timeCaption="time"
-									minDate={moment()}
-									minTime={
-										moment().format('DD-MM-YYYY') ===
-										moment(this.state[id].start_date ? this.state[id].start_date : moment()).format(
-											'DD-MM-YYYY',
-										)
-											? moment().hours(this.minTime.hour()).minutes(this.minTime.minutes())
-											: moment().hours(0).minutes(0)
-									}
-									maxTime={moment()
-										.hours(23)
-										.minutes(45)}
-									ref={datepicker => {
-										this.startDatepicker = datepicker;
-									}}
-								/>
-							</Col>
-							<Col md={6}>
-								<Label className="mb-0">
-									<FormattedMessage {...messages.endDate} />
-								</Label>
-								<DatePicker
-									popperClassName="endDatePopper"
-									selected={this.state[id].end_date}
-									selectsEnd
-									startDate={this.state[id].start_date}
-									endDate={this.state[id].end_date}
-									onChange={e => this.handleChangeEnd(id, e)}
-									showTimeSelect
-									popperPlacement="bottom-end"
-									timeFormat="HH:mm"
-									timeIntervals={15}
-									dateFormat="DD.MM.YYYY HH:mm"
-									timeCaption="time"
-									minDate={this.state[id].start_date ? this.state[id].start_date : moment()}
-									minTime={
-										moment(this.state[id].start_date).format('DD-MM-YYYY') ===
-										moment(this.state[id].end_date ? this.state[id].end_date : moment()).format(
-											'DD-MM-YYYY',
-										)
-											? this.minTime.hours(this.minTime.hour()).minutes(this.minTime.minutes())
-											: moment()
-													.hours(0)
-													.minutes(0)
-									}
-									maxTime={moment()
-										.hours(23)
-										.minutes(45)}
-									ref={datepicker => {
-										this.endDatepicker = datepicker;
-									}}
-								/>
-							</Col>
-						</Row>
-					)}
+				{this.state[id].selected && this.state[id].selectedDates && (
+					<Row className="creative-to-campaign__select-dates mt-2 mb-3">
+						<Col md={6}>
+							<Label className="mb-0">
+								<FormattedMessage {...messages.startDate} />
+							</Label>
+							<DatePicker
+								selected={this.state[id].start_date}
+								selectsStart
+								startDate={this.state[id].start_date}
+								endDate={this.state[id].end_date}
+								onChange={e => this.handleChangeStart(id, e)}
+								showTimeSelect
+								timeFormat="HH:mm"
+								timeIntervals={15}
+								dateFormat="dd.MM.yyyy HH:mm"
+								timeCaption="time"
+								minDate={moment()}
+								minTime={
+									moment().format('DD.MM.YY') ===
+									moment(this.state[id].start_date ? this.state[id].start_date : moment()).format(
+										'DD-MM-YYYY',
+									)
+										? moment()
+												.hours(this.minTime.hour())
+												.minutes(this.minTime.minutes())
+										: moment()
+												.hours(0)
+												.minutes(0)
+								}
+								maxTime={moment()
+									.hours(23)
+									.minutes(45)}
+								ref={datepicker => {
+									this.startDatepicker = datepicker;
+								}}
+							/>
+						</Col>
+						<Col md={6}>
+							<Label className="mb-0">
+								<FormattedMessage {...messages.endDate} />
+							</Label>
+							<DatePicker
+								popperClassName="endDatePopper"
+								selected={this.state[id].end_date}
+								selectsEnd
+								startDate={this.state[id].start_date}
+								endDate={this.state[id].end_date}
+								onChange={e => this.handleChangeEnd(id, e)}
+								placeholderText={!this.state[id].end_date ? 'unlimited' : null}
+								showTimeSelect
+								popperPlacement="bottom-end"
+								timeFormat="HH:mm"
+								timeIntervals={15}
+								dateFormat="dd.MM.yyyy HH:mm"
+								timeCaption="time"
+								minDate={this.state[id].start_date ? this.state[id].start_date : moment()}
+								minTime={
+									moment(this.state[id].start_date).format('DD.MM.YY') ===
+									moment(this.state[id].end_date ? this.state[id].end_date : moment()).format(
+										'DD-MM-YYYY',
+									)
+										? this.minTime.hours(this.minTime.hour()).minutes(this.minTime.minutes())
+										: moment()
+												.hours(0)
+												.minutes(0)
+								}
+								maxTime={moment()
+									.hours(23)
+									.minutes(45)}
+								ref={datepicker => {
+									this.endDatepicker = datepicker;
+								}}
+							/>
+						</Col>
+					</Row>
+				)}
 			</div>
 		);
 	}
@@ -223,14 +236,15 @@ class AddCreativeToCampaignModal extends React.Component {
 			<Modal isOpen={!!isOpen} className="creative-to-campaign">
 				<ModalHeader toggle={onCancel}>
 					<FormattedMessage {...title} />
-					<p className="creative-to-campaign__header">Select creatives to connect it with your campaing:</p>
 				</ModalHeader>
 				<ModalBody className="creative-to-campaign__content">
 					{creatives && creatives.length ? (
 						<div>
 							<fieldset>
 								{this.creativeTypes.map(type => [
-									this.renderType(type),
+									creatives.filter(f => f.creative_type === type).length
+										? this.renderType(type)
+										: null,
 									creatives
 										.filter(f => f.creative_type === type)
 										.map(creative => this.renderEntry(creative)),
@@ -238,15 +252,20 @@ class AddCreativeToCampaignModal extends React.Component {
 							</fieldset>
 						</div>
 					) : (
-						<Alert color="danger">
-							<FormattedMessage {...messages.noCreatives} />
-						</Alert>
+						<div>
+							<Alert color="danger">
+								<FormattedMessage {...messages.noCreatives} />
+							</Alert>
+							<LinkButton to={`/app/creatives/list/add`} color="success">
+								<FormattedMessage {...messages.createFirstCreative} />
+							</LinkButton>
+						</div>
 					)}
 				</ModalBody>
 				<ModalFooter>
 					{creatives && creatives.length ? (
 						<Button color="success" onClick={() => onSubmit(this.getSelected())}>
-							<FormattedMessage id="app.common.submit" />
+							<FormattedMessage id="app.common.save" />
 						</Button>
 					) : null}
 					<Button color="primary" onClick={() => onCancel()}>

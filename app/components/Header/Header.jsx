@@ -126,10 +126,24 @@ class Header extends React.Component {
 		const { wallet } = selectUbexHash;
 		if (wallet && wallet.hash_code) {
 			this.getBalance(wallet.hash_code);
+			this.interval = setInterval(() => {
+				this.getBalance(wallet.hash_code);
+			}, 60000);
 		}
 	}
 
-	componentDidUpdate(e) {
+	componentWillUnmount() {
+		window.removeEventListener('resize', this.updateColor.bind(this));
+		clearInterval(this.interval);
+	}
+
+	componentDidUpdate(e, prevState, snapshot) {
+		const { selectUbexHash } = this.props;
+		const { wallet } = selectUbexHash;
+		if (wallet && wallet.hash_code !== e.selectUbexHash.wallet.hash_code) {
+			this.getBalance(wallet.hash_code);
+		}
+
 		if (
 			window.innerWidth < 993 &&
 			e.history.location.pathname !== e.location.pathname &&
@@ -150,8 +164,8 @@ class Header extends React.Component {
 
 	async getBalance(hash) {
 		const ua = window.navigator.userAgent.toLowerCase();
-		const is_ie = /trident/gi.test(ua) || /msie/gi.test(ua);
-		if (!is_ie) {
+		const isIe = /trident/gi.test(ua) || /msie/gi.test(ua) || /edge/gi.test(ua);
+		if (!isIe) {
 			const { balance, err } = await getUBEXBalance(hash);
 			if (err) {
 				console.log(err);
@@ -194,7 +208,11 @@ class Header extends React.Component {
 			>
 				<div className="offset-sidebar" />
 
-				<div className="navbar-wrap" id="navbarSupportedContent">
+				<div
+					className={`navbar-wrap ${NODE_ENV !== 'production' ? 'test-mode' : 'null'}`}
+					id="navbarSupportedContent"
+				>
+					{NODE_ENV !== 'production' && <div className="test-mode--data">Test data</div>}
 					<div className="navbar-toggle">
 						<button
 							type="button"
@@ -213,55 +231,64 @@ class Header extends React.Component {
 						className="for_mobile"
 					>
 						<DropdownToggle className="gray-color" caret>
+							<i className="fal fa-bullhorn" />
 							Trading Desk
 						</DropdownToggle>
 						<DropdownMenu>
-							<a className="dropdown-item" href="#">
+							<a className="dropdown-item disabled">
+								<i className="fal fa-users-cog" />
 								Data Platform
 							</a>
-							{/* <a className="dropdown-item" href="https://mining.ubex.com">
-								Data Mining
-							</a> */}
 							<a className="dropdown-item" href="https://network.ubex.com">
+								<i className="fal fa-laptop-code" />
 								Ad Network
+							</a>
+							<a className="dropdown-item" href="https://mining.ubex.com">
+								<i className="fal fa-server" />
+								Data Mining
 							</a>
 						</DropdownMenu>
 					</Dropdown>
 					<ul className="navbar-nav mr-auto buttons__header">
 						<li className="nav-item">
 							<a href="https://desk.ubex.com" className="adv active">
-								<i className="fas fa-bullhorn" />
+								<i className="fal fa-bullhorn" />
 								<span>Trading Desk</span>
 							</a>
 						</li>
 						<li className="nav-item">
-							<a href="#" className="dmp">
-								<i className="fas fa-users" />
+							<a className="dmp disabled">
+								<i className="fal fa-users-cog" />
 								<span>Data Platform</span>
 							</a>
 						</li>
 						<li className="nav-item active">
 							<a href="https://network.ubex.com" className="pub">
-								<i className="fas fa-laptop-code" />
+								<i className="fal fa-laptop-code" />
 								<span>Ad Network</span>
 							</a>
 						</li>
-						{/* <li className="nav-item">
+						<li className="nav-item">
 							<a href="https://mining.ubex.com" className="mining ">
-								<i className="fas fa-server" />
+								<i className="fal fa-server" />
 								<span>Data Mining</span>
 							</a>
-						</li> */}
+						</li>
 					</ul>
 					<ul className="navbar-nav users__header float-right">
 						{document.location.origin !== MINING_URL && (
 							<li className="nav-item nav-pay">
-								<Link className="nav-link" to="/app/payments/history">
+								<div
+									className="nav-link"
+									onClick={() =>
+										this.props.setPaymentModal({ display: !this.props.paymentModal.display })
+									}
+								>
 									<span className="tab-label">USD</span>
 									<span className="badge badge-success">
 										<span>{amount || '0'}</span>
 									</span>
-								</Link>
+								</div>
 							</li>
 						)}
 						{CRYPTO_MODE && (
@@ -304,7 +331,7 @@ class Header extends React.Component {
 									</div>
 									<h6 className="pay-popover__title">Benefits of paying with UBEX</h6>
 									<ul className="pay-popover__list">
-										<li>Bonus 5% on ad impressions</li>
+										<li>Bonus 35% on ad impressions</li>
 										<li>No commission</li>
 										<li>Cross-Border Payments</li>
 										<li>Deferred payment</li>
@@ -317,25 +344,35 @@ class Header extends React.Component {
 								nav
 								isOpen={this.state.moneyddOpen}
 								toggle={e => this.moneyddToggle(e)}
-								className="userdd"
+								className="userdd userddd"
 							>
 								<DropdownToggle caret nav>
-									<i className="fas fa-coins" />
+									<i className="fal fa-coins" />
 								</DropdownToggle>
-								<DropdownMenu right className="pt-0">
+								<DropdownMenu right className="pt-0 paymentHeader">
 									<div className="desktop_none">
-										<DropdownItem className="mt-0">
-											<li className="nav-item d-xl-block mt-0">
-												<Link className="nav-link" to="/app/payments/history">
+										<DropdownItem className="mt-1 paymentHeader__menu">
+											<li className="nav-item d-xl-block mt-0" id="usdAmount">
+												<div
+													className="nav-link"
+													onClick={() =>
+														this.props.setPaymentModal({
+															display: !this.props.paymentModal.display,
+														})
+													}
+												>
 													<span className="tab-label">USD</span>
 													<span className="badge badge-success">
 														<span>{amount || '0'}</span>
 													</span>
-												</Link>
+												</div>
 											</li>
+										</DropdownItem>
+										<DropdownItem className="mt-0 paymentHeader__menu">
 											{CRYPTO_MODE && (
 												<li
-													className="nav-item d-xl-block"
+													className="nav-item d-xl-block mt-0"
+													id="ubxAmount"
 													onClick={() => this.setState({ openWalletConnector: true })}
 												>
 													<div className="nav-link">
@@ -359,32 +396,31 @@ class Header extends React.Component {
 								className="userdd"
 							>
 								<DropdownToggle caret nav>
-									<i className="fa fa-user header__user" />
+									<i className="fal fa-cog header__user" />
 									<span>{this.props.userData && this.props.userData.email}</span>
 								</DropdownToggle>
 								<DropdownMenu right>
 									<a href={`${PASSPORT_URL}/profile`}>
 										<DropdownItem>
-											<i className="fa fa-user" href="#!" />
+											<i className="fal fa-user" href="#!" />
 											<FormattedMessage id="app.navbar.profile" />
 										</DropdownItem>
 									</a>
 									<a href="/accounts/logout/" onClick={e => this.props.onClickLogout(e)}>
 										<DropdownItem>
-											<i className="fa fa-lock" /> <FormattedMessage id="app.navbar.logout" />
+											<i className="fal fa-sign-out-alt" />
+											<FormattedMessage id="app.navbar.logout" />
 										</DropdownItem>
 									</a>
-									<DropdownItem disabled className="desktop_none gray-background">
-										<i className="fa fa-user header__user" />
-										<span>{this.props.userData && this.props.userData.email}</span>
-									</DropdownItem>
 								</DropdownMenu>
 							</Dropdown>
 						</div>
 						<div className="nav-item">
 							<LanguageChanger
-								currentLanguage={this.props.currentLocale}
+								currentLanguage={this.props.userLanguage || this.props.currentLocale}
 								changeLocale={this.props.changeLocale}
+								onChange={values => this.props.updateProfile(values)}
+								loading={this.props.languageLoading}
 							/>
 						</div>
 					</ul>

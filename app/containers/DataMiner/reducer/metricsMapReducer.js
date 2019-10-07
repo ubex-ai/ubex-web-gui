@@ -111,7 +111,7 @@ export const getPaidUBEXObject = (i, { metrics }) =>
 export const getVisitors = (i, totals) => (totals.length !== 0 && totals[0].length !== 0 ? totals[0][i] : 0);
 export const getPaidVisitors = (i, totals) => (totals.length !== 0 && totals[1].length !== 0 ? totals[1][i] : 0);
 export const getFormatData = (i, labels) =>
-	labels.length !== 0 && labels[i] && moment(labels[i]).isValid() ? moment(labels[i]).format('YY-MM-DD') : 'Unknown';
+	labels.length !== 0 && labels[i] && moment(labels[i]).isValid() ? moment(labels[i]).format('DD.MM.YY') : 'Unknown';
 export const getAverage = arrayVisitors =>
 	arrayVisitors && arrayVisitors.length && arrayVisitors.every(isNumber)
 		? arrayVisitors.reduce((a, b) => a + b) / arrayVisitors.length

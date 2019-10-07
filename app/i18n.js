@@ -20,6 +20,7 @@ const frLocaleData = require('react-intl/locale-data/fr');
 const viLocaleData = require('react-intl/locale-data/vi');
 const hiLocaleData = require('react-intl/locale-data/hi');
 const trLocaleData = require('react-intl/locale-data/tr');
+const itLocaleData = require('react-intl/locale-data/it');
 
 const enTranslationMessages = require('./translations/en.json');
 const ruTranslationMessages = require('./translations/ru.json');
@@ -33,6 +34,7 @@ const frTranslationMessages = require('./translations/fr.json');
 const viTranslationMessages = require('./translations/vi.json');
 const hiTranslationMessages = require('./translations/hi.json');
 const trTranslationMessages = require('./translations/tr.json');
+const itTranslationMessages = require('./translations/it.json');
 
 addLocaleData(enLocaleData);
 addLocaleData(ruLocaleData);
@@ -42,6 +44,7 @@ addLocaleData(ptLocaleData);
 addLocaleData(jaLocaleData);
 addLocaleData(deLocaleData);
 addLocaleData(esLocaleData);
+addLocaleData(itLocaleData);
 addLocaleData(frLocaleData);
 addLocaleData(viLocaleData);
 addLocaleData(hiLocaleData);
@@ -63,6 +66,7 @@ const appLocales = [
 	  'vi',
 	  'hi',
   'tr',
+  'it',
 ];
 
 const formatTranslationMessages = (locale, messages) => {
@@ -89,6 +93,7 @@ const translationMessages = {
 	vi: formatTranslationMessages('vi', viTranslationMessages),
 	hi: formatTranslationMessages('hi', hiTranslationMessages),
   tr: formatTranslationMessages('tr', trTranslationMessages),
+  it: formatTranslationMessages('it', itTranslationMessages),
 };
 
 exports.appLocales = appLocales;

@@ -10,6 +10,7 @@ import { FormattedMessage } from 'react-intl';
 import moment from 'moment';
 import AppCard from '../AppCard';
 import messages from './messages';
+import _ from 'lodash';
 // import PropTypes from 'prop-types';
 // import styled from 'styled-components';
 
@@ -49,12 +50,21 @@ class TimeTable extends React.Component {
 			}
 		}
 		if (this.props.initialValues && this.props.initialValues.length) {
+			this.matrix = this.props.initialValues;
 			this.setState({ matrix: this.props.initialValues });
+			this.props.onUpdate(this.props.initialValues);
 		} else {
-			this.selectWorkingTime();
 			this.setState({ matrix: this.matrix, selectedAll: !!this.props.selectAll });
+			this.props.onUpdate(this.matrix);
 		}
-		this.props.onUpdate(this.matrix);
+	}
+
+	componentDidUpdate(prevProps, prevState, snapshot) {
+		if (!_.isEqual(prevProps.initialValues, this.props.initialValues)) {
+			this.matrix = this.props.initialValues;
+			this.setState({ matrix: this.props.initialValues });
+			this.props.onUpdate(this.props.initialValues);
+		}
 	}
 
 	selectTime(i, p) {
@@ -244,7 +254,7 @@ class TimeTable extends React.Component {
 
 	renderDayCell(i, p) {
 		if (p > 0) {
-			return <i className={`fas fa-${this.state.matrix[i][p] ? 'plus' : 'minus'}`} />;
+			return '';
 		}
 		return [
 			<CustomInput
@@ -275,8 +285,8 @@ class TimeTable extends React.Component {
 
 	generateTable() {
 		return (
-			<table className="table dx-g-bs4-table targeting-table">
-				<tbody>
+			<table className="table dx-g-bs4-table targeting-table table-responsive" cellPadding="1">
+				<tbody align="center">
 					{this.state.matrix.map((item, i) => (
 						<tr key={i} id={`tr${i}`}>
 							{this.state.matrix[i].map((prop, p) => (

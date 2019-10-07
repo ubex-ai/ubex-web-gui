@@ -3,7 +3,7 @@ import request from 'utils/request';
 import getCookie from 'utils/getCookie';
 import { setDashboardLoading, setDashboardError } from 'containers/Dashboard/actions';
 import { collectionActionCreator } from './actions';
-import makeCollectionActions from './constants';
+import makeCollectionActions, { makeListByParamsActions } from './constants';
 
 // API_URL from webpack config
 // eslint-disable-next-line no-undef
@@ -46,7 +46,7 @@ export function* restApiRequestHandler({
 		if (isAuth) {
 			requestHeaders['X-CSRFToken'] = getCookie('csrftoken');
 		}
-		if (NODE_ENV !== 'production') {
+		if (NODE_ENV !== 'production' && NODE_ENV !== 'stage') {
 			requestHeaders['Test-User'] = 'test@test.test';
 		}
 		const response = yield call(request, url, {
@@ -350,4 +350,32 @@ export const handleRequestListSaga = (collection, hooks) => {
 export const handleRequestListByDateSaga = (collection, hooks) => {
 	const { getCollection } = makeCollectionActions(collection);
 	return takeEvery(getCollection.request, action => getListByDateRequestHandler(action, getCollection, hooks));
+};
+
+
+export function* getByParamsRequestHandler(
+	{ payload, meta: { url, resolve, reject } },
+	{ success, error },
+	hooks = {},
+) {
+	yield restApiRequestHandler({
+		url: `${API_URL}/${url}/${payload}`,
+		onSuccess: data => put({ type: success, payload: data }),
+		onError: e => put({ type: error, payload: e }),
+		hooks,
+		promise: {
+			resolve,
+			reject,
+		},
+	});
+}
+
+/**
+ * handle get list request for simple list with hook support
+ * @param collection
+ * @param hooks
+ */
+export const handleRequestListByParamsSaga = (collection, hooks) => {
+	const getStats = makeListByParamsActions(collection);
+	return takeEvery(getStats.request, action => getByParamsRequestHandler(action, getStats, hooks));
 };

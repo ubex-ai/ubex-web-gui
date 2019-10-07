@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { toPrettyName } from 'utils/strings';
-
+import { cacheAdapterEnhancer, throttleAdapterEnhancer } from 'axios-extensions';
+import LRUCache from 'lru-cache';
 /**
  * Parses the JSON returned by a network request
  *
@@ -95,6 +96,16 @@ export function getMessageByCode(response) {
 	return statusText || null;
 }
 
+const http = axios.create({
+	adapter: throttleAdapterEnhancer(
+		cacheAdapterEnhancer(axios.defaults.adapter, {
+			enabledByDefault: false,
+			cacheFlag: 'useCache',
+			defaultCache: new LRUCache({ maxAge: 1000 * 60 * 60, max: 500 }),
+		}),
+	),
+});
+
 /**
  * Requests a URL, returning a promise
  *
@@ -105,7 +116,7 @@ export function getMessageByCode(response) {
  */
 export default function request(url, options) {
 	console.log('Async request', url, options);
-	return axios(url, { ...options })
+	return http(url, { ...options })
 		.then(checkStatus)
 		.then(parseJSON)
 		.catch(error => checkStatus(error.response));
