@@ -99,7 +99,7 @@
 		"invariant": "2.2.4",
 		"ip": "1.1.5",
 		"jquery": "3.3.1",
-		"jspdf": "^1.5.3",
+		"jspdf": "^2.3.1",
 		"jspdf-autotable": "^3.2.4",
 		"jstimezonedetect": "^1.0.6",
 		"jvectormap": "2.0.4",
