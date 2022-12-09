@@ -84,7 +84,7 @@
 		"draftjs-to-html": "0.8.4",
 		"empty-module": "0.0.2",
 		"ethers": "^4.0.28",
-		"express": "4.16.4",
+		"express": "4.17.3",
 		"final-form": "^4.11.1",
 		"firebase": "^6.6.1",
 		"font-awesome": "^4.7.0",
